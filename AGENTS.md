@@ -62,12 +62,15 @@ All data exchange must follow `docs/research/sync-protocol-spec.md`:
 
 ## 5. Engineering Discipline & Quality Bar
 
+Strictly adhere to the conventions defined in [`CODING_STANDARDS.md`](CODING_STANDARDS.md).
+
 1. **Test-Driven Development (TDD)**:
    - Write the failing test first before implementing business logic, rating formulas, or sync handlers.
    - Test against the highest testing seam (external behavior, not internal implementation details).
 2. **Tracer-Bullet Vertical Slices**:
    - Deliver complete functional paths (database schema &rarr; API &rarr; UI &rarr; tests) rather than disconnected horizontal layers.
-3. **Zero Quality Downgrades**:
+3. **Zero Quality Downgrades & Code Conventions**:
+   - Follow all conventions in `CODING_STANDARDS.md` (no nested ternaries, guard clauses, strict typing).
    - Never silence linter errors with `@ts-ignore` or `# noqa`.
    - Never skip or delete existing tests to achieve green builds.
    - Preserve comments and architectural rationale.
