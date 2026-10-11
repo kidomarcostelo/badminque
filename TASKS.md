@@ -6,10 +6,22 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-### Active Specification & Implementation Roadmap
+### Active Specification: Badminque MVP Implementation
 | Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **[#12 Spec: Badminque MVP Implementation — Courtside Queueing, Offline Synchronization, and Universal Rating System](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec | 🟡 **Ready for Agent** | Unassigned | Unified MVP specification ready for `/to-tickets` breakdown into tracer-bullet slices. |
+| **[#12 Spec: Badminque MVP Implementation](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec | 🟡 **Ready for Agent** | Unassigned | Parent MVP specification sliced into 8 tracer-bullet vertical tickets below. |
+
+### Implementation Tickets (Tracer-Bullet Slices)
+| Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[#13](https://github.com/kidomarcostelo/badminque/issues/13)** | Foundational Workspace Scaffolding & CI Pipeline | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Turborepo / pnpm monorepo (Next.js PWA + FastAPI), Neon schema migrations, zero-cost CI pipeline. |
+| **[#14](https://github.com/kidomarcostelo/badminque/issues/14)** | Mathematical Rating Engine & Invariant Suite | 🟡 **Ready for Agent** | #13 | Blocked | Pure Python rating calculation engine with Hypothesis property invariants ($R_S/R_D$, weak-link, MOV, decay). |
+| **[#15](https://github.com/kidomarcostelo/badminque/issues/15)** | Tricount-Style Roster Player Management & Offline Check-In | 🟡 **Ready for Agent** | #13 | Blocked | Fast courtside player check-in, search/filter, guest creation with permanent UUIDs, IndexedDB persistence. |
+| **[#16](https://github.com/kidomarcostelo/badminque/issues/16)** | 3-Court Courtside Station Board with 30-Point Quick Scoring | 🟡 **Ready for Agent** | #15 | Blocked | 3-court live grid, rolling independent match dispatch, 30-pt quick scoring presets, 4-player stamina step-off. |
+| **[#17](https://github.com/kidomarcostelo/badminque/issues/17)** | Automated Queue Dispatch & Multi-Policy Matchmaking Engine | 🟡 **Ready for Agent** | #14, #16 | Blocked | Queue priority $Q(i)$, Fair Play, Split & Mix, Ladder, Flighted Tiers, On-Deck 2-slot pre-grouping. |
+| **[#18](https://github.com/kidomarcostelo/badminque/issues/18)** | Touch-First Organizer Overrides, Pair Pinning & Edge Cases | 🟡 **Ready for Agent** | #17 | Blocked | On-Deck Slot 3 custom staging, Custom Match Builder modal, player action sheet, locked pair $\max(t_a, t_b)$ anchoring. |
+| **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | 🟡 **Ready for Agent** | #14, #17 | Blocked | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold. |
+| **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | 🟡 **Ready for Agent** | #19 | Blocked | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
 
 ### Standalone Architectural Tasks
 | Issue | Type | Status | Deliverable / Notes |
