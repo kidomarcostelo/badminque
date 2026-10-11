@@ -12,9 +12,9 @@ This document provides a single-source dashboard of all tasks, active decision t
 | Ticket / Task | Type | Status | Assignee / Branch | Deliverable / Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | **[#8 Research: Recreational Sports Queueing and Fair Rotation Algorithms](https://github.com/kidomarcostelo/badminque/issues/8)** | Research (AFK) | ✅ **Done** | `research/queueing-rotation-algorithms` | [`docs/research/queueing-rotation-algorithms.md`](file:///data/data/com.termux/files/home/repo/badminque/docs/research/queueing-rotation-algorithms.md) |
-| **[#9 Grilling: Rotation Policy State Machines and Court Transitions for 3-Court Badminton](https://github.com/kidomarcostelo/badminque/issues/9)** | Grilling (HITL) | 🟢 **In Progress (Frontier)** | Unassigned | Defines asynchronous court transitions, 4-off stamina rule, and tie-breakers. |
+| **[#9 Grilling: Rotation Policy State Machines and Court Transitions for 3-Court Badminton](https://github.com/kidomarcostelo/badminque/issues/9)** | Grilling (HITL) | ✅ **Done** | kidomarcostelo | Asynchronous rolling dispatch, virtual tiers decoupled from physical courts, tie-breaking, and Organizer co-pilot dispatch state machine. |
 | **[#10 Grilling: Organizer Manual Override, Custom Pair Pinning, and Queue Backfill Edge Cases](https://github.com/kidomarcostelo/badminque/issues/10)** | Grilling (HITL) | 🟢 **In Progress (Frontier)** | Unassigned | Resolves locked pair entry timing, 1-match skip retention, and drag-and-drop overrides. |
-| **[#11 Prototype: Interactive Courtside Queue and Rotation Board](https://github.com/kidomarcostelo/badminque/issues/11)** | Prototype (HITL) | 🔒 **Blocked** (by #9, #10) | Unassigned | Interactive tablet UI prototype for 3-court queue management & quick scoring. |
+| **[#11 Prototype: Interactive Courtside Queue and Rotation Board](https://github.com/kidomarcostelo/badminque/issues/11)** | Prototype (HITL) | 🔒 **Blocked** (by #10) | Unassigned | Interactive tablet UI prototype for 3-court queue management & quick scoring. |
 
 ---
 
