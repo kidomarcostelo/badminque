@@ -6,17 +6,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-### Map: [Courtside Queueing, Rotation, and Matchmaking Engine](https://github.com/kidomarcostelo/badminque/issues/7) (#7)
-*Objective: Complete architectural specification and interactive prototype for courtside doubles queueing, 3-court rotation policies (Fair Play, Split & Mix, Court Ladder, Flighted Tiers), player availability states, and organizer manual overrides.*
-
-| Ticket / Task | Type | Status | Assignee / Branch | Deliverable / Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **[#8 Research: Recreational Sports Queueing and Fair Rotation Algorithms](https://github.com/kidomarcostelo/badminque/issues/8)** | Research (AFK) | ✅ **Done** | `research/queueing-rotation-algorithms` | [`docs/research/queueing-rotation-algorithms.md`](file:///data/data/com.termux/files/home/repo/badminque/docs/research/queueing-rotation-algorithms.md) |
-| **[#9 Grilling: Rotation Policy State Machines and Court Transitions for 3-Court Badminton](https://github.com/kidomarcostelo/badminque/issues/9)** | Grilling (HITL) | ✅ **Done** | kidomarcostelo | Asynchronous rolling dispatch, virtual tiers decoupled from physical courts, tie-breaking, and Organizer co-pilot dispatch state machine. |
-| **[#10 Grilling: Organizer Manual Override, Custom Pair Pinning, and Queue Backfill Edge Cases](https://github.com/kidomarcostelo/badminque/issues/10)** | Grilling (HITL) | ✅ **Done** | kidomarcostelo | Asynchronous locked pair entry, frictionless drag overrides, bypassed player wait preservation, and 1-match skip priority anti-starvation. |
-| **[#11 Prototype: Interactive Courtside Queue and Rotation Board](https://github.com/kidomarcostelo/badminque/issues/11)** | Prototype (HITL) | ✅ **Done** | `kidomarcostelo` / `prototype/courtside-queue-board` | [`prototypes/courtside-queue-board.html`](file:///data/data/com.termux/files/home/repo/badminque/prototypes/courtside-queue-board.html) & [`docs/research/courtside-queue-board-spec.md`](file:///data/data/com.termux/files/home/repo/badminque/docs/research/courtside-queue-board-spec.md) on branch `prototype/courtside-queue-board` |
-
----
+*All decision tickets across foundational maps (#1 MVP and #7 Queueing Engine) have been fully resolved.*
 
 ### Standalone Architectural Tasks
 | Issue | Type | Status | Deliverable / Notes |
@@ -26,6 +16,19 @@ This document provides a single-source dashboard of all tasks, active decision t
 ---
 
 ## ✅ Completed Milestones & Deliverables
+
+### Map: [Courtside Queueing, Rotation, and Matchmaking Engine](https://github.com/kidomarcostelo/badminque/issues/7) (#7 - CLOSED)
+*Objective: Complete architectural specification and interactive prototype for courtside doubles queueing, 3-court rotation policies (Fair Play, Split & Mix, Court Ladder, Flighted Tiers), player availability states, and organizer manual overrides.*
+
+| Issue | Title | Type | Status | Branch / Artifact |
+| :--- | :--- | :--- | :--- | :--- |
+| **[#7](https://github.com/kidomarcostelo/badminque/issues/7)** | Map: Courtside Queueing, Rotation, and Matchmaking Engine | Map | ✅ Closed | All 4 queueing and rotation child tickets completed |
+| **[#8](https://github.com/kidomarcostelo/badminque/issues/8)** | Research: Recreational Sports Queueing and Fair Rotation Algorithms | Research | ✅ Closed | [`docs/research/queueing-rotation-algorithms.md`](file:///data/data/com.termux/files/home/repo/badminque/docs/research/queueing-rotation-algorithms.md) on branch `research/queueing-rotation-algorithms` |
+| **[#9](https://github.com/kidomarcostelo/badminque/issues/9)** | Grilling: Rotation Policy State Machines and Court Transitions | Grilling | ✅ Closed | Resolution in GitHub #9 (Rolling dispatch, virtual tiers, tie-breaks, co-pilot state machine) |
+| **[#10](https://github.com/kidomarcostelo/badminque/issues/10)** | Grilling: Organizer Manual Override, Custom Pair Pinning, and Queue Backfill Edge Cases | Grilling | ✅ Closed | Resolution in GitHub #10 (Locked pair arrival anchoring, frictionless overrides, 1-skip anti-starvation) |
+| **[#11](https://github.com/kidomarcostelo/badminque/issues/11)** | Prototype: Interactive Courtside Queue and Rotation Board | Prototype | ✅ Closed | [`prototypes/courtside-queue-board.html`](file:///data/data/com.termux/files/home/repo/badminque/prototypes/courtside-queue-board.html) & [`docs/research/courtside-queue-board-spec.md`](file:///data/data/com.termux/files/home/repo/badminque/docs/research/courtside-queue-board-spec.md) on branch `prototype/courtside-queue-board` |
+
+---
 
 ### Map: [Badminque MVP — Club-First Badminton Rating App](https://github.com/kidomarcostelo/badminque/issues/1) (#1 - CLOSED)
 *Objective: Foundational system architecture, rating mathematics, offline synchronization, player claiming, and courtside check-in UX.*
