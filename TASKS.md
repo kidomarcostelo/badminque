@@ -6,7 +6,10 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-*All decision tickets across foundational maps (#1 MVP and #7 Queueing Engine) have been fully resolved.*
+### Active Specification & Implementation Roadmap
+| Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **[#12 Spec: Badminque MVP Implementation — Courtside Queueing, Offline Synchronization, and Universal Rating System](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec | 🟡 **Ready for Agent** | Unassigned | Unified MVP specification ready for `/to-tickets` breakdown into tracer-bullet slices. |
 
 ### Standalone Architectural Tasks
 | Issue | Type | Status | Deliverable / Notes |
