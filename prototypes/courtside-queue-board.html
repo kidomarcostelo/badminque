@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Badminque Prototype: Interactive Courtside Queue & Rotation Board</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #121a2d;
+      --card-hover: #1b2640;
+      --surface: #0f172a;
+      --border: #23304a;
+      --border-focus: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --court-green: #064e3b;
+      --court-line: #10b981;
+      --court-accent: #059669;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #a855f7;
+      --indigo: #6366f1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; display: flex; flex-direction: column; }
+
+    /* Top App Header */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .badge-primary { background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    .header-controls { display: flex; align-items: center; gap: 10px; }
+    .mode-select {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      min-height: 38px;
+    }
+    .btn-primary { background: var(--accent); color: #04101e; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-success { background: var(--success); color: #032b12; }
+    .btn-success:hover { background: #16a34a; }
+    .btn-warning { background: var(--warning); color: #2e1a00; }
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--card-hover); border-color: var(--text-muted); }
+    .btn-sm { padding: 6px 10px; font-size: 0.75rem; min-height: 30px; border-radius: 6px; }
+
+    /* Scenario Walkthrough Tabs */
+    .scenario-bar {
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 24px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      align-items: center;
+    }
+    .scenario-label { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 6px; }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Scenario Instruction Banner */
+    .scenario-banner {
+      background: #0f1a30;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .scenario-text { color: #cbd5e1; }
+    .scenario-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* Main Courtside Layout */
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Section Headers */
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-title h2 { font-size: 1.15rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .section-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* 3-Court Grid */
+    .courts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1024px) {
+      .courts-grid { grid-template-columns: 1fr; }
+    }
+
+    .court-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .court-card.status-in_match { border-color: rgba(16, 185, 129, 0.5); }
+    .court-card.status-proposed { border-color: rgba(245, 158, 11, 0.6); }
+    .court-card.status-score_entry { border-color: rgba(168, 85, 247, 0.6); }
+
+    .court-header {
+      padding: 12px 16px;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .court-name { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .court-tier-pill {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid #334155;
+    }
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-idle { background: #1e293b; color: var(--text-muted); }
+    .badge-in_match { background: rgba(16, 185, 129, 0.2); color: var(--court-line); border: 1px solid var(--court-line); }
+    .badge-proposed { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    .badge-score_entry { background: rgba(168, 85, 247, 0.2); color: var(--purple); border: 1px solid var(--purple); }
+
+    .court-body {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 230px;
+    }
+
+    /* Active Court Board */
+    .match-board { display: flex; flex-direction: column; gap: 12px; }
+    .match-teams {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      background: rgba(6, 78, 59, 0.35);
+      border: 1px dashed var(--court-line);
+      border-radius: 8px;
+      padding: 12px 10px;
+    }
+    .team-box { display: flex; flex-direction: column; gap: 6px; }
+    .team-player {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .player-name { font-weight: 600; color: #fff; }
+    .player-rating { font-size: 0.7rem; color: var(--accent); font-weight: 700; background: rgba(56, 189, 248, 0.1); padding: 2px 4px; border-radius: 4px; }
+    .vs-badge { font-weight: 900; font-size: 0.75rem; color: var(--text-dim); text-align: center; }
+
+    .match-timer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      padding: 6px 12px;
+      background: #0b1120;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .timer-display { font-family: monospace; font-size: 1.15rem; font-weight: 800; color: var(--court-line); }
+
+    /* Co-Pilot Proposed Card */
+    .proposed-card {
+      background: #182238;
+      border: 1px solid var(--warning);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .proposed-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--warning); font-weight: 700; }
+    
+    .pair-capsule-box {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .pair-capsule {
+      background: #1e293b;
+      padding: 8px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pair-label { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+    .pair-names { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+
+    /* 30-Point Quick Score Drawer */
+    .score-entry-card {
+      background: #1b1633;
+      border: 1px solid var(--purple);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .score-presets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .score-btn {
+      background: #281d4a;
+      border: 1px solid #4c2d82;
+      color: #e9d5ff;
+      padding: 10px 4px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s;
+    }
+    .score-btn:hover { background: #3b286b; border-color: var(--purple); }
+
+    /* Extended On-Deck Staging Section (Up to 3 Matches / Pair-Grouped) */
+    .deck-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 1024px) {
+      .deck-grid { grid-template-columns: 1fr; }
+    }
+
+    .deck-match-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+    .deck-match-card.priority-1 { border-color: rgba(56, 189, 248, 0.4); }
+    .deck-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .pair-slot-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pair-row {
+      background: #182238;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pair-info { display: flex; flex-direction: column; gap: 2px; }
+    .pair-names-strong { font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .pair-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+    .deck-actions-row {
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    /* Player Bench & Queue Table */
+    .queue-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .queue-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .filter-pills { display: flex; gap: 6px; }
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .filter-btn.active { background: var(--accent); color: #04101e; border-color: var(--accent); }
+
+    .queue-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .queue-table th {
+      text-align: left;
+      padding: 10px;
+      color: var(--text-dim);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .queue-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #162035;
+      vertical-align: middle;
+    }
+    .queue-table tr:hover { background: rgba(30, 41, 59, 0.4); }
+
+    .player-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .tag-queued { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+    .tag-playing { background: rgba(16, 185, 129, 0.15); color: var(--court-line); }
+    .tag-skipped { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .tag-resting { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+    .tag-waiting { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+    .pinned-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #312e81;
+      color: #a5b4fc;
+      border: 1px solid #4338ca;
+    }
+
+    /* Tap-To-Assign Modal / Sheet */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 540px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .close-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+
+    .modal-select-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* System Audit Log Drawer at Bottom */
+    .audit-bar {
+      background: #090e1a;
+      border-top: 1px solid var(--border);
+      padding: 10px 24px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 40;
+    }
+    .audit-latest { color: #38bdf8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%; }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="brand">
+      <h1>🏸 Badminque Courtside</h1>
+      <span class="badge-primary">30-Point Scoring · 3 Courts</span>
+    </div>
+
+    <div class="header-controls">
+      <button class="btn btn-purple" onclick="openCustomMatchModal()">⚡ [+ Custom Match Builder]</button>
+
+      <select id="policySelect" class="mode-select" onchange="switchPolicy(this.value)">
+        <option value="FAIR_PLAY_PEGBOARD">Fair Play Pegboard (FIFO Equal Matches)</option>
+        <option value="SPLIT_AND_MIX">Split & Mix (Partner Balancing)</option>
+        <option value="COURT_LADDER">Court Ladder (Virtual Apex Tiers)</option>
+        <option value="FLIGHTED_TIERS">Flighted Skill Tiers (Dynamic Courts)</option>
+      </select>
+
+      <button class="btn btn-outline btn-sm" onclick="advanceSimulatedTime(15)">⏩ +15m Clock</button>
+      <button class="btn btn-outline btn-sm" onclick="resetToInitialState()">🔄 Reset</button>
+    </div>
+  </header>
+
+  <!-- Scenario Walkthrough Navigation Bar -->
+  <nav class="scenario-bar">
+    <span class="scenario-label">Guided Tours:</span>
+    <button class="tab-btn active" onclick="loadScenario('HAPPY_PATH')">1. Rolling 30-Pt Dispatch</button>
+    <button class="tab-btn" onclick="loadScenario('CUSTOM_PAIRING')">2. Custom Pairing Tap-Assign</button>
+    <button class="tab-btn" onclick="loadScenario('LOCKED_PAIR')">3. Asynchronous Locked Pair</button>
+    <button class="tab-btn" onclick="loadScenario('ONE_MATCH_SKIP')">4. 1-Match Skip Breather</button>
+    <button class="tab-btn" onclick="loadScenario('LADDER_TIERS')">5. Virtual Ladder Promotion</button>
+  </nav>
+
+  <!-- Scenario Instruction Banner -->
+  <div class="scenario-banner" id="scenarioBanner">
+    <div class="scenario-text" id="scenarioText">
+      <strong>Scenario 1:</strong> Court 1 finishes a 30-point match. Enter quick score 30-25 in 1 tap, step off all 4 players, and immediately dispatch the pre-grouped pairs from the On-Deck pool.
+    </div>
+    <div class="scenario-actions" id="scenarioActions">
+      <button class="btn btn-primary btn-sm" onclick="runScenarioStep()">Next Step ➔</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Active 3 Courts Stations -->
+    <section>
+      <div class="section-title">
+        <h2>🏟️ Active Court Stations <span style="font-size:0.75rem; padding:2px 8px; background:#1e293b; border-radius:4px; font-weight:700;" id="activeCourtCount">3 / 3 Active</span></h2>
+        <span class="section-meta">All 4 players step off upon 30-point match completion</span>
+      </div>
+
+      <div class="courts-grid" id="courtsContainer">
+        <!-- Court Cards rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- Extended On-Deck Staging Section (Up to 3 Matches / Grouped by Pairs) -->
+    <section class="deck-section">
+      <div class="section-title">
+        <h2>👀 On-Deck Staging Pool (Upcoming Matches)</h2>
+        <span class="section-meta">Pre-grouped pairs ready for immediate tap dispatch when courts clear</span>
+      </div>
+
+      <div class="deck-grid" id="deckGridContainer">
+        <!-- 3 Match Groups rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- Player Bench & Roster Queue -->
+    <section class="queue-panel">
+      <div class="section-title">
+        <h2>🪑 Player Bench & Roster Queue <span style="font-size:0.75rem; padding:2px 8px; background:#1e293b; border-radius:4px; font-weight:700;" id="rosterCount">20 Players</span></h2>
+        <span style="font-size:0.8rem; color:var(--text-muted);">📱 Touch-First: Tap any player to assign, swap, rest, or lock partner</span>
+      </div>
+
+      <div class="queue-toolbar">
+        <div class="filter-pills">
+          <button class="filter-btn active" onclick="setQueueFilter('ALL')">All (20)</button>
+          <button class="filter-btn" onclick="setQueueFilter('QUEUED')">Queued</button>
+          <button class="filter-btn" onclick="setQueueFilter('PLAYING')">Playing</button>
+          <button class="filter-btn" onclick="setQueueFilter('RESTING')">Resting / Skip</button>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-dim);">
+          Fairness Order: <strong>Lowest Match Count ($M_i$) ➔ Longest Rest ($t_{\text{wait}}$)</strong>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Player</th>
+              <th>Doubles Rating</th>
+              <th>Matches ($M_i$)</th>
+              <th>Rest Duration</th>
+              <th>Status</th>
+              <th>Touch Actions</th>
+            </tr>
+          </thead>
+          <tbody id="queueTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Custom Match Builder Modal (Tap-First Ergonomics) -->
+  <div id="customMatchModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ Custom Match Builder</h3>
+        <button class="close-btn" onclick="closeCustomMatchModal()">✕</button>
+      </div>
+
+      <p style="font-size:0.8rem; color:var(--text-muted);">
+        Directly customize pairings and dispatch to any court without drag-and-drop:
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">TARGET COURT:</label>
+        <select id="customCourtSelect" class="mode-select">
+          <option value="1">Court 1 (Apex Station)</option>
+          <option value="2">Court 2 (Challenger Station)</option>
+          <option value="3">Court 3 (Base Station)</option>
+        </select>
+      </div>
+
+      <div class="modal-select-grid">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:0.75rem; font-weight:700; color:var(--accent);">TEAM A - PLAYER 1</label>
+          <select id="customTeamA1" class="mode-select"></select>
+          <label style="font-size:0.75rem; font-weight:700; color:var(--accent);">TEAM A - PLAYER 2</label>
+          <select id="customTeamA2" class="mode-select"></select>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:0.75rem; font-weight:700; color:var(--warning);">TEAM B - PLAYER 1</label>
+          <select id="customTeamB1" class="mode-select"></select>
+          <label style="font-size:0.75rem; font-weight:700; color:var(--warning);">TEAM B - PLAYER 2</label>
+          <select id="customTeamB2" class="mode-select"></select>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeCustomMatchModal()">Cancel</button>
+        <button class="btn btn-success" style="flex:2;" onclick="dispatchCustomMatch()">⚡ Launch Custom Match</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Action Sheet Modal (Tap-First) -->
+  <div id="playerActionModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:400px;">
+      <div class="modal-header">
+        <h3 id="modalPlayerName">Player Action</h3>
+        <button class="close-btn" onclick="closePlayerModal()">✕</button>
+      </div>
+
+      <div id="modalPlayerDetails" style="font-size:0.85rem; color:var(--text-muted);"></div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-dim); text-transform:uppercase;">Direct Dispatch to Court:</div>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="directAssignModalPlayer(1)">To Court 1</button>
+          <button class="btn btn-outline btn-sm" onclick="directAssignModalPlayer(2)">To Court 2</button>
+          <button class="btn btn-outline btn-sm" onclick="directAssignModalPlayer(3)">To Court 3</button>
+        </div>
+
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; margin-top:6px;">Availability & Pairing:</div>
+        <button class="btn btn-outline btn-sm" id="btnModalSkip" onclick="modalToggleSkip()">Toggle 1-Match Skip</button>
+        <button class="btn btn-outline btn-sm" id="btnModalRest" onclick="modalToggleRest()">Toggle Resting</button>
+        <button class="btn btn-outline btn-sm" id="btnModalPin" onclick="openPinDialogForPlayer()">Pin with Another Player...</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Audit Log Bar -->
+  <footer class="audit-bar">
+    <div><strong>EVENT AUDIT LOG:</strong> <span id="auditText" class="audit-latest">System ready. 3 courts configured for 30-point scoring.</span></div>
+    <div>Scoring: <span style="color:#10b981;">30-Point Single Set</span> · Input: <span style="color:#10b981;">Touch Tap-First</span></div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- Pure JavaScript Logic & Application Module -->
+  <!-- ========================================== -->
+  <script>
+    /**
+     * Badminque Courtside Board State Model & Queue Engine
+     * Incorporating User Feedback:
+     * 1. On-Deck extended to up to 3 groups of 4.
+     * 2. On-Deck grouped cleanly by Pairs (Pair A vs Pair B).
+     * 3. Customized Pairing builder for Organizer court injection.
+     * 4. Touch-first tap ergonomics replacing drag-and-drop.
+     * 5. 30-Point badminton scoring presets.
+     */
+
+    const INITIAL_PLAYERS = [
+      { id: "p1", name: "Alice Tan", rating: 4.85, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p2", lockedWith: null, courtNum: 1 },
+      { id: "p2", name: "Bob Chen", rating: 4.60, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p1", lockedWith: null, courtNum: 1 },
+      { id: "p3", name: "Charlie Lim", rating: 4.55, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p4", lockedWith: null, courtNum: 1 },
+      { id: "p4", name: "David Wong", rating: 4.70, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p3", lockedWith: null, courtNum: 1 },
+
+      { id: "p5", name: "Elena Cruz", rating: 3.90, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p6", lockedWith: null, courtNum: 2 },
+      { id: "p6", name: "Frankie Lee", rating: 3.85, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p5", lockedWith: null, courtNum: 2 },
+      { id: "p7", name: "Grace Kim", rating: 4.10, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p8", lockedWith: null, courtNum: 2 },
+      { id: "p8", name: "Henry Zhang", rating: 3.95, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p7", lockedWith: null, courtNum: 2 },
+
+      { id: "p9", name: "Iris Flores", rating: 3.20, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p10", lockedWith: null, courtNum: 3 },
+      { id: "p10", name: "Jack Santos", rating: 3.15, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p9", lockedWith: null, courtNum: 3 },
+      { id: "p11", name: "Kevin Ramos", rating: 3.35, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p12", lockedWith: null, courtNum: 3 },
+      { id: "p12", name: "Lianne Uy", rating: 3.10, matches: 1, state: "PLAYING", waitSecs: 0, partnerId: "p11", lockedWith: null, courtNum: 3 },
+
+      // Waiting Bench (12 Players)
+      { id: "p13", name: "Marcus Bell", rating: 4.40, matches: 0, state: "QUEUED", waitSecs: 600, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p14", name: "Nina Patel", rating: 4.25, matches: 0, state: "QUEUED", waitSecs: 580, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p15", name: "Oscar Reyes", rating: 3.80, matches: 0, state: "QUEUED", waitSecs: 540, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p16", name: "Paula Gomez", rating: 3.75, matches: 0, state: "QUEUED", waitSecs: 520, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p17", name: "Quinn Davis", rating: 4.10, matches: 0, state: "QUEUED", waitSecs: 480, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p18", name: "Riley Scott", rating: 3.50, matches: 0, state: "QUEUED", waitSecs: 450, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p19", name: "Sam Vance", rating: 3.45, matches: 0, state: "QUEUED", waitSecs: 420, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p20", name: "Tina Morales", rating: 3.90, matches: 0, state: "QUEUED", waitSecs: 390, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p21", name: "Uma Patel", rating: 3.65, matches: 0, state: "QUEUED", waitSecs: 360, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p22", name: "Victor Hugo", rating: 4.05, matches: 0, state: "QUEUED", waitSecs: 330, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p23", name: "Wendy Zhao", rating: 3.80, matches: 0, state: "QUEUED", waitSecs: 300, partnerId: null, lockedWith: null, courtNum: null },
+      { id: "p24", name: "Xavier Tan", rating: 4.30, matches: 0, state: "QUEUED", waitSecs: 270, partnerId: null, lockedWith: null, courtNum: null },
+    ];
+
+    const INITIAL_COURTS = {
+      1: {
+        courtNum: 1,
+        status: "IN_MATCH",
+        tierLabel: "Apex Station",
+        elapsedSecs: 840, // 14:00
+        teamA: ["p1", "p2"],
+        teamB: ["p3", "p4"],
+        proposedQuad: null,
+        lastScore: null
+      },
+      2: {
+        courtNum: 2,
+        status: "IN_MATCH",
+        tierLabel: "Challenger Station",
+        elapsedSecs: 480, // 08:00
+        teamA: ["p5", "p6"],
+        teamB: ["p7", "p8"],
+        proposedQuad: null,
+        lastScore: null
+      },
+      3: {
+        courtNum: 3,
+        status: "IN_MATCH",
+        tierLabel: "Base Station",
+        elapsedSecs: 240, // 04:00
+        teamA: ["p9", "p10"],
+        teamB: ["p11", "p12"],
+        proposedQuad: null,
+        lastScore: null
+      }
+    };
+
+    let state = {
+      policy: "FAIR_PLAY_PEGBOARD",
+      players: JSON.parse(JSON.stringify(INITIAL_PLAYERS)),
+      courts: JSON.parse(JSON.stringify(INITIAL_COURTS)),
+      customStaged: {
+        teamA: ["p13", "p17"],
+        teamB: ["p14", "p20"]
+      },
+      filter: "ALL",
+      scenario: "HAPPY_PATH",
+      scenarioStepIndex: 0,
+      activeModalPlayerId: null
+    };
+
+    function logEvent(msg) {
+      console.log("[Badminque]", msg);
+      const el = document.getElementById("auditText");
+      if (el) el.textContent = `${new Date().toLocaleTimeString()} - ${msg}`;
+    }
+
+    function switchPolicy(newPolicy) {
+      state.policy = newPolicy;
+      logEvent(`Rotation Policy changed to: ${newPolicy}`);
+      render();
+    }
+
+    function advanceSimulatedTime(minutes) {
+      const addedSecs = minutes * 60;
+      for (const c of Object.values(state.courts)) {
+        if (c.status === "IN_MATCH") c.elapsedSecs += addedSecs;
+      }
+      for (const p of state.players) {
+        if (p.state === "QUEUED" || p.state === "WAITING_PARTNER") p.waitSecs += addedSecs;
+      }
+      logEvent(`Advanced session clock by +${minutes} minutes.`);
+      render();
+    }
+
+    function resetToInitialState() {
+      state.players = JSON.parse(JSON.stringify(INITIAL_PLAYERS));
+      state.courts = JSON.parse(JSON.stringify(INITIAL_COURTS));
+      state.scenarioStepIndex = 0;
+      logEvent("Session reset to initial baseline state.");
+      render();
+    }
+
+    function getPlayer(id) {
+      return state.players.find(p => p.id === id);
+    }
+
+    function formatTime(totalSecs) {
+      const m = Math.floor(totalSecs / 60);
+      const s = totalSecs % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function getSortedQueue() {
+      return state.players
+        .filter(p => p.state === "QUEUED")
+        .sort((a, b) => {
+          if (a.matches !== b.matches) return a.matches - b.matches;
+          return b.waitSecs - a.waitSecs;
+        });
+    }
+
+    // Helper to partition 4 players into 2 pairs based on policy
+    function partitionQuadIntoPairs(players4) {
+      if (players4.length < 4) return null;
+      // Pair A vs Pair B
+      return {
+        pairA: [players4[0], players4[3]],
+        pairB: [players4[1], players4[2]]
+      };
+    }
+
+    // Get up to 3 On-Deck match groups (each grouped into Pair A vs Pair B)
+    function getOnDeckMatchGroups() {
+      const queue = getSortedQueue();
+      const groups = [];
+
+      for (let i = 0; i < 3; i++) {
+        const offset = i * 4;
+        const quad = queue.slice(offset, offset + 4);
+        if (quad.length === 4) {
+          const partitioned = partitionQuadIntoPairs(quad);
+          groups.push({
+            matchIndex: i + 1,
+            label: i === 0 ? "Next Up" : (i === 1 ? "Following" : "In the Hole"),
+            pairA: partitioned.pairA,
+            pairB: partitioned.pairB
+          });
+        }
+      }
+      return groups;
+    }
+
+    function handleFinishMatchClick(courtNum) {
+      const court = state.courts[courtNum];
+      court.status = "SCORE_ENTRY";
+      logEvent(`Court ${courtNum} completed. Awaiting 30-point score.`);
+      render();
+    }
+
+    // Submit 30-Point Score & Step Off All 4
+    function submitMatchScore(courtNum, scoreA, scoreB) {
+      const court = state.courts[courtNum];
+      court.lastScore = `${scoreA} - ${scoreB}`;
+      const finishedIds = [...court.teamA, ...court.teamB];
+
+      // Step off all 4 players (Badminton Stamina Invariant)
+      for (const pId of finishedIds) {
+        const p = getPlayer(pId);
+        if (p) {
+          p.matches += 1;
+          p.courtNum = null;
+          p.partnerId = null;
+
+          if (p.lockedWith) {
+            const partner = getPlayer(p.lockedWith);
+            if (partner && partner.state === "WAITING_PARTNER") {
+              p.state = "QUEUED";
+              p.waitSecs = 0;
+              partner.state = "QUEUED";
+              logEvent(`Locked pair ${p.name} & ${partner.name} both available; entered queue at ${p.name}'s finish time.`);
+            } else {
+              p.state = "QUEUED";
+              p.waitSecs = 0;
+            }
+          } else {
+            p.state = "QUEUED";
+            p.waitSecs = 0;
+          }
+        }
+      }
+
+      // Automatically propose next quad from On-Deck pool
+      const deckGroups = getOnDeckMatchGroups();
+      if (deckGroups.length > 0) {
+        const nextGroup = deckGroups[0];
+        court.status = "PROPOSED";
+        court.proposedQuad = {
+          teamA: [nextGroup.pairA[0].id, nextGroup.pairA[1].id],
+          teamB: [nextGroup.pairB[0].id, nextGroup.pairB[1].id]
+        };
+        court.teamA = [];
+        court.teamB = [];
+        court.elapsedSecs = 0;
+        logEvent(`Court ${courtNum} entered PROPOSED state with pre-grouped pairs.`);
+      } else {
+        court.status = "IDLE";
+        court.proposedQuad = null;
+        logEvent(`Court ${courtNum} is now IDLE (insufficient queued players).`);
+      }
+
+      render();
+    }
+
+    // 1-Tap Dispatch from Proposed Card
+    function dispatchProposedMatch(courtNum) {
+      const court = state.courts[courtNum];
+      if (!court.proposedQuad) return;
+
+      const { teamA, teamB } = court.proposedQuad;
+      court.teamA = [...teamA];
+      court.teamB = [...teamB];
+      court.status = "IN_MATCH";
+      court.elapsedSecs = 0;
+      court.proposedQuad = null;
+
+      for (const pId of [...teamA, ...teamB]) {
+        const p = getPlayer(pId);
+        if (p) {
+          p.state = "PLAYING";
+          p.courtNum = courtNum;
+          p.waitSecs = 0;
+        }
+      }
+      getPlayer(teamA[0]).partnerId = teamA[1];
+      getPlayer(teamA[1]).partnerId = teamA[0];
+      getPlayer(teamB[0]).partnerId = teamB[1];
+      getPlayer(teamB[1]).partnerId = teamB[0];
+
+      logEvent(`⚡ Dispatched: [${getPlayer(teamA[0]).name} & ${getPlayer(teamA[1]).name}] vs [${getPlayer(teamB[0]).name} & ${getPlayer(teamB[1]).name}] to Court ${courtNum}`);
+      render();
+    }
+
+    // Send On-Deck Match Group directly to any Court Station
+    function dispatchDeckMatchToCourt(matchIndex, targetCourtNum) {
+      const deckGroups = getOnDeckMatchGroups();
+      const group = deckGroups.find(g => g.matchIndex === matchIndex);
+      if (!group) return;
+
+      const court = state.courts[targetCourtNum];
+      court.teamA = [group.pairA[0].id, group.pairA[1].id];
+      court.teamB = [group.pairB[0].id, group.pairB[1].id];
+      court.status = "IN_MATCH";
+      court.elapsedSecs = 0;
+      court.proposedQuad = null;
+
+      for (const p of [...group.pairA, ...group.pairB]) {
+        p.state = "PLAYING";
+        p.courtNum = targetCourtNum;
+        p.waitSecs = 0;
+      }
+      group.pairA[0].partnerId = group.pairA[1].id;
+      group.pairA[1].partnerId = group.pairA[0].id;
+      group.pairB[0].partnerId = group.pairB[1].id;
+      group.pairB[1].partnerId = group.pairB[0].id;
+
+      logEvent(`⚡ On-Deck Group dispatched directly to Court ${targetCourtNum}: [${group.pairA[0].name} & ${group.pairA[1].name}] vs [${group.pairB[0].name} & ${group.pairB[1].name}]`);
+      render();
+    }
+
+    // ==========================================
+    // Custom Match Builder Modal
+    // ==========================================
+
+    function openCustomMatchModal(targetCourt = 1) {
+      const modal = document.getElementById("customMatchModal");
+      document.getElementById("customCourtSelect").value = targetCourt;
+
+      const selects = ["customTeamA1", "customTeamA2", "customTeamB1", "customTeamB2"];
+      const availPlayers = state.players.filter(p => p.state !== "PLAYING");
+
+      selects.forEach((sId, idx) => {
+        const el = document.getElementById(sId);
+        el.innerHTML = availPlayers.map((p, pIdx) => `
+          <option value="${p.id}" ${pIdx === idx ? 'selected' : ''}>${p.name} (${p.rating.toFixed(2)}, ${p.matches}m)</option>
+        `).join("");
+      });
+
+      modal.style.display = "flex";
+    }
+
+    function closeCustomMatchModal() {
+      document.getElementById("customMatchModal").style.display = "none";
+    }
+
+    function dispatchCustomMatch() {
+      const courtNum = parseInt(document.getElementById("customCourtSelect").value);
+      const a1 = document.getElementById("customTeamA1").value;
+      const a2 = document.getElementById("customTeamA2").value;
+      const b1 = document.getElementById("customTeamB1").value;
+      const b2 = document.getElementById("customTeamB2").value;
+
+      const chosen = [a1, a2, b1, b2];
+      const unique = new Set(chosen);
+      if (unique.size < 4) {
+        alert("Please select 4 unique players for the match.");
+        return;
+      }
+
+      const court = state.courts[courtNum];
+      court.teamA = [a1, a2];
+      court.teamB = [b1, b2];
+      court.status = "IN_MATCH";
+      court.elapsedSecs = 0;
+      court.proposedQuad = null;
+
+      for (const pId of chosen) {
+        const p = getPlayer(pId);
+        p.state = "PLAYING";
+        p.courtNum = courtNum;
+        p.waitSecs = 0;
+      }
+      getPlayer(a1).partnerId = a2;
+      getPlayer(a2).partnerId = a1;
+      getPlayer(b1).partnerId = b2;
+      getPlayer(b2).partnerId = b1;
+
+      logEvent(`⚡ Custom Match launched on Court ${courtNum}: [${getPlayer(a1).name} & ${getPlayer(a2).name}] vs [${getPlayer(b1).name} & ${getPlayer(b2).name}]`);
+      closeCustomMatchModal();
+      render();
+    }
+
+    // ==========================================
+    // Player Tap-First Action Sheet Modal
+    // ==========================================
+
+    function openPlayerModal(pId) {
+      state.activeModalPlayerId = pId;
+      const p = getPlayer(pId);
+      if (!p) return;
+
+      document.getElementById("modalPlayerName").textContent = p.name;
+      document.getElementById("modalPlayerDetails").innerHTML = `
+        Rating: <strong>${p.rating.toFixed(2)}</strong> · Matches: <strong>${p.matches}</strong> · Status: <strong>${p.state}</strong><br>
+        Rested: <strong>${Math.floor(p.waitSecs / 60)} minutes</strong>
+      `;
+
+      document.getElementById("btnModalSkip").textContent = p.state === "SKIPPED" ? "✓ Unskip (Set Ready)" : "1-Match Skip Breather";
+      document.getElementById("btnModalRest").textContent = p.state === "RESTING" ? "✓ Wake (Set Ready)" : "Send to Rest";
+
+      document.getElementById("playerActionModal").style.display = "flex";
+    }
+
+    function closePlayerModal() {
+      document.getElementById("playerActionModal").style.display = "none";
+      state.activeModalPlayerId = null;
+    }
+
+    function directAssignModalPlayer(courtNum) {
+      if (!state.activeModalPlayerId) return;
+      const p = getPlayer(state.activeModalPlayerId);
+      logEvent(`Tap-assign: ${p.name} injected into Court ${courtNum}.`);
+      p.state = "PLAYING";
+      p.courtNum = courtNum;
+      closePlayerModal();
+      render();
+    }
+
+    function modalToggleSkip() {
+      if (!state.activeModalPlayerId) return;
+      const p = getPlayer(state.activeModalPlayerId);
+      if (p.state === "SKIPPED") {
+        p.state = "QUEUED";
+        p.waitSecs += 600; // elevated priority backfill
+        logEvent(`${p.name} unskipped with elevated priority.`);
+      } else {
+        p.state = "SKIPPED";
+        logEvent(`${p.name} set to 1-Match Skip.`);
+      }
+      closePlayerModal();
+      render();
+    }
+
+    function modalToggleRest() {
+      if (!state.activeModalPlayerId) return;
+      const p = getPlayer(state.activeModalPlayerId);
+      if (p.state === "RESTING") {
+        p.state = "QUEUED";
+        logEvent(`${p.name} returned to queue.`);
+      } else {
+        p.state = "RESTING";
+        logEvent(`${p.name} set to Resting.`);
+      }
+      closePlayerModal();
+      render();
+    }
+
+    function openPinDialogForPlayer() {
+      if (!state.activeModalPlayerId) return;
+      const p = getPlayer(state.activeModalPlayerId);
+      const partnerName = prompt(`Pin ${p.name} with which player? (Enter partial name):`);
+      if (!partnerName) return;
+
+      const partner = state.players.find(o => o.id !== p.id && o.name.toLowerCase().includes(partnerName.toLowerCase()));
+      if (!partner) {
+        alert("Player not found.");
+        return;
+      }
+
+      p.lockedWith = partner.id;
+      partner.lockedWith = p.id;
+
+      if (p.state === "PLAYING" && partner.state === "QUEUED") {
+        partner.state = "WAITING_PARTNER";
+      } else if (partner.state === "PLAYING" && p.state === "QUEUED") {
+        p.state = "WAITING_PARTNER";
+      }
+
+      logEvent(`Pinned pair: ${p.name} & ${partner.name}.`);
+      closePlayerModal();
+      render();
+    }
+
+    function unpinPlayer(pId) {
+      const p1 = getPlayer(pId);
+      if (!p1 || !p1.lockedWith) return;
+      const p2 = getPlayer(p1.lockedWith);
+
+      p1.lockedWith = null;
+      if (p1.state === "WAITING_PARTNER") p1.state = "QUEUED";
+
+      if (p2) {
+        p2.lockedWith = null;
+        if (p2.state === "WAITING_PARTNER") p2.state = "QUEUED";
+      }
+
+      logEvent(`Unpinned ${p1.name} and ${p2 ? p2.name : 'partner'}. Returned to individual rotation.`);
+      render();
+    }
+
+    function setQueueFilter(filter) {
+      state.filter = filter;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      event.target.classList.add("active");
+      render();
+    }
+
+    // ==========================================
+    // Guided Walkthrough Controller
+    // ==========================================
+
+    const SCENARIOS = {
+      HAPPY_PATH: {
+        title: "1. Rolling 30-Pt Dispatch",
+        desc: "Court 1 completes a 30-point match. Enter quick score 30-25 in 1 tap, all 4 players step off to rest, and the Organizer Co-Pilot immediately dispatches pre-grouped pairs from On-Deck.",
+        steps: [
+          { action: "FINISH_C1", label: "Step 1: End Court 1 Match" },
+          { action: "SCORE_C1", label: "Step 2: Log 30-25 (Competitive)" },
+          { action: "DISPATCH_C1", label: "Step 3: 1-Tap [⚡ Dispatch to Court 1]" }
+        ]
+      },
+      CUSTOM_PAIRING: {
+        title: "2. Custom Pairing Tap-Assign",
+        desc: "Use the Custom Match Builder to select 4 specific players without drag-and-drop, and launch them immediately onto Court 2.",
+        steps: [
+          { action: "OPEN_CUSTOM", label: "Step 1: Open Custom Match Builder" },
+          { action: "DISPATCH_CUSTOM", label: "Step 2: Confirm & Launch Custom Match" }
+        ]
+      },
+      LOCKED_PAIR: {
+        title: "3. Asynchronous Locked Pair",
+        desc: "Pin Alice (playing on Court 1) with Marcus (waiting on bench). Notice Marcus enters 'WAITING_PARTNER'. When Court 1 finishes, Marcus & Alice pair up at Alice's arrival time, preventing line-cutting.",
+        steps: [
+          { action: "PIN_ALICE_MARCUS", label: "Step 1: Pin Alice (Playing) & Marcus (Queued)" },
+          { action: "FINISH_C1", label: "Step 2: Finish Court 1 Match" },
+          { action: "SCORE_C1", label: "Step 3: Submit 30-20 & Release Alice" },
+          { action: "OBSERVE_PAIR_QUEUED", label: "Step 4: Verify Pair is Now Ready in Deck" }
+        ]
+      },
+      ONE_MATCH_SKIP: {
+        title: "4. 1-Match Skip Breather",
+        desc: "Marcus is #1 in queue but takes a 1-match skip breather. Court 1 dispatches without him. Notice Marcus's priority elevates so he is guaranteed on the very next opening.",
+        steps: [
+          { action: "TOGGLE_SKIP_MARCUS", label: "Step 1: Marcus Toggles 1-Match Skip" },
+          { action: "TRIGGER_COURT_PROPOSED", label: "Step 2: Finish Court 1 & Check Recommendations" },
+          { action: "DISPATCH_WITHOUT_MARCUS", label: "Step 3: Dispatch Court 1 (Marcus Bypassed)" },
+          { action: "UNSKIP_MARCUS", label: "Step 4: Marcus Unskips with High Priority" }
+        ]
+      },
+      LADDER_TIERS: {
+        title: "5. Virtual Ladder Promotion & Partner Split",
+        desc: "Switch to Court Ladder policy. Court 1 finishes: Winners stay in Apex tier, Losers demote to Challenger tier, and former partners are mandatorily split across the net.",
+        steps: [
+          { action: "SWITCH_LADDER", label: "Step 1: Activate Court Ladder Policy" },
+          { action: "FINISH_C1", label: "Step 2: Finish Apex Match (Alice/Bob Win 30-28)" },
+          { action: "SCORE_C1", label: "Step 3: Log Result (Alice & Bob Retain)" }
+        ]
+      }
+    };
+
+    function loadScenario(scenarioKey) {
+      state.scenario = scenarioKey;
+      state.scenarioStepIndex = 0;
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      event.target.classList.add("active");
+
+      const s = SCENARIOS[scenarioKey];
+      document.getElementById("scenarioText").innerHTML = `<strong>Scenario: ${s.title}:</strong> ${s.desc}`;
+      updateScenarioButton();
+      render();
+    }
+
+    function updateScenarioButton() {
+      const s = SCENARIOS[state.scenario];
+      const container = document.getElementById("scenarioActions");
+      if (state.scenarioStepIndex < s.steps.length) {
+        const step = s.steps[state.scenarioStepIndex];
+        container.innerHTML = `<button class="btn btn-primary btn-sm" onclick="runScenarioStep()">${step.label} ➔</button>`;
+      } else {
+        container.innerHTML = `<button class="btn btn-success btn-sm" onclick="resetToInitialState()">✓ Scenario Complete (Reset)</button>`;
+      }
+    }
+
+    function runScenarioStep() {
+      const s = SCENARIOS[state.scenario];
+      if (state.scenarioStepIndex >= s.steps.length) return;
+      const step = s.steps[state.scenarioStepIndex];
+
+      switch(step.action) {
+        case "FINISH_C1":
+          handleFinishMatchClick(1);
+          break;
+        case "SCORE_C1":
+          submitMatchScore(1, 30, 25);
+          break;
+        case "DISPATCH_C1":
+          dispatchProposedMatch(1);
+          break;
+        case "OPEN_CUSTOM":
+          openCustomMatchModal(2);
+          break;
+        case "DISPATCH_CUSTOM":
+          dispatchCustomMatch();
+          break;
+        case "PIN_ALICE_MARCUS":
+          const pAlice = getPlayer("p1");
+          const pMarcus = getPlayer("p13");
+          pAlice.lockedWith = pMarcus.id;
+          pMarcus.lockedWith = pAlice.id;
+          pMarcus.state = "WAITING_PARTNER";
+          logEvent(`Pinned Alice (Playing) & Marcus (Waiting). Marcus set to WAITING_PARTNER.`);
+          break;
+        case "OBSERVE_PAIR_QUEUED":
+          logEvent(`Verified: Alice & Marcus both now QUEUED together at head of bench.`);
+          break;
+        case "TOGGLE_SKIP_MARCUS":
+          const m = getPlayer("p13");
+          m.state = "SKIPPED";
+          logEvent(`Marcus took 1-Match Skip.`);
+          break;
+        case "TRIGGER_COURT_PROPOSED":
+          handleFinishMatchClick(1);
+          submitMatchScore(1, 30, 20);
+          break;
+        case "DISPATCH_WITHOUT_MARCUS":
+          dispatchProposedMatch(1);
+          break;
+        case "UNSKIP_MARCUS":
+          const mUn = getPlayer("p13");
+          mUn.state = "QUEUED";
+          mUn.waitSecs += 600;
+          logEvent(`Marcus unskipped with priority boost.`);
+          break;
+        case "SWITCH_LADDER":
+          switchPolicy("COURT_LADDER");
+          break;
+      }
+
+      state.scenarioStepIndex++;
+      updateScenarioButton();
+      render();
+    }
+
+    // ==========================================
+    // Render Functions (Reactive DOM)
+    // ==========================================
+
+    function render() {
+      renderCourts();
+      renderOnDeckPool();
+      renderQueueTable();
+    }
+
+    function renderCourts() {
+      const container = document.getElementById("courtsContainer");
+      container.innerHTML = "";
+
+      let activeCount = 0;
+      for (const courtNum of [1, 2, 3]) {
+        const c = state.courts[courtNum];
+        if (c.status === "IN_MATCH") activeCount++;
+
+        const card = document.createElement("div");
+        card.className = `court-card status-${c.status.toLowerCase()}`;
+
+        let statusBadgeHtml = "";
+        if (c.status === "IN_MATCH") statusBadgeHtml = `<span class="status-badge badge-in_match">● 30-Pt Match (${formatTime(c.elapsedSecs)})</span>`;
+        else if (c.status === "PROPOSED") statusBadgeHtml = `<span class="status-badge badge-proposed">⚡ Proposed Next</span>`;
+        else if (c.status === "SCORE_ENTRY") statusBadgeHtml = `<span class="status-badge badge-score_entry">✏️ 30-Pt Score</span>`;
+        else statusBadgeHtml = `<span class="status-badge badge-idle">Idle</span>`;
+
+        card.innerHTML = `
+          <div class="court-header">
+            <div class="court-name">
+              Court ${courtNum}
+              <span class="court-tier-pill">${c.tierLabel}</span>
+            </div>
+            ${statusBadgeHtml}
+          </div>
+          <div class="court-body" id="courtBody_${courtNum}"></div>
+        `;
+
+        container.appendChild(card);
+        const bodyEl = card.querySelector(`#courtBody_${courtNum}`);
+
+        if (c.status === "IN_MATCH") {
+          const tA1 = getPlayer(c.teamA[0]);
+          const tA2 = getPlayer(c.teamA[1]);
+          const tB1 = getPlayer(c.teamB[0]);
+          const tB2 = getPlayer(c.teamB[1]);
+
+          bodyEl.innerHTML = `
+            <div class="match-board">
+              <div class="match-teams">
+                <div class="team-box">
+                  <div class="team-player">
+                    <span class="player-name">${tA1 ? tA1.name : 'TBD'}</span>
+                    <span class="player-rating">${tA1 ? tA1.rating.toFixed(2) : ''}</span>
+                  </div>
+                  <div class="team-player">
+                    <span class="player-name">${tA2 ? tA2.name : 'TBD'}</span>
+                    <span class="player-rating">${tA2 ? tA2.rating.toFixed(2) : ''}</span>
+                  </div>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="team-box">
+                  <div class="team-player">
+                    <span class="player-name">${tB1 ? tB1.name : 'TBD'}</span>
+                    <span class="player-rating">${tB1 ? tB1.rating.toFixed(2) : ''}</span>
+                  </div>
+                  <div class="team-player">
+                    <span class="player-name">${tB2 ? tB2.name : 'TBD'}</span>
+                    <span class="player-rating">${tB2 ? tB2.rating.toFixed(2) : ''}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="match-timer-row">
+                <span style="font-size:0.75rem; color:var(--text-muted);">Elapsed Time:</span>
+                <span class="timer-display">${formatTime(c.elapsedSecs)}</span>
+                <button class="btn btn-warning btn-sm" onclick="handleFinishMatchClick(${courtNum})">End Match (30 pts) 🏁</button>
+              </div>
+            </div>
+          `;
+        } else if (c.status === "PROPOSED") {
+          const p = c.proposedQuad;
+          const a1 = getPlayer(p.teamA[0]);
+          const a2 = getPlayer(p.teamA[1]);
+          const b1 = getPlayer(p.teamB[0]);
+          const b2 = getPlayer(p.teamB[1]);
+
+          bodyEl.innerHTML = `
+            <div class="proposed-card">
+              <div class="proposed-header">
+                <span>🤖 CO-PILOT RECOMMENDATION</span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">${state.policy}</span>
+              </div>
+              
+              <div class="pair-capsule-box">
+                <div class="pair-capsule">
+                  <span class="pair-label">Pair A</span>
+                  <div class="pair-names">${a1.name} & ${a2.name}</div>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="pair-capsule">
+                  <span class="pair-label">Pair B</span>
+                  <div class="pair-names">${b1.name} & ${b2.name}</div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-success" style="flex:2; font-size:0.95rem;" onclick="dispatchProposedMatch(${courtNum})">
+                  ⚡ [Dispatch to Court ${courtNum}]
+                </button>
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openCustomMatchModal(${courtNum})">
+                  Customize
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (c.status === "SCORE_ENTRY") {
+          bodyEl.innerHTML = `
+            <div class="score-entry-card">
+              <div style="font-size:0.8rem; font-weight:700; color:var(--purple); display:flex; justify-content:space-between;">
+                <span>30-POINT QUICK SCORE ENTRY (<5s)</span>
+                <span style="color:var(--text-muted);">Team A vs Team B</span>
+              </div>
+              <div class="score-presets">
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 28)">30 - 28<br><span style="font-size:0.65rem; color:#d8b4fe;">Deuce Thriller</span></button>
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 25)">30 - 25<br><span style="font-size:0.65rem; color:#d8b4fe;">Competitive</span></button>
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 20)">30 - 20<br><span style="font-size:0.65rem; color:#d8b4fe;">Standard</span></button>
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 15)">30 - 15<br><span style="font-size:0.65rem; color:#d8b4fe;">Decisive</span></button>
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 8)">30 - 8<br><span style="font-size:0.65rem; color:#d8b4fe;">Blowout</span></button>
+                <button class="score-btn" onclick="submitMatchScore(${courtNum}, 30, 22)">30 - 22<br><span style="font-size:0.65rem; color:#d8b4fe;">Solid Win</span></button>
+              </div>
+            </div>
+          `;
+        } else {
+          // IDLE
+          bodyEl.innerHTML = `
+            <div style="text-align:center; color:var(--text-dim); font-size:0.85rem;">
+              Court Idle.<br>Waiting for queued players to rest.
+              <div style="margin-top:12px; display:flex; justify-content:center; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="openCustomMatchModal(${courtNum})">+ Custom Match</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById("activeCourtCount").textContent = `${activeCount} / 3 Active`;
+    }
+
+    function dispatchCustomStagedToCourt(targetCourtNum) {
+      const a1 = getPlayer(state.customStaged.teamA[0]);
+      const a2 = getPlayer(state.customStaged.teamA[1]);
+      const b1 = getPlayer(state.customStaged.teamB[0]);
+      const b2 = getPlayer(state.customStaged.teamB[1]);
+      if (!a1 || !a2 || !b1 || !b2) return;
+
+      const court = state.courts[targetCourtNum];
+      court.teamA = [a1.id, a2.id];
+      court.teamB = [b1.id, b2.id];
+      court.status = "IN_MATCH";
+      court.elapsedSecs = 0;
+      court.proposedQuad = null;
+
+      for (const p of [a1, a2, b1, b2]) {
+        p.state = "PLAYING";
+        p.courtNum = targetCourtNum;
+        p.waitSecs = 0;
+      }
+      a1.partnerId = a2.id;
+      a2.partnerId = a1.id;
+      b1.partnerId = b2.id;
+      b2.partnerId = b1.id;
+
+      logEvent(`⚡ Custom Staged Match dispatched to Court ${targetCourtNum}: [${a1.name} & ${a2.name}] vs [${b1.name} & ${b2.name}]`);
+      render();
+    }
+
+    function renderOnDeckPool() {
+      const container = document.getElementById("deckGridContainer");
+      const autoGroups = getOnDeckMatchGroups().slice(0, 2);
+
+      let cardsHtml = "";
+
+      // 1st & 2nd Groups: Always 2 Automated Pairs
+      autoGroups.forEach(g => {
+        cardsHtml += `
+          <div class="deck-match-card priority-${g.matchIndex}">
+            <div class="deck-card-header">
+              <span>#${g.matchIndex} · ${g.label} (Automated)</span>
+              <span style="font-size:0.7rem; color:var(--text-muted);">Doubles Quad</span>
+            </div>
+
+            <div class="pair-slot-group">
+              <div class="pair-row">
+                <div class="pair-info">
+                  <span class="pair-names-strong">${g.pairA[0].name} & ${g.pairA[1].name}</span>
+                  <span class="pair-sub">Ratings: ${g.pairA[0].rating.toFixed(2)} / ${g.pairA[1].rating.toFixed(2)}</span>
+                </div>
+                <span class="badge-primary" style="font-size:0.65rem;">Pair A</span>
+              </div>
+
+              <div style="text-align:center; font-size:0.7rem; font-weight:900; color:var(--text-dim);">— VS —</div>
+
+              <div class="pair-row">
+                <div class="pair-info">
+                  <span class="pair-names-strong">${g.pairB[0].name} & ${g.pairB[1].name}</span>
+                  <span class="pair-sub">Ratings: ${g.pairB[0].rating.toFixed(2)} / ${g.pairB[1].rating.toFixed(2)}</span>
+                </div>
+                <span class="badge-primary" style="font-size:0.65rem;">Pair B</span>
+              </div>
+            </div>
+
+            <div class="deck-actions-row">
+              <button class="btn btn-success btn-sm" style="flex:1;" onclick="dispatchDeckMatchToCourt(${g.matchIndex}, 1)">To C1</button>
+              <button class="btn btn-success btn-sm" style="flex:1;" onclick="dispatchDeckMatchToCourt(${g.matchIndex}, 2)">To C2</button>
+              <button class="btn btn-success btn-sm" style="flex:1;" onclick="dispatchDeckMatchToCourt(${g.matchIndex}, 3)">To C3</button>
+            </div>
+          </div>
+        `;
+      });
+
+      // 3rd Group: Dedicated Custom Pairing Staging Slot (Organizer)
+      const cs = state.customStaged;
+      const cA1 = getPlayer(cs.teamA[0]);
+      const cA2 = getPlayer(cs.teamA[1]);
+      const cB1 = getPlayer(cs.teamB[0]);
+      const cB2 = getPlayer(cs.teamB[1]);
+
+      cardsHtml += `
+        <div class="deck-match-card" style="border-color: rgba(168, 85, 247, 0.5); background: #15162e;">
+          <div class="deck-card-header" style="color: var(--purple);">
+            <span>#3 · Custom Staging (Organizer Slot)</span>
+            <button class="btn btn-outline btn-sm" style="padding:2px 8px; font-size:0.7rem;" onclick="openCustomMatchModal(1)">✏️ Edit Pairs</button>
+          </div>
+
+          <div class="pair-slot-group">
+            <div class="pair-row" style="background:#1f1c3d;">
+              <div class="pair-info">
+                <span class="pair-names-strong" style="color:#e9d5ff;">${cA1 ? cA1.name : 'TBD'} & ${cA2 ? cA2.name : 'TBD'}</span>
+                <span class="pair-sub">Ratings: ${cA1 ? cA1.rating.toFixed(2) : '-'} / ${cA2 ? cA2.rating.toFixed(2) : '-'}</span>
+              </div>
+              <span class="badge-primary" style="background:rgba(168,85,247,0.2); color:var(--purple); border-color:var(--purple); font-size:0.65rem;">Custom A</span>
+            </div>
+
+            <div style="text-align:center; font-size:0.7rem; font-weight:900; color:var(--text-dim);">— VS —</div>
+
+            <div class="pair-row" style="background:#1f1c3d;">
+              <div class="pair-info">
+                <span class="pair-names-strong" style="color:#e9d5ff;">${cB1 ? cB1.name : 'TBD'} & ${cB2 ? cB2.name : 'TBD'}</span>
+                <span class="pair-sub">Ratings: ${cB1 ? cB1.rating.toFixed(2) : '-'} / ${cB2 ? cB2.rating.toFixed(2) : '-'}</span>
+              </div>
+              <span class="badge-primary" style="background:rgba(168,85,247,0.2); color:var(--purple); border-color:var(--purple); font-size:0.65rem;">Custom B</span>
+            </div>
+          </div>
+
+          <div class="deck-actions-row">
+            <button class="btn btn-purple btn-sm" style="flex:1;" onclick="dispatchCustomStagedToCourt(1)">⚡ Send C1</button>
+            <button class="btn btn-purple btn-sm" style="flex:1;" onclick="dispatchCustomStagedToCourt(2)">⚡ Send C2</button>
+            <button class="btn btn-purple btn-sm" style="flex:1;" onclick="dispatchCustomStagedToCourt(3)">⚡ Send C3</button>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = cardsHtml;
+    }
+
+    function renderQueueTable() {
+      const tbody = document.getElementById("queueTableBody");
+      let filtered = [...state.players];
+
+      if (state.filter === "QUEUED") filtered = filtered.filter(p => p.state === "QUEUED");
+      else if (state.filter === "PLAYING") filtered = filtered.filter(p => p.state === "PLAYING");
+      else if (state.filter === "RESTING") filtered = filtered.filter(p => p.state === "RESTING" || p.state === "SKIPPED");
+
+      filtered.sort((a, b) => {
+        if (a.state === "PLAYING" && b.state !== "PLAYING") return 1;
+        if (b.state === "PLAYING" && a.state !== "PLAYING") return -1;
+        if (a.matches !== b.matches) return a.matches - b.matches;
+        return b.waitSecs - a.waitSecs;
+      });
+
+      tbody.innerHTML = filtered.map((p, idx) => {
+        let tagClass = "tag-queued";
+        let statusText = p.state;
+        if (p.state === "PLAYING") { tagClass = "tag-playing"; statusText = `Court ${p.courtNum}`; }
+        else if (p.state === "SKIPPED") { tagClass = "tag-skipped"; statusText = "1-Skip Breather"; }
+        else if (p.state === "RESTING") { tagClass = "tag-resting"; statusText = "Resting"; }
+        else if (p.state === "WAITING_PARTNER") { tagClass = "tag-waiting"; statusText = "Wait Partner"; }
+
+        let pinnedHtml = "";
+        if (p.lockedWith) {
+          const partner = getPlayer(p.lockedWith);
+          pinnedHtml = `<span class="pinned-badge">🔒 ${partner ? partner.name.split(' ')[0] : 'Partner'}</span>`;
+        }
+
+        return `
+          <tr onclick="openPlayerModal('${p.id}')" style="cursor:pointer;">
+            <td style="color:var(--text-dim); font-size:0.75rem;">${idx+1}</td>
+            <td>
+              <strong>${p.name}</strong> ${pinnedHtml}
+            </td>
+            <td><span class="player-rating">${p.rating.toFixed(2)}</span></td>
+            <td><strong>${p.matches}</strong></td>
+            <td>${Math.floor(p.waitSecs / 60)} min</td>
+            <td><span class="player-tag ${tagClass}">${statusText}</span></td>
+            <td>
+              <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+                <button class="btn btn-outline btn-sm" onclick="openPlayerModal('${p.id}')">Manage 📱</button>
+                ${p.lockedWith ? `<button class="btn btn-danger btn-sm" onclick="unpinPlayer('${p.id}')">Unpin</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("rosterCount").textContent = `${state.players.length} Players`;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      render();
+      logEvent("Badminque Courtside Board ready. 30-point scoring initialized.");
+    });
+  </script>
+</body>
+</html>
