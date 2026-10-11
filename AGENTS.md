@@ -83,7 +83,7 @@ Strictly adhere to the conventions defined in [`CODING_STANDARDS.md`](CODING_STA
 
 ### Issue tracker
 
-GitHub issues via `gh` CLI. See `docs/agents/issue-tracker.md`.
+GitHub issues via `gh` CLI. See `docs/agents/issue-tracker.md`. The repository root `TASKS.md` maintains a human- and agent-readable dashboard mirroring all active, blocked, and closed tasks. Always keep `TASKS.md` synchronized when picking up or completing issues.
 
 ### Triage labels
 
