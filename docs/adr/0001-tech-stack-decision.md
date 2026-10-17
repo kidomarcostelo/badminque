@@ -9,9 +9,9 @@ Badminque aims to provide a standardized rating system and club-night match trac
 
 ## Decision
 
-We commit to an offline-first Progressive Web App (PWA) with a decoupled Python API and serverless PostgreSQL database:
+We commit to an offline-first Progressive Web App (PWA) with a decoupled Python API, serverless PostgreSQL database, and automated Android packaging:
 
-1. **Frontend**: **Next.js (React / TypeScript)** configured as an offline-first PWA. Service Workers handle app shell caching; client-side IndexedDB stores club rosters and match logs locally during club night. Deployed on **Vercel** (Hobby Tier - $0/mo).
+1. **Frontend & Mobile Client**: **Next.js (React / TypeScript / Tailwind CSS)** configured as an offline-first PWA and packaged for Android via **Google Trusted Web Activity (TWA / Bubblewrap)**. Service Workers handle app shell caching; client-side IndexedDB stores club rosters, match logs, and sync queues locally with `navigator.storage.persist()`. Deployed on **Vercel** (Hobby Tier - $0/mo) for web and built as signed Android `.apk` / `.aab` packages on **GitHub Actions** ($0/mo). iOS is explicitly out of scope for MVP.
 2. **Backend**: **Python (FastAPI)**. Python allows rapid iteration and mathematical prototyping for Elo/UBR rating curves and score-differential weighting. FastAPI provides native async execution and automated OpenAPI contracts. Deployed as a container on **Koyeb** (Free Eco Tier - $0/mo, zero spin-down).
 3. **Database**: **Neon (Serverless PostgreSQL)**. Provides full ACID compliance, PostgreSQL window functions (`RANK() OVER`) for club leaderboards, and connection pooling. Free tier provides 0.5 GB storage ($0/mo).
 4. **User & Auth Model (Tricount Model)**: Organizers operate the club session tablet under an organizer account. Players participate as roster entries without mandatory registration. Players may optionally register accounts later to claim historical match records.
@@ -19,6 +19,8 @@ We commit to an offline-first Progressive Web App (PWA) with a decoupled Python 
 
 ## Considered Options
 
+- **Expo (React Native) + Expo Router / React Native Web**: Evaluated for unified Web and Android cross-platform delivery (see `docs/research/frontend-architecture-web-android.md`). Rejected because: (1) Expo EAS Build Free Tier strictly caps builds at 15 Android builds/month with 25–45 min queues, violating developer velocity and free CI constraints; (2) React Native's Yoga engine is 1D Flexbox, making our dense 3-court "spreadsheet-familiar" tablet dashboard layout fragile and prone to layout thrashing compared to native CSS Grid; (3) SQLite on Web requires Wasm with COOP/COEP isolation headers or falls back to a 5 MB storage cap, while IndexedDB provides >10 GB persistent storage natively in both Chrome and TWA; (4) TWA delivers 100% single UI codebase reuse with zero platform divergence for a solo developer.
+- **Capacitor (Next.js Hybrid)**: Evaluated as a web-to-native bridge. Kept as a verified architectural fallback if native hardware plugins (e.g. Bluetooth sensors) are required in the future. TWA was selected over Capacitor for MVP because TWA shares Chrome cookies, credentials, and storage directly, enabling instant session transfer from mobile web QR claiming into the installed app.
 - **Fullstack Next.js Monolith (Server Actions / API Routes)**: Rejected because rating algorithm tuning, mathematical modeling, and potential migration to specialized rating services benefit from Python's numerical ecosystem.
 - **Go (Gin/Chi)**: Rejected for MVP because Python is already mastered by the developer, avoiding dual-learning friction alongside PWA offline synchronization.
 - **Supabase BaaS**: Considered, but decoupled FastAPI provides full autonomy over custom batch rating updates, custom offline sync validation, and future algorithm portability.
@@ -27,6 +29,8 @@ We commit to an offline-first Progressive Web App (PWA) with a decoupled Python 
 
 ## Consequences
 
-- Total ongoing infrastructure cost is $0.00/month across Vercel, Koyeb, and Neon.
+- Total ongoing infrastructure cost remains strictly $0.00/month across Vercel, Koyeb, Neon, and GitHub Actions.
+- Organizers and players can run Badminque as a responsive web app or install the standalone Android `.apk` built by GitHub CI.
+- The web app and installed Android app share 100% of UI components, Tailwind styles, and offline IndexedDB persistence with zero platform-specific code forks.
 - The frontend and backend communicate via clean REST contracts defined in OpenAPI schemas.
-- Client-side offline synchronization logic (handling conflict resolution and batch commits) must be explicitly managed between IndexedDB and the FastAPI sync endpoint.
+- Client-side offline synchronization logic (handling conflict resolution and batch commits) is encapsulated cleanly in an abstract storage and sync layer.
