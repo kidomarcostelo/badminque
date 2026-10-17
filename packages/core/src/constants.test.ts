@@ -12,7 +12,7 @@ import {
   QUICK_SCORE_TARGET,
   STANDARD_SET_WIN_SCORE,
   WEAK_LINK_GAMMA,
-} from '../src/constants';
+} from './constants';
 
 describe('Rating and Game Constants', () => {
   it('enforces score boundaries according to badminton rules', () => {

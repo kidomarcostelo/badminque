@@ -35,6 +35,12 @@ These are the canonical coding conventions, style rules, and linting guidelines 
   - Weak-link sensitivity: `WEAK_LINK_GAMMA = 0.08`
 - Match disciplines (`"singles"`, `"doubles"`) and formats (`"SINGLE_21"`, `"BEST_OF_3"`) must use typed string enums.
 
+### 1.5 Colocated Tests & Locality Invariant
+- **Rule**: All unit and module tests must be colocated in the exact same directory as the source file they verify:
+  - TypeScript: `foo.ts` is tested by `foo.test.ts` (or `FooComponent.tsx` by `FooComponent.test.tsx`) in the same directory.
+  - Python: `bar.py` is tested by `test_bar.py` in the same directory.
+- **Rationale**: Maximizes code locality, eliminates cross-directory file jumping, accelerates AI agent navigation, prevents test drift, and drastically reduces context window token consumption. Separate mirror `tests/` directories are prohibited except for workspace-level end-to-end smoke tests.
+
 ---
 
 ## 2. TypeScript & Frontend Standards (Next.js / React)

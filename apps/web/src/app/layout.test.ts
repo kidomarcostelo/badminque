@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { viewport, metadata } from '../src/app/layout';
+import { viewport, metadata } from './layout';
 
 describe('Courtside PWA Viewport and Metadata Settings', () => {
   it('enforces fixed scale and disables zoom for courtside tablet operation', () => {
