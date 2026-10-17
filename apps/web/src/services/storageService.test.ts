@@ -3,7 +3,7 @@ import type { MatchRecord, RosterPlayer } from '@badminque/core';
 import {
   storageService,
   closeDatabaseConnection,
-} from '../src/services/storageService';
+} from './storageService';
 
 describe('IndexedDBStorageService', () => {
   beforeEach(async () => {

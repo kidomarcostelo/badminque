@@ -25,6 +25,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: 9
           run_install: false
 
       - name: Setup Node.js
@@ -76,6 +77,5 @@ jobs:
       - name: Ruff linter check
         run: ruff check .
 
-      - name: Pytest suite
-        run: |
-          PYTHONPATH=src pytest -v tests/
+      - name: Pytest suite (colocated in src/)
+        run: pytest -v

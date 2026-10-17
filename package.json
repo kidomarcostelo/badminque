@@ -1,14 +1,13 @@
 {
   "name": "badminque",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" build",
     "lint": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" lint",
     "lint:api": "ruff check apps/api && ruff format --check apps/api",
     "typecheck": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" typecheck",
     "test": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" test",
-    "test:api": "PYTHONPATH=apps/api/src pytest apps/api/tests"
+    "test:api": "pytest apps/api"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

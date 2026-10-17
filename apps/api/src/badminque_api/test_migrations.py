@@ -10,7 +10,7 @@ from badminque_api.models import Base
 
 def test_alembic_configuration_and_migration_chain() -> None:
     """Verifies that Alembic configuration and revision history are valid."""
-    api_dir = Path(__file__).resolve().parent.parent
+    api_dir = Path(__file__).resolve().parent.parent.parent
     alembic_ini_path = api_dir / "alembic.ini"
     assert alembic_ini_path.exists(), "alembic.ini must exist in apps/api"
 
