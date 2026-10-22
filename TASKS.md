@@ -15,7 +15,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **[#13](https://github.com/kidomarcostelo/badminque/issues/13)** | Foundational Workspace Scaffolding & CI Pipeline | ✅ **Done** | None | Completed | Turborepo / pnpm monorepo (Next.js PWA + FastAPI), Neon schema migrations, zero-cost CI pipeline on `feat/spec-12-mvp`. |
-| **[#14](https://github.com/kidomarcostelo/badminque/issues/14)** | Mathematical Rating Engine & Invariant Suite | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Pure Python rating calculation engine with Hypothesis property invariants ($R_S/R_D$, weak-link, MOV, decay). (Sequenced after #6). |
+| **[#14](https://github.com/kidomarcostelo/badminque/issues/14)** | Mathematical Rating Engine & Invariant Suite | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Pure Python rating calculation engine with Hypothesis property invariants ($R_S/R_D$, weak-link, MOV, decay) in `badminque_api/domain/rating/`. |
 | **[#15](https://github.com/kidomarcostelo/badminque/issues/15)** | Tricount-Style Roster Player Management & Offline Check-In | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Fast courtside player check-in, search/filter, guest creation with permanent UUIDs, IndexedDB persistence. |
 | **[#16](https://github.com/kidomarcostelo/badminque/issues/16)** | 3-Court Courtside Station Board with 30-Point Quick Scoring | 🟡 **Ready for Agent** | #15 | Blocked | 3-court live grid, rolling independent match dispatch, 30-pt quick scoring presets, 4-player stamina step-off. |
 | **[#17](https://github.com/kidomarcostelo/badminque/issues/17)** | Automated Queue Dispatch & Multi-Policy Matchmaking Engine | 🟡 **Ready for Agent** | #14, #16 | Blocked | Queue priority $Q(i)$, Fair Play, Split & Mix, Ladder, Flighted Tiers, On-Deck 2-slot pre-grouping. |
@@ -26,7 +26,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 ### Standalone Architectural Tasks
 | Issue | Type | Status | Deliverable / Notes |
 | :--- | :--- | :--- | :--- |
-| **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | 🟡 **Ready for Agent (Top Priority)** | Prioritized ahead of #14. Compares Clean Architecture vs Feature-Sliced Design vs Pragmatic Domain-Driven Architecture for Next.js PWA + FastAPI backend. |
+| **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | ✅ **Done** | Ratified Feature-Driven Vertical Slices (`apps/web/src/features/`) and Pragmatic Clean Domain Core (`apps/api/src/badminque_api/domain/`). Deliverable: [`docs/research/architecture-methodology.md`](file:///docs/research/architecture-methodology.md). |
 
 ---
 
