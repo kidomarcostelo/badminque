@@ -3,6 +3,17 @@
 Pure Python rating calculation and invariant enforcement.
 """
 
+from badminque_api.domain.rating.dubr import (
+    DUBR_BASE_RATING,
+    DUBR_DIVISOR,
+    DUBR_SCALE_MAX,
+    DUBR_SCALE_MIN,
+    dubr_to_rating,
+    format_dubr,
+    format_dubr_delta,
+    rating_delta_to_dubr_delta,
+    rating_to_dubr,
+)
 from badminque_api.domain.rating.engine import (
     INITIAL_RATING_BASELINE,
     MIN_POINTS_FOR_RATING,
@@ -51,6 +62,10 @@ from badminque_api.domain.rating.soft_mean import (
 )
 
 __all__ = [
+    "DUBR_BASE_RATING",
+    "DUBR_DIVISOR",
+    "DUBR_SCALE_MAX",
+    "DUBR_SCALE_MIN",
     "ESTABLISHED_MATCH_THRESHOLD",
     "FAVORITE_DAMPING",
     "INITIAL_RATING_BASELINE",
@@ -83,8 +98,13 @@ __all__ = [
     "calculate_rd",
     "calculate_singles_rating_update",
     "calculate_weak_link_soft_mean",
+    "dubr_to_rating",
     "enforce_non_inversion",
     "enforce_rating_floor",
+    "format_dubr",
+    "format_dubr_delta",
     "get_match_format_weight",
     "is_provisional",
+    "rating_delta_to_dubr_delta",
+    "rating_to_dubr",
 ]

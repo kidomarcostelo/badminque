@@ -7,6 +7,7 @@
 export const STANDARD_SET_WIN_SCORE = 21 as const;
 export const OVERTIME_SET_CAP = 30 as const;
 export const QUICK_SCORE_TARGET = 30 as const;
+export const MIN_POINTS_FOR_RATING = 11 as const;
 
 // Rating Algorithm Constants (docs/research/rating-algorithm-spec.md)
 export const INITIAL_RATING_BASELINE = 1500.0 as const;

@@ -184,3 +184,97 @@ def test_batch_sync_request_schema() -> None:
     )
     assert sync_payload.club_night_id == club_night_id
     assert sync_payload.matches == []
+
+
+def test_player_rating_delta_response() -> None:
+    """Verifies PlayerRatingDeltaResponse schema validation and DUBR fields."""
+    from badminque_api.schemas.match import (
+        MatchRecordingResponse,
+        MatchRecordResponse,
+        PlayerRatingDeltaResponse,
+    )
+
+    player_id = uuid.uuid4()
+    delta_res = PlayerRatingDeltaResponse(
+        player_id=player_id,
+        player_name="Alice Smith",
+        pre_rating=1500.0,
+        post_rating=1534.0,
+        rating_delta=34.0,
+        pre_dubr=3.750,
+        post_dubr=3.835,
+        dubr_delta=0.085,
+        k_factor=64.0,
+        rd_after=350.0,
+        is_provisional=True,
+        matches_played_after=1,
+    )
+    assert delta_res.player_id == player_id
+    assert delta_res.dubr_delta == 0.085
+    assert delta_res.post_dubr == 3.835
+    assert delta_res.is_provisional is True
+
+    match_id = uuid.uuid4()
+    club_night_id = uuid.uuid4()
+    match_resp = MatchRecordResponse(
+        id=match_id,
+        club_night_id=club_night_id,
+        court_id=1,
+        discipline=DisciplineEnum.DOUBLES,
+        format=MatchFormatEnum.SINGLE_21,
+        team_a_player_ids=[player_id, uuid.uuid4()],
+        team_b_player_ids=[uuid.uuid4(), uuid.uuid4()],
+        team_a_scores=[21],
+        team_b_scores=[19],
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+        created_at=datetime.now(timezone.utc),
+    )
+
+    outcome = MatchRecordingResponse(
+        match=match_resp,
+        deltas=[delta_res],
+    )
+    assert outcome.match.id == match_id
+    assert len(outcome.deltas) == 1
+    assert outcome.deltas[0].player_name == "Alice Smith"
+
+
+def test_rejects_tied_set_score() -> None:
+    """Rejects match when an individual set score is tied (e.g. 21-21)."""
+    p1, p2 = uuid.uuid4(), uuid.uuid4()
+
+    with pytest.raises(ValidationError, match="Individual set score cannot be tied"):
+        MatchRecordCreate(
+            id=uuid.uuid4(),
+            club_night_id=uuid.uuid4(),
+            court_id=1,
+            discipline=DisciplineEnum.SINGLES,
+            format=MatchFormatEnum.SINGLE_21,
+            team_a_player_ids=[p1],
+            team_b_player_ids=[p2],
+            team_a_scores=[21],
+            team_b_scores=[21],
+            recorded_at=datetime.now(timezone.utc),
+            sequence_num=1,
+        )
+
+
+def test_rejects_tied_match_sets() -> None:
+    """Rejects match when total sets won are tied in multi-set format."""
+    p1, p2 = uuid.uuid4(), uuid.uuid4()
+
+    with pytest.raises(ValidationError, match="decisive winner is required"):
+        MatchRecordCreate(
+            id=uuid.uuid4(),
+            club_night_id=uuid.uuid4(),
+            court_id=1,
+            discipline=DisciplineEnum.SINGLES,
+            format=MatchFormatEnum.BEST_OF_3,
+            team_a_player_ids=[p1],
+            team_b_player_ids=[p2],
+            team_a_scores=[21, 15],
+            team_b_scores=[18, 21],
+            recorded_at=datetime.now(timezone.utc),
+            sequence_num=1,
+        )

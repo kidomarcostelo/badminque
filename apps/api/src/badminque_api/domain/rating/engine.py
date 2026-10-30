@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
+from badminque_api.domain.rating.dubr import (
+    rating_delta_to_dubr_delta,
+    rating_to_dubr,
+)
 from badminque_api.domain.rating.invariants import (
     RATING_FLOOR,
     assert_non_inversion,
@@ -182,6 +186,21 @@ class RatingDeltaResult:
     k_factor: float
     rd_after: float
     is_provisional: bool
+
+    @property
+    def pre_dubr(self) -> float:
+        """Player's rating on the user-facing 2.000–7.000 DUBR scale before match."""
+        return rating_to_dubr(self.pre_rating)
+
+    @property
+    def post_dubr(self) -> float:
+        """Player's rating on the user-facing 2.000–7.000 DUBR scale after match."""
+        return rating_to_dubr(self.post_rating)
+
+    @property
+    def dubr_delta(self) -> float:
+        """Player's rating adjustment on the user-facing Delta DUBR scale."""
+        return rating_delta_to_dubr_delta(self.rating_delta)
 
 
 @dataclass(slots=True, frozen=True)

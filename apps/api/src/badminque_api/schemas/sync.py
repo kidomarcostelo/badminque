@@ -7,7 +7,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from badminque_api.schemas.match import MatchRecordCreate
+from badminque_api.schemas.match import (
+    MatchRecordCreate,
+    PlayerRatingDeltaResponse,
+)
 
 
 class BatchSyncRequest(BaseModel):
@@ -31,3 +34,7 @@ class BatchSyncResponse(BaseModel):
         description="Number of matches ignored due to ON CONFLICT (id) DO NOTHING",
     )
     status: str = Field(default="success", description="Batch synchronization status")
+    deltas: dict[str, list[PlayerRatingDeltaResponse]] = Field(
+        default_factory=dict,
+        description="Calculated rating deltas keyed by match ID",
+    )

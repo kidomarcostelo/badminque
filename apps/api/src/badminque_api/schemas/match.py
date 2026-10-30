@@ -81,6 +81,29 @@ class MatchRecordBase(BaseModel):
                     f"{MIN_SCORE} and {MAX_SET_SCORE}"
                 )
 
+        # 5. Validate no individual set ends in a tie
+        for sa, sb in zip(self.team_a_scores, self.team_b_scores, strict=True):
+            if sa == sb:
+                raise ValueError(
+                    f"Individual set score cannot be tied: got ({sa}, {sb})"
+                )
+
+        # 6. Validate match sets do not end in a tie (decisive winner required)
+        a_sets_won = sum(
+            1
+            for sa, sb in zip(self.team_a_scores, self.team_b_scores, strict=True)
+            if sa > sb
+        )
+        b_sets_won = sum(
+            1
+            for sa, sb in zip(self.team_a_scores, self.team_b_scores, strict=True)
+            if sb > sa
+        )
+        if a_sets_won == b_sets_won:
+            raise ValueError(
+                "Match sets cannot end in a tie; a decisive winner is required"
+            )
+
         return self
 
 
@@ -103,5 +126,33 @@ class MatchRecordResponse(MatchRecordBase):
     sequence_num: int
     status: SyncStatusEnum = Field(default=SyncStatusEnum.SYNCED)
     created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlayerRatingDeltaResponse(BaseModel):
+    player_id: UUID
+    player_name: str = Field(default="", description="Roster player display name")
+    pre_rating: float = Field(description="Rating before match")
+    post_rating: float = Field(description="Rating after match")
+    rating_delta: float = Field(description="Delta R rating adjustment")
+    pre_dubr: float = Field(description="DUBR before match (2.000-7.000)")
+    post_dubr: float = Field(description="DUBR after match (2.000-7.000)")
+    dubr_delta: float = Field(description="Delta DUBR adjustment")
+    k_factor: float = Field(description="Applied K-factor")
+    rd_after: float = Field(description="Rating deviation after match")
+    is_provisional: bool = Field(
+        description="True if player is provisional (<8 matches)"
+    )
+    matches_played_after: int = Field(
+        description="Total matches played in discipline after match"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MatchRecordingResponse(BaseModel):
+    match: MatchRecordResponse
+    deltas: list[PlayerRatingDeltaResponse]
 
     model_config = ConfigDict(from_attributes=True)

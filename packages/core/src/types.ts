@@ -44,8 +44,8 @@ export interface MatchRecord {
   court_id: number;
   discipline: Discipline;
   format: MatchFormat;
-  team_a_player_ids: [string, string];
-  team_b_player_ids: [string, string];
+  team_a_player_ids: string[];
+  team_b_player_ids: string[];
   team_a_scores: number[];
   team_b_scores: number[];
   status: SyncStatus;
@@ -75,4 +75,23 @@ export interface PlayerPassport {
   singles_matches_played: number;
   doubles_matches_played: number;
   club_name: string;
+}
+
+export interface PlayerRatingDelta {
+  player_id: string;
+  player_name?: string | undefined;
+  pre_rating: number;
+  post_rating: number;
+  rating_delta: number;
+  pre_dubr: number;
+  post_dubr: number;
+  dubr_delta: number;
+  k_factor: number;
+  is_provisional: boolean;
+  matches_played_after: number;
+}
+
+export interface MatchRecordingResult {
+  match: MatchRecord;
+  deltas: PlayerRatingDelta[];
 }

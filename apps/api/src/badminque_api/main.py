@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from badminque_api.config import settings
 from badminque_api.database import check_database_health
 from badminque_api.exceptions import BadminqueError
-from badminque_api.routers import players
+from badminque_api.routers import matches, players, sync
 from badminque_api.schemas.health import HealthResponse
 
 app = FastAPI(
@@ -23,6 +23,8 @@ app = FastAPI(
 )
 
 app.include_router(players.router, prefix=settings.api_prefix)
+app.include_router(matches.router, prefix=settings.api_prefix)
+app.include_router(sync.router, prefix=settings.api_prefix)
 
 # CORS middleware for Next.js PWA client
 app.add_middleware(
