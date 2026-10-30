@@ -10,6 +10,7 @@ from fastapi import APIRouter, Query, status
 
 from badminque_api.database import DbSession
 from badminque_api.schemas.player import (
+    PlayerStatusUpdate,
     RosterPlayerCreate,
     RosterPlayerResponse,
 )
@@ -59,3 +60,22 @@ async def list_roster_players(
         RosterPlayerResponse.model_validate(player, from_attributes=True)
         for player in players
     ]
+
+
+@router.patch(
+    "/clubs/{club_id}/players/{player_id}/status",
+    response_model=RosterPlayerResponse,
+    summary="Update roster player status",
+)
+async def update_player_status(
+    club_id: uuid.UUID,
+    player_id: uuid.UUID,
+    status_update: PlayerStatusUpdate,
+    session: DbSession,
+) -> RosterPlayerResponse:
+    """Updates the courtside status of a roster player."""
+    service = RosterService(session)
+    player = await service.update_player_status(
+        club_id, player_id, status_update.status.value
+    )
+    return RosterPlayerResponse.model_validate(player, from_attributes=True)

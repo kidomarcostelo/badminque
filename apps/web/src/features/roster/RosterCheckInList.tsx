@@ -7,6 +7,7 @@ import { useRoster } from './useRoster';
 
 export interface RosterCheckInListProps {
   clubId?: string;
+  onRosterChange?: () => void;
 }
 
 function getPlayerInitials(name: string): string {
@@ -29,7 +30,10 @@ function getNextToggleStatus(currentStatus: PlayerState): PlayerState {
   return 'QUEUED';
 }
 
-export function RosterCheckInList({ clubId }: RosterCheckInListProps): React.JSX.Element {
+export function RosterCheckInList({
+  clubId,
+  onRosterChange,
+}: RosterCheckInListProps): React.JSX.Element {
   const {
     roster,
     filteredRoster,
@@ -38,7 +42,7 @@ export function RosterCheckInList({ clubId }: RosterCheckInListProps): React.JSX
     setSearchQuery,
     checkInPlayer,
     updatePlayerStatus,
-  } = useRoster();
+  } = useRoster(clubId);
 
   const [inputName, setInputName] = useState<string>('');
 
@@ -60,17 +64,26 @@ export function RosterCheckInList({ clubId }: RosterCheckInListProps): React.JSX
       (player) => player.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (existing) {
+      if (existing.status !== 'QUEUED') {
+        await updatePlayerStatus(existing.id, 'QUEUED');
+        onRosterChange?.();
+      }
       setInputName('');
       setSearchQuery('');
       return;
     }
 
     await checkInPlayer(trimmed, clubId);
+    onRosterChange?.();
     setInputName('');
     setSearchQuery('');
   };
 
-  const handleSelectSuggestion = (_player: RosterPlayer): void => {
+  const handleSelectSuggestion = async (player: RosterPlayer): Promise<void> => {
+    if (player.status !== 'QUEUED') {
+      await updatePlayerStatus(player.id, 'QUEUED');
+      onRosterChange?.();
+    }
     setInputName('');
     setSearchQuery('');
   };
@@ -78,6 +91,7 @@ export function RosterCheckInList({ clubId }: RosterCheckInListProps): React.JSX
   const handleToggleStatus = async (player: RosterPlayer): Promise<void> => {
     const nextStatus = getNextToggleStatus(player.status);
     await updatePlayerStatus(player.id, nextStatus);
+    onRosterChange?.();
   };
 
   return (

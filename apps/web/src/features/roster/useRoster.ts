@@ -20,7 +20,21 @@ export interface UseRosterResult {
   refreshRoster: () => Promise<void>;
 }
 
-export function useRoster(): UseRosterResult {
+function generateUuidV4(): string {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const randomByte = (Math.random() * 16) | 0;
+    const value = char === 'x' ? randomByte : (randomByte & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+export function useRoster(initialClubId?: string): UseRosterResult {
   const [roster, setRoster] = useState<RosterPlayer[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,6 +54,50 @@ export function useRoster(): UseRosterResult {
   useEffect(() => {
     void refreshRoster();
   }, [refreshRoster]);
+
+  // Synchronize remote club roster into IndexedDB when online
+  useEffect(() => {
+    if (!initialClubId || typeof window === 'undefined' || !navigator.onLine) {
+      return;
+    }
+
+    void fetch(`/api/v1/clubs/${initialClubId}/players`)
+      .then((response) => {
+        if (!response.ok) {
+          return null;
+        }
+        return response.json();
+      })
+      .then(async (remotePlayers: RosterPlayer[] | null) => {
+        if (!remotePlayers || !Array.isArray(remotePlayers)) {
+          return;
+        }
+        const existingRoster = await storageService.getRoster();
+        const existingMap = new Map(existingRoster.map((player) => [player.id, player]));
+
+        for (const remotePlayer of remotePlayers) {
+          const localRecord = existingMap.get(remotePlayer.id);
+          await storageService.savePlayer({
+            id: remotePlayer.id,
+            club_id: remotePlayer.club_id ?? initialClubId,
+            name: remotePlayer.name,
+            auth_user_id: remotePlayer.auth_user_id ?? null,
+            singles_rating: remotePlayer.singles_rating ?? INITIAL_RATING_BASELINE,
+            doubles_rating: remotePlayer.doubles_rating ?? INITIAL_RATING_BASELINE,
+            matches_played: remotePlayer.matches_played ?? 0,
+            status: localRecord?.status ?? remotePlayer.status ?? 'QUEUED',
+            checked_in_at:
+              localRecord?.checked_in_at ??
+              remotePlayer.checked_in_at ??
+              new Date().toISOString(),
+          });
+        }
+        await refreshRoster();
+      })
+      .catch(() => {
+        // Offline or network drop: IndexedDB remains authoritative courtside
+      });
+  }, [initialClubId, refreshRoster]);
 
   // Derived state: calculate filtered roster and typeahead suggestions per CODING_STANDARDS.md 2.3
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -69,14 +127,12 @@ export function useRoster(): UseRosterResult {
         throw new Error('Player name cannot be empty');
       }
 
-      const generatedId =
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `player-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const effectiveClubId = clubId ?? initialClubId;
+      const generatedId = generateUuidV4();
 
       const newPlayer: RosterPlayer = {
         id: generatedId,
-        club_id: clubId,
+        club_id: effectiveClubId,
         name: trimmedName,
         auth_user_id: null,
         singles_rating: INITIAL_RATING_BASELINE,
@@ -91,8 +147,8 @@ export function useRoster(): UseRosterResult {
       await refreshRoster();
 
       // 2. Best-effort background sync to API when online (non-blocking)
-      if (clubId && typeof window !== 'undefined' && navigator.onLine) {
-        void fetch(`/api/v1/clubs/${clubId}/players`, {
+      if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
+        void fetch(`/api/v1/clubs/${effectiveClubId}/players`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -108,7 +164,7 @@ export function useRoster(): UseRosterResult {
 
       return newPlayer;
     },
-    [refreshRoster]
+    [initialClubId, refreshRoster]
   );
 
   const updatePlayerStatus = useCallback(
@@ -125,8 +181,19 @@ export function useRoster(): UseRosterResult {
 
       await storageService.savePlayer(updatedPlayer);
       await refreshRoster();
+
+      const effectiveClubId = existingPlayer.club_id ?? initialClubId;
+      if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
+        void fetch(`/api/v1/clubs/${effectiveClubId}/players/${playerId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        }).catch(() => {
+          // Offline or network drop
+        });
+      }
     },
-    [roster, refreshRoster]
+    [roster, initialClubId, refreshRoster]
   );
 
   return {

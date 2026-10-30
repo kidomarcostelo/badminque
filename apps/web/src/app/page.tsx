@@ -10,7 +10,7 @@ import { RosterCheckInList } from '../features/roster/RosterCheckInList';
 import { useStorage } from '../hooks/useStorage';
 
 export default function CourtsideStationPage(): React.JSX.Element {
-  const { roster, pendingMatches, isPersistent } = useStorage();
+  const { roster, pendingMatches, isPersistent, refresh } = useStorage();
 
   const courts = Array.from({ length: DEFAULT_COURT_COUNT }, (_, index) => {
     return {
@@ -93,7 +93,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
         <h2 className="text-lg font-semibold text-slate-200 mb-3">
           Courtside Check-In & Roster
         </h2>
-        <RosterCheckInList />
+        <RosterCheckInList onRosterChange={refresh} />
       </section>
 
       <footer className="mt-auto pt-4 border-t border-slate-800 text-center text-xs text-slate-400">

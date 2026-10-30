@@ -34,5 +34,9 @@ describe('CourtsideStationPage', () => {
     fireEvent.click(addButton);
 
     expect(await screen.findByText('Anthony Ginting')).toBeInTheDocument();
+
+    // Verifies roster counters update reactively across both header and table badge
+    const countBadges = await screen.findAllByText('1');
+    expect(countBadges.length).toBeGreaterThanOrEqual(2);
   });
 });

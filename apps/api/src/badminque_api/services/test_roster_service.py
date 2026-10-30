@@ -180,3 +180,66 @@ async def test_update_player_status(
         await service.update_player_status(
             sample_club.id, uuid.uuid4(), PlayerStateEnum.RESTING.value
         )
+
+
+async def test_create_roster_player_trims_whitespace(
+    test_session: AsyncSession, sample_club: Club
+) -> None:
+    """Trims leading and trailing whitespace from player name during creation."""
+    service = RosterService(test_session)
+    player = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            id=uuid.uuid4(), club_id=sample_club.id, name="   Lee Chong Wei   "
+        ),
+    )
+    assert player.name == "Lee Chong Wei"
+
+
+async def test_list_roster_players_escapes_like_wildcards_and_whitespace(
+    test_session: AsyncSession, sample_club: Club
+) -> None:
+    """Trims search query and treats SQL wildcards as literal characters."""
+    service = RosterService(test_session)
+    await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(id=uuid.uuid4(), club_id=sample_club.id, name="Lin Dan"),
+    )
+    await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            id=uuid.uuid4(), club_id=sample_club.id, name="Liem Swie King"
+        ),
+    )
+
+    # Whitespace-padded query should match Swie King / Lin Dan
+    results = await service.list_roster_players(sample_club.id, search_prefix="  Li  ")
+    assert len(results) == 2
+
+    # Query with literal '%' should not match ordinary names
+    wildcard_results = await service.list_roster_players(
+        sample_club.id, search_prefix="%"
+    )
+    assert len(wildcard_results) == 0
+
+    # Whitespace-only search returns all players in club
+    whitespace_results = await service.list_roster_players(
+        sample_club.id, search_prefix="   "
+    )
+    assert len(whitespace_results) == 2
+
+
+async def test_update_player_status_invalid_value(
+    test_session: AsyncSession, sample_club: Club
+) -> None:
+    """Raises ValueError when updating player to an invalid status string."""
+    service = RosterService(test_session)
+    player = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            id=uuid.uuid4(), club_id=sample_club.id, name="Taufik Hidayat"
+        ),
+    )
+    with pytest.raises(ValueError) as exc_info:
+        await service.update_player_status(sample_club.id, player.id, "BOGUS_STATUS")
+    assert "Invalid status" in str(exc_info.value)

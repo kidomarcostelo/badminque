@@ -4,7 +4,14 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, computed_field
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_validator,
+)
 
 
 class PlayerStateEnum(str, Enum):
@@ -13,6 +20,12 @@ class PlayerStateEnum(str, Enum):
     SKIPPED = "SKIPPED"
     RESTING = "RESTING"
     WAITING_PARTNER = "WAITING_PARTNER"
+
+
+class PlayerStatusUpdate(BaseModel):
+    status: PlayerStateEnum = Field(
+        description="New courtside status for the roster player"
+    )
 
 
 class RosterPlayerBase(BaseModel):
@@ -34,6 +47,14 @@ class RosterPlayerBase(BaseModel):
         le=5000.0,
         description="Elo/UBR doubles rating",
     )
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_not_blank(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("Player name cannot be empty or whitespace only")
+        return trimmed
 
     model_config = ConfigDict(populate_by_name=True)
 

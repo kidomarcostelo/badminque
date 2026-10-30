@@ -169,3 +169,50 @@ def test_get_roster_players_endpoint_with_search(
     all_response = client_with_db.get(f"/api/v1/clubs/{sample_club.id}/players")
     assert all_response.status_code == 200
     assert len(all_response.json()) == 4
+
+
+def test_create_roster_player_whitespace_only_rejected(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """POST /api/v1/clubs/{id}/players returns 422 for blank or whitespace-only name."""
+    response = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "     "},
+    )
+    assert response.status_code == 422
+
+
+def test_update_player_status_endpoint(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """PATCH /api/v1/clubs/{id}/players/{player_id}/status updates courtside status."""
+    create_response = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "Lee Zii Jia"},
+    )
+    assert create_response.status_code == 201
+    player_id = create_response.json()["id"]
+
+    patch_response = client_with_db.patch(
+        f"/api/v1/clubs/{sample_club.id}/players/{player_id}/status",
+        json={"status": "RESTING"},
+    )
+    assert patch_response.status_code == 200
+    assert patch_response.json()["status"] == "RESTING"
+
+
+def test_update_player_status_endpoint_invalid_enum(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """PATCH /clubs/{id}/players/{player_id}/status returns 422 for invalid enum."""
+    create_response = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "Kunlavut Vitidsarn"},
+    )
+    player_id = create_response.json()["id"]
+
+    patch_response = client_with_db.patch(
+        f"/api/v1/clubs/{sample_club.id}/players/{player_id}/status",
+        json={"status": "INVALID_STATE"},
+    )
+    assert patch_response.status_code == 422

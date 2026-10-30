@@ -6,6 +6,7 @@ Strictly adheres to GLOSSARY.md, ADR 0001, and CODING_STANDARDS.md.
 import uuid
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from badminque_api.exceptions import EntityNotFoundError
@@ -37,12 +38,12 @@ class RosterService:
         await self._verify_club_exists(club_id)
 
         player_id = player_data.id or uuid.uuid4()
+        clean_name = player_data.name.strip()
 
         # Idempotency check: return existing record if UUID already exists
         existing_result = await self.session.execute(
             select(RosterPlayer).where(
                 RosterPlayer.id == player_id,
-                RosterPlayer.club_id == club_id,
             )
         )
         existing_player = existing_result.scalar_one_or_none()
@@ -52,7 +53,7 @@ class RosterService:
         new_player = RosterPlayer(
             id=player_id,
             club_id=club_id,
-            name=player_data.name,
+            name=clean_name,
             auth_user_id=player_data.auth_user_id,
             singles_rating=player_data.singles_rating,
             doubles_rating=player_data.doubles_rating,
@@ -61,10 +62,20 @@ class RosterService:
             status=PlayerStateEnum.QUEUED.value,
         )
 
-        self.session.add(new_player)
-        await self.session.commit()
-        await self.session.refresh(new_player)
-        return new_player
+        try:
+            self.session.add(new_player)
+            await self.session.commit()
+            await self.session.refresh(new_player)
+            return new_player
+        except IntegrityError:
+            await self.session.rollback()
+            retry_result = await self.session.execute(
+                select(RosterPlayer).where(RosterPlayer.id == player_id)
+            )
+            concurrent_player = retry_result.scalar_one_or_none()
+            if concurrent_player is not None:
+                return concurrent_player
+            raise
 
     async def list_roster_players(
         self,
@@ -76,8 +87,16 @@ class RosterService:
 
         query = select(RosterPlayer).where(RosterPlayer.club_id == club_id)
 
-        if search_prefix:
-            query = query.where(RosterPlayer.name.ilike(f"{search_prefix}%"))
+        if search_prefix is not None:
+            cleaned = search_prefix.strip()
+            if cleaned:
+                # Escape LIKE wildcards to prevent pattern injection
+                escaped = (
+                    cleaned.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_")
+                )
+                query = query.where(RosterPlayer.name.ilike(f"{escaped}%", escape="\\"))
 
         query = query.order_by(RosterPlayer.name.asc())
         result = await self.session.execute(query)
@@ -109,6 +128,11 @@ class RosterService:
         new_status: str,
     ) -> RosterPlayer:
         """Updates the courtside status of a roster player."""
+        valid_statuses = {s.value for s in PlayerStateEnum}
+        if new_status not in valid_statuses:
+            raise ValueError(
+                f"Invalid status '{new_status}'. Allowed values: {valid_statuses}"
+            )
         player = await self.get_roster_player(club_id, player_id)
         player.status = new_status
         await self.session.commit()
