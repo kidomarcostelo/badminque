@@ -11,10 +11,15 @@ import {
   formatDubrDelta,
   ratingDeltaToDubrDelta,
   ratingToDubr,
+  DEFAULT_SKILL_TIER,
   DUBR_BASE_RATING,
   DUBR_DIVISOR,
   DUBR_SCALE_MAX,
   DUBR_SCALE_MIN,
+  TIER_ANCHORS,
+  getTierDubr,
+  getTierRating,
+  isProvisional,
 } from './dubr';
 
 describe('DUBR Mathematical Scale and Formatting', () => {
@@ -261,4 +266,40 @@ describe('DUBR Singles Rating Match Calculation', () => {
       calculateSinglesMatchDeltas(playerA, playerA, [[21, 15]])
     ).toThrow(/distinct/i);
   });
+
+  describe('SkillTier Cold-Start Anchors & Calibration', () => {
+    it('provides 3-way tier anchors adhering to ADR 0002', () => {
+      expect(DEFAULT_SKILL_TIER).toBe('INTERMEDIATE');
+
+      // Beginner: 2.500 / 1000 rating
+      expect(TIER_ANCHORS.BEGINNER.dubr).toBe(2.500);
+      expect(TIER_ANCHORS.BEGINNER.rating).toBe(1000.0);
+      expect(getTierRating('BEGINNER')).toBe(1000.0);
+      expect(getTierDubr('BEGINNER')).toBe(2.500);
+      expect(ratingToDubr(TIER_ANCHORS.BEGINNER.rating)).toBe(2.5);
+
+      // Intermediate: 3.500 / 1400 rating [Default]
+      expect(TIER_ANCHORS.INTERMEDIATE.dubr).toBe(3.500);
+      expect(TIER_ANCHORS.INTERMEDIATE.rating).toBe(1400.0);
+      expect(getTierRating('INTERMEDIATE')).toBe(1400.0);
+      expect(getTierDubr('INTERMEDIATE')).toBe(3.500);
+      expect(ratingToDubr(TIER_ANCHORS.INTERMEDIATE.rating)).toBe(3.5);
+
+      // Advanced: 4.500 / 1800 rating
+      expect(TIER_ANCHORS.ADVANCED.dubr).toBe(4.500);
+      expect(TIER_ANCHORS.ADVANCED.rating).toBe(1800.0);
+      expect(getTierRating('ADVANCED')).toBe(1800.0);
+      expect(getTierDubr('ADVANCED')).toBe(4.500);
+      expect(ratingToDubr(TIER_ANCHORS.ADVANCED.rating)).toBe(4.5);
+    });
+
+    it('correctly evaluates provisional calibration status under 8-match threshold', () => {
+      expect(isProvisional(0)).toBe(true);
+      expect(isProvisional(1)).toBe(true);
+      expect(isProvisional(7)).toBe(true);
+      expect(isProvisional(8)).toBe(false);
+      expect(isProvisional(9)).toBe(false);
+    });
+  });
 });
+

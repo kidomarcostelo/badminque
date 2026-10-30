@@ -11,6 +11,7 @@ from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, fu
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from badminque_api.domain.rating.dubr import rating_to_dubr
 from badminque_api.models.base import Base
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ class RosterPlayer(Base):
     auth_user_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), nullable=True
     )
+    initial_tier: Mapped[str | None] = mapped_column(String(32), nullable=True)
     singles_rating: Mapped[float] = mapped_column(Float, default=1500.0, nullable=False)
     doubles_rating: Mapped[float] = mapped_column(Float, default=1500.0, nullable=False)
     singles_matches_played: Mapped[int] = mapped_column(
@@ -57,6 +59,18 @@ class RosterPlayer(Base):
     @property
     def display_name(self) -> str:
         return self.name
+
+    @property
+    def singles_dubr(self) -> float:
+        return round(rating_to_dubr(self.singles_rating), 3)
+
+    @property
+    def doubles_dubr(self) -> float:
+        return round(rating_to_dubr(self.doubles_rating), 3)
+
+    @property
+    def is_provisional(self) -> bool:
+        return self.matches_played < 8
 
 
 class ClaimToken(Base):

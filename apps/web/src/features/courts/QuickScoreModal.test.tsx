@@ -211,4 +211,58 @@ describe('QuickScoreModal', () => {
 
     expect(handleSubmitScore).toHaveBeenCalledWith(1, 'A', 30, 20);
   });
+
+  it('does not allow winner score to step below 30 in a 30-point match', () => {
+    render(
+      <QuickScoreModal
+        isOpen={true}
+        court={activeCourt}
+        onClose={vi.fn()}
+        onSubmitScore={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('stepper-winner-val')).toHaveTextContent('30');
+
+    // Decrement winner score
+    const winnerStepMinus = screen.getByRole('button', { name: /Decrement Winner Score/i });
+    fireEvent.click(winnerStepMinus);
+
+    // Stays at 30 (minimum winning score for 30-point match format)
+    expect(screen.getByTestId('stepper-winner-val')).toHaveTextContent('30');
+  });
+
+  it('displays accurate rating delta preview when Pair B is selected as winner', () => {
+    const asymmetricCourt: CourtStationData = {
+      courtId: 2,
+      name: 'Court 2 • Center',
+      state: 'SCORE_ENTRY',
+      elapsedSeconds: 600,
+      teamA: [
+        { ...mockPlayerOne, doubles_rating: 1750, matches_played: 15 },
+        { ...mockPlayerTwo, doubles_rating: 1720, matches_played: 15 },
+      ],
+      teamB: [
+        { ...mockPlayerThree, doubles_rating: 1350, matches_played: 1 },
+        { ...mockPlayerFour, doubles_rating: 1320, matches_played: 1 },
+      ],
+    };
+
+    render(
+      <QuickScoreModal
+        isOpen={true}
+        court={asymmetricCourt}
+        onClose={vi.fn()}
+        onSubmitScore={vi.fn()}
+      />
+    );
+
+    // Switch winner to Pair B (upset by provisional lower-rated team)
+    const winnerBtnB = screen.getByRole('button', { name: /PAIR B/i });
+    fireEvent.click(winnerBtnB);
+
+    // Pair B should show positive delta and Pair A negative delta
+    expect(screen.getByText(/\+\d+ RS each/)).toBeInTheDocument();
+    expect(screen.getByText(/-\d+ RS each/)).toBeInTheDocument();
+  });
 });

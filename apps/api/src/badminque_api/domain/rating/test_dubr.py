@@ -6,15 +6,21 @@ Conforms strictly to ADR 0002 Section 6 and CODING_STANDARDS.md Section 1.5.
 import pytest
 
 from badminque_api.domain.rating.dubr import (
+    DEFAULT_SKILL_TIER,
     DUBR_BASE_RATING,
     DUBR_DIVISOR,
     DUBR_SCALE_MAX,
     DUBR_SCALE_MIN,
+    TIER_ANCHORS,
+    SkillTier,
     dubr_to_rating,
     format_dubr,
     format_dubr_delta,
+    is_provisional,
     rating_delta_to_dubr_delta,
     rating_to_dubr,
+    tier_to_dubr,
+    tier_to_rating,
 )
 from badminque_api.domain.rating.engine import RatingDeltaResult
 
@@ -80,3 +86,38 @@ def test_rating_delta_result_dubr_properties() -> None:
     assert result.pre_dubr == pytest.approx(3.750, abs=1e-3)
     assert result.post_dubr == pytest.approx(3.835, abs=1e-3)
     assert result.dubr_delta == pytest.approx(0.085, abs=1e-3)
+
+
+def test_skill_tier_anchors() -> None:
+    """Verifies 3-way tier anchor values adhering to ADR 0002."""
+    assert DEFAULT_SKILL_TIER == SkillTier.INTERMEDIATE
+
+    # Beginner: 2.500 / 1000 rating
+    assert TIER_ANCHORS[SkillTier.BEGINNER]["dubr"] == 2.500
+    assert TIER_ANCHORS[SkillTier.BEGINNER]["rating"] == 1000.0
+    assert tier_to_dubr(SkillTier.BEGINNER) == 2.500
+    assert tier_to_rating(SkillTier.BEGINNER) == 1000.0
+    assert rating_to_dubr(1000.0) == pytest.approx(2.500, abs=1e-5)
+
+    # Intermediate: 3.500 / 1400 rating [Default]
+    assert TIER_ANCHORS[SkillTier.INTERMEDIATE]["dubr"] == 3.500
+    assert TIER_ANCHORS[SkillTier.INTERMEDIATE]["rating"] == 1400.0
+    assert tier_to_dubr(SkillTier.INTERMEDIATE) == 3.500
+    assert tier_to_rating(SkillTier.INTERMEDIATE) == 1400.0
+    assert rating_to_dubr(1400.0) == pytest.approx(3.500, abs=1e-5)
+
+    # Advanced: 4.500 / 1800 rating
+    assert TIER_ANCHORS[SkillTier.ADVANCED]["dubr"] == 4.500
+    assert TIER_ANCHORS[SkillTier.ADVANCED]["rating"] == 1800.0
+    assert tier_to_dubr(SkillTier.ADVANCED) == 4.500
+    assert tier_to_rating(SkillTier.ADVANCED) == 1800.0
+    assert rating_to_dubr(1800.0) == pytest.approx(4.500, abs=1e-5)
+
+
+def test_is_provisional() -> None:
+    """Verifies calibration threshold (< 8 matches is provisional)."""
+    assert is_provisional(0) is True
+    assert is_provisional(1) is True
+    assert is_provisional(7) is True
+    assert is_provisional(8) is False
+    assert is_provisional(15) is False

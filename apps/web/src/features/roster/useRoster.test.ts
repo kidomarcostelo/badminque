@@ -137,4 +137,40 @@ describe('useRoster', () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it('checks in player with 1-tap skill tier anchor (Beginner, Intermediate, Advanced)', async () => {
+    const { result } = renderHook(() => useRoster());
+
+    let beginnerPlayer: RosterPlayer | undefined;
+    let intermediatePlayer: RosterPlayer | undefined;
+    let advancedPlayer: RosterPlayer | undefined;
+
+    await act(async () => {
+      beginnerPlayer = await result.current.checkInPlayer('Beginner Bob', 'BEGINNER');
+      intermediatePlayer = await result.current.checkInPlayer('Inter Ian', 'INTERMEDIATE');
+      advancedPlayer = await result.current.checkInPlayer('Advanced Amy', 'ADVANCED');
+    });
+
+    // Beginner: 2.500 / 1000 rating
+    expect(beginnerPlayer?.initial_tier).toBe('BEGINNER');
+    expect(beginnerPlayer?.doubles_rating).toBe(1000.0);
+    expect(beginnerPlayer?.doubles_dubr).toBe(2.500);
+
+    // Intermediate: 3.500 / 1400 rating [Default]
+    expect(intermediatePlayer?.initial_tier).toBe('INTERMEDIATE');
+    expect(intermediatePlayer?.doubles_rating).toBe(1400.0);
+    expect(intermediatePlayer?.doubles_dubr).toBe(3.500);
+
+    // Advanced: 4.500 / 1800 rating
+    expect(advancedPlayer?.initial_tier).toBe('ADVANCED');
+    expect(advancedPlayer?.doubles_rating).toBe(1800.0);
+    expect(advancedPlayer?.doubles_dubr).toBe(4.500);
+
+    // Persisted to storage
+    const stored = await storageService.getRoster();
+    const storedBob = stored.find((p) => p.name === 'Beginner Bob');
+    expect(storedBob?.doubles_dubr).toBe(2.500);
+    expect(storedBob?.initial_tier).toBe('BEGINNER');
+  });
 });
+

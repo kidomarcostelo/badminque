@@ -1,8 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { PlayerState, RosterPlayer } from '@badminque/core';
+import {
+  formatDubr,
+  ratingToDubr,
+  type PlayerState,
+  type RosterPlayer,
+  type SkillTier,
+} from '@badminque/core';
 import { PlayerStatusBadge } from './PlayerStatusBadge';
+import { ProvisionalBadge } from './ProvisionalBadge';
+import { RosterCheckInModal } from './RosterCheckInModal';
+import { TierAnchorSelector } from './TierAnchorSelector';
 import { useRoster } from './useRoster';
 
 export interface RosterCheckInListProps {
@@ -45,6 +54,8 @@ export function RosterCheckInList({
   } = useRoster(clubId);
 
   const [inputName, setInputName] = useState<string>('');
+  const [selectedTier, setSelectedTier] = useState<SkillTier>('INTERMEDIATE');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
@@ -73,7 +84,7 @@ export function RosterCheckInList({
       return;
     }
 
-    await checkInPlayer(trimmed, clubId);
+    await checkInPlayer(trimmed, selectedTier, clubId);
     onRosterChange?.();
     setInputName('');
     setSearchQuery('');
@@ -97,7 +108,7 @@ export function RosterCheckInList({
   return (
     <div className="flex flex-col gap-5">
       {/* Search & Fast 1-Tap Check-In */}
-      <div className="relative">
+      <div className="relative space-y-2.5">
         <form onSubmit={handleCheckInSubmit} className="flex gap-2">
           <input
             type="text"
@@ -109,15 +120,31 @@ export function RosterCheckInList({
           <button
             type="submit"
             disabled={inputName.trim().length === 0}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium text-sm rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed"
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium text-sm rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed shadow-md shadow-emerald-600/10"
           >
             Add Player
           </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            aria-label="Open detailed check-in modal"
+            className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm rounded-lg transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap border border-slate-700"
+          >
+            + Modal
+          </button>
         </form>
+
+        {/* 1-Tap Tier Anchor Pills */}
+        <div className="pt-0.5">
+          <TierAnchorSelector
+            selectedTier={selectedTier}
+            onSelectTier={setSelectedTier}
+          />
+        </div>
 
         {/* Typeahead Suggestions Dropdown */}
         {suggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+          <div className="absolute z-20 left-0 right-0 top-12 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
             <div className="px-3 py-1.5 text-xs text-slate-400 bg-slate-950/60 border-b border-slate-800">
               Existing Roster Suggestions (Click to select)
             </div>
@@ -133,13 +160,14 @@ export function RosterCheckInList({
                   <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-emerald-400">
                     {getPlayerInitials(player.name)}
                   </div>
-                  <div>
+                  <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-slate-200">
                       {player.name}
                     </span>
-                    <span className="text-xs text-slate-400 ml-2">
-                      R: {player.doubles_rating.toFixed(0)}
+                    <span className="text-xs text-slate-400 font-mono">
+                      DUBR: {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
                     </span>
+                    {player.matches_played < 8 && <ProvisionalBadge />}
                   </div>
                 </div>
                 <PlayerStatusBadge status={player.status} />
@@ -180,7 +208,7 @@ export function RosterCheckInList({
                     Player
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
-                    Rating
+                    DUBR
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Matches
@@ -209,8 +237,18 @@ export function RosterCheckInList({
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-slate-300 font-mono text-xs">
-                      {player.doubles_rating.toFixed(0)}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-slate-200 font-mono text-xs font-bold">
+                            {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
+                          </span>
+                          {player.matches_played < 8 && <ProvisionalBadge />}
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {player.initial_tier === 'INTERMEDIATE' ? '1500' : player.doubles_rating.toFixed(0)}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap text-slate-400 text-xs">
                       {player.matches_played}
@@ -235,6 +273,15 @@ export function RosterCheckInList({
           </div>
         )}
       </div>
+
+      <RosterCheckInModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCheckIn={async (name: string, tier: SkillTier) => {
+          await checkInPlayer(name, tier, clubId);
+          onRosterChange?.();
+        }}
+      />
     </div>
   );
 }

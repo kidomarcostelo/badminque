@@ -13,6 +13,16 @@ from pydantic import (
     field_validator,
 )
 
+from badminque_api.domain.rating.dubr import rating_to_dubr
+
+
+class SkillTierEnum(str, Enum):
+    """Cold-start 1-tap skill tier anchor for unrated players."""
+
+    BEGINNER = "BEGINNER"
+    INTERMEDIATE = "INTERMEDIATE"
+    ADVANCED = "ADVANCED"
+
 
 class PlayerStateEnum(str, Enum):
     QUEUED = "QUEUED"
@@ -35,17 +45,21 @@ class RosterPlayerBase(BaseModel):
         description="Player full name",
         validation_alias=AliasChoices("name", "display_name"),
     )
+    initial_tier: SkillTierEnum | None = Field(
+        default=None,
+        description="Cold-start 1-tap skill tier anchor",
+    )
     singles_rating: float = Field(
         default=1500.0,
         ge=0.0,
         le=5000.0,
-        description="Elo/UBR singles rating",
+        description="Internal logistic singles rating",
     )
     doubles_rating: float = Field(
         default=1500.0,
         ge=0.0,
         le=5000.0,
-        description="Elo/UBR doubles rating",
+        description="Internal logistic doubles rating",
     )
 
     @field_validator("name")
@@ -72,6 +86,18 @@ class RosterPlayerCreate(RosterPlayerBase):
         default=None,
         description="Associated auth user ID once claimed, otherwise NULL",
     )
+    singles_dubr: float | None = Field(
+        default=None,
+        ge=2.0,
+        le=7.0,
+        description="Optional initial singles DUBR (2.000–7.000)",
+    )
+    doubles_dubr: float | None = Field(
+        default=None,
+        ge=2.0,
+        le=7.0,
+        description="Optional initial doubles DUBR (2.000–7.000)",
+    )
 
 
 class RosterPlayerResponse(RosterPlayerBase):
@@ -87,6 +113,21 @@ class RosterPlayerResponse(RosterPlayerBase):
     def display_name(self) -> str:
         return self.name
 
+    @computed_field
+    @property
+    def singles_dubr(self) -> float:
+        return round(rating_to_dubr(self.singles_rating), 3)
+
+    @computed_field
+    @property
+    def doubles_dubr(self) -> float:
+        return round(rating_to_dubr(self.doubles_rating), 3)
+
+    @computed_field
+    @property
+    def is_provisional(self) -> bool:
+        return self.matches_played < 8
+
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
@@ -98,5 +139,20 @@ class PlayerPassportResponse(BaseModel):
     singles_matches_played: int
     doubles_matches_played: int
     club_name: str
+
+    @computed_field
+    @property
+    def singles_dubr(self) -> float:
+        return round(rating_to_dubr(self.singles_rating), 3)
+
+    @computed_field
+    @property
+    def doubles_dubr(self) -> float:
+        return round(rating_to_dubr(self.doubles_rating), 3)
+
+    @computed_field
+    @property
+    def is_provisional(self) -> bool:
+        return (self.singles_matches_played + self.doubles_matches_played) < 8
 
     model_config = ConfigDict(from_attributes=True)

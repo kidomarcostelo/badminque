@@ -1,13 +1,78 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import type { MatchRecord, RosterPlayer } from '@badminque/core';
+import {
+  calculateDoublesMatchDeltas,
+  type MatchRecord,
+  type RosterPlayer,
+} from '@badminque/core';
 
 export interface MatchHistoryViewProps {
   matches: MatchRecord[];
   roster: RosterPlayer[];
   onReturnToBoard: () => void;
   onClearHistory?: () => void;
+}
+
+function computeMatchRatingShift(
+  match: MatchRecord,
+  playerMap: Map<string, RosterPlayer>
+): number {
+  const playerA1 = match.team_a_player_ids[0] ? playerMap.get(match.team_a_player_ids[0]) : undefined;
+  const playerA2 = match.team_a_player_ids[1] ? playerMap.get(match.team_a_player_ids[1]) : undefined;
+  const playerB1 = match.team_b_player_ids[0] ? playerMap.get(match.team_b_player_ids[0]) : undefined;
+  const playerB2 = match.team_b_player_ids[1] ? playerMap.get(match.team_b_player_ids[1]) : undefined;
+
+  if (!playerA1 || !playerA2 || !playerB1 || !playerB2) {
+    return 14;
+  }
+
+  const scoreA = match.team_a_scores[0] ?? 0;
+  const scoreB = match.team_b_scores[0] ?? 0;
+  if (scoreA === scoreB) {
+    return 0;
+  }
+
+  try {
+    const deltas = calculateDoublesMatchDeltas(
+      [
+        {
+          id: playerA1.id,
+          name: playerA1.name,
+          rating: playerA1.doubles_rating,
+          matches_played: Math.max(0, playerA1.matches_played - 1),
+        },
+        {
+          id: playerA2.id,
+          name: playerA2.name,
+          rating: playerA2.doubles_rating,
+          matches_played: Math.max(0, playerA2.matches_played - 1),
+        },
+      ],
+      [
+        {
+          id: playerB1.id,
+          name: playerB1.name,
+          rating: playerB1.doubles_rating,
+          matches_played: Math.max(0, playerB1.matches_played - 1),
+        },
+        {
+          id: playerB2.id,
+          name: playerB2.name,
+          rating: playerB2.doubles_rating,
+          matches_played: Math.max(0, playerB2.matches_played - 1),
+        },
+      ],
+      [[scoreA, scoreB]],
+      match.format ?? 'SINGLE_30'
+    );
+    const winDeltas = scoreA > scoreB ? [deltas[0], deltas[1]] : [deltas[2], deltas[3]];
+    const delta1 = winDeltas[0]?.rating_delta ?? 0;
+    const delta2 = winDeltas[1]?.rating_delta ?? 0;
+    return Math.max(1, Math.round(Math.abs((delta1 + delta2) / 2)));
+  } catch {
+    return 14;
+  }
 }
 
 export function MatchHistoryView({
@@ -36,6 +101,7 @@ export function MatchHistoryView({
     let totalPoints = 0;
     let totalWinningPoints = 0;
     let totalLosingPoints = 0;
+    let totalDelta = 0;
 
     for (const match of matches) {
       const scoreA = match.team_a_scores[0] ?? 0;
@@ -43,18 +109,20 @@ export function MatchHistoryView({
       totalPoints += scoreA + scoreB;
       totalWinningPoints += Math.max(scoreA, scoreB);
       totalLosingPoints += Math.min(scoreA, scoreB);
+      totalDelta += computeMatchRatingShift(match, playerMap);
     }
 
     const avgWin = Math.round(totalWinningPoints / totalMatches);
     const avgLoss = Math.round(totalLosingPoints / totalMatches);
+    const avgDelta = Math.round(totalDelta / totalMatches);
 
     return {
       totalMatches,
       totalPoints,
       avgScore: `${avgWin} - ${avgLoss}`,
-      avgDelta: '±14 RS',
+      avgDelta: `±${avgDelta} RS`,
     };
-  }, [matches]);
+  }, [matches, playerMap]);
 
   return (
     <div className="space-y-6">
@@ -190,7 +258,7 @@ export function MatchHistoryView({
                         </span>
                         <span className="text-slate-600">•</span>
                         <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-400">
-                          Rating Shift: ±14 RS
+                          Rating Shift: ±{computeMatchRatingShift(match, playerMap)} RS
                         </span>
                       </div>
                       <div className="text-sm font-bold text-slate-200 mt-1 flex flex-wrap items-center gap-2">

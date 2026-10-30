@@ -46,7 +46,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
     await refresh();
   };
 
-  const queuedPlayersCount = roster.filter((p) => p.status === 'QUEUED').length;
+  const queuedPlayersCount = roster.filter((player) => player.status === 'QUEUED').length;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950">
@@ -170,7 +170,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {courts.map((court) => (
                   <CourtStationCard
                     key={court.courtId}
@@ -216,7 +216,17 @@ export default function CourtsideStationPage(): React.JSX.Element {
         <CustomMatchModal
           isOpen={true}
           courtId={activeCustomMatchCourtId}
-          availablePlayers={roster}
+          availablePlayers={roster.filter((player) => {
+            const isPlayingOnOtherCourt = courts.some(
+              (court) =>
+                court.courtId !== activeCustomMatchCourtId &&
+                court.state === 'IN_MATCH' &&
+                [...(court.teamA ?? []), ...(court.teamB ?? [])].some(
+                  (onCourtPlayer) => onCourtPlayer.id === player.id
+                )
+            );
+            return !isPlayingOnOtherCourt && player.status !== 'PLAYING';
+          })}
           onClose={closeCustomMatchModal}
           onConfirmMatch={(courtId, teamA, teamB) => {
             stageCustomMatch(courtId, teamA, teamB);

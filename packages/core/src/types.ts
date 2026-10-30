@@ -24,6 +24,8 @@ export type RotationPolicy =
 
 export type SyncStatus = 'PENDING' | 'SYNCING' | 'SYNCED';
 
+export type SkillTier = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
 export interface RosterPlayer {
   id: string;
   name: string;
@@ -31,6 +33,9 @@ export interface RosterPlayer {
   auth_user_id: string | null;
   singles_rating: number;
   doubles_rating: number;
+  singles_dubr?: number;
+  doubles_dubr?: number;
+  initial_tier?: SkillTier | null;
   matches_played: number;
   status: PlayerState;
   checked_in_at: string;
@@ -72,6 +77,9 @@ export interface PlayerPassport {
   name: string;
   singles_rating: number;
   doubles_rating: number;
+  singles_dubr?: number;
+  doubles_dubr?: number;
+  is_provisional?: boolean;
   singles_matches_played: number;
   doubles_matches_played: number;
   club_name: string;

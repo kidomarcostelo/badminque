@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from badminque_api.domain.rating.dubr import dubr_to_rating, tier_to_rating
 from badminque_api.exceptions import EntityNotFoundError
 from badminque_api.models.club import Club
 from badminque_api.models.player import RosterPlayer
@@ -50,13 +51,35 @@ class RosterService:
         if existing_player is not None:
             return existing_player
 
+        # Determine baseline ratings from tier anchor or explicit inputs
+        singles_rating = player_data.singles_rating
+        doubles_rating = player_data.doubles_rating
+
+        if player_data.initial_tier is not None:
+            tier_rating = tier_to_rating(player_data.initial_tier.value)
+            singles_rating = tier_rating
+            doubles_rating = tier_rating
+
+        if player_data.singles_dubr is not None:
+            singles_rating = dubr_to_rating(player_data.singles_dubr)
+
+        if player_data.doubles_dubr is not None:
+            doubles_rating = dubr_to_rating(player_data.doubles_dubr)
+
+        initial_tier_val = (
+            player_data.initial_tier.value
+            if player_data.initial_tier is not None
+            else None
+        )
+
         new_player = RosterPlayer(
             id=player_id,
             club_id=club_id,
             name=clean_name,
             auth_user_id=player_data.auth_user_id,
-            singles_rating=player_data.singles_rating,
-            doubles_rating=player_data.doubles_rating,
+            initial_tier=initial_tier_val,
+            singles_rating=singles_rating,
+            doubles_rating=doubles_rating,
             singles_matches_played=0,
             doubles_matches_played=0,
             status=PlayerStateEnum.QUEUED.value,

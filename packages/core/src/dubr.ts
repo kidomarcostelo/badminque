@@ -12,7 +12,7 @@ import {
   MIN_POINTS_FOR_RATING,
   WEAK_LINK_GAMMA,
 } from './constants';
-import type { MatchFormat, PlayerRatingDelta } from './types';
+import type { MatchFormat, PlayerRatingDelta, SkillTier } from './types';
 
 // DUBR Scale Constants per ADR 0002 Section 6
 export const DUBR_BASE_RATING = 800.0 as const;
@@ -23,6 +23,52 @@ export const RATING_FLOOR = 800.0 as const;
 export const FAVORITE_DAMPING = 0.50 as const;
 export const K_HALF_LIFE = 6.0 as const;
 export const MOV_DENOMINATOR_BASE = 8.0 as const;
+
+export interface TierAnchorConfig {
+  tier: SkillTier;
+  label: string;
+  dubr: number;
+  rating: number;
+  description: string;
+}
+
+export const TIER_ANCHORS: Record<SkillTier, TierAnchorConfig> = {
+  BEGINNER: {
+    tier: 'BEGINNER',
+    label: 'Beginner',
+    dubr: 2.500,
+    rating: 1000.0,
+    description: 'Beginner: 2.500',
+  },
+  INTERMEDIATE: {
+    tier: 'INTERMEDIATE',
+    label: 'Intermediate',
+    dubr: 3.500,
+    rating: 1400.0,
+    description: 'Intermediate: 3.500 [Default]',
+  },
+  ADVANCED: {
+    tier: 'ADVANCED',
+    label: 'Advanced',
+    dubr: 4.500,
+    rating: 1800.0,
+    description: 'Advanced: 4.500',
+  },
+};
+
+export const DEFAULT_SKILL_TIER: SkillTier = 'INTERMEDIATE';
+
+export function getTierRating(tier: SkillTier): number {
+  return TIER_ANCHORS[tier]?.rating ?? TIER_ANCHORS.INTERMEDIATE.rating;
+}
+
+export function getTierDubr(tier: SkillTier): number {
+  return TIER_ANCHORS[tier]?.dubr ?? TIER_ANCHORS.INTERMEDIATE.dubr;
+}
+
+export function isProvisional(matchesPlayed: number): boolean {
+  return matchesPlayed < ESTABLISHED_MATCH_THRESHOLD;
+}
 
 export interface MatchParticipant {
   id: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { storageService, closeDatabaseConnection } from '../../services/storageService';
 import { RosterCheckInList } from './RosterCheckInList';
@@ -136,4 +136,110 @@ describe('RosterCheckInList', () => {
     expect(await screen.findByText('QUEUED')).toBeInTheDocument();
     expect(screen.getAllByText('Jonatan Christie')).toHaveLength(1);
   });
+
+  it('checks in unrated player with 1-tap tier anchor Beginner and displays 2.500 with Provisional badge', async () => {
+    render(<RosterCheckInList />);
+
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+    const beginnerPill = screen.getByRole('radio', { name: /Beginner/i });
+
+    fireEvent.change(input, { target: { value: 'Beginner Ben' } });
+    fireEvent.click(beginnerPill);
+    fireEvent.click(addButton);
+
+    expect(await screen.findByText('Beginner Ben')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('2.500')).toBeInTheDocument();
+    expect(within(table).getByText('Provisional')).toBeInTheDocument();
+  });
+
+  it('checks in unrated player with default Intermediate tier anchor and displays 3.500 with Provisional badge', async () => {
+    render(<RosterCheckInList />);
+
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+
+    fireEvent.change(input, { target: { value: 'Intermediate Ian' } });
+    // Default tier is Intermediate (3.500)
+    fireEvent.click(addButton);
+
+    expect(await screen.findByText('Intermediate Ian')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('3.500')).toBeInTheDocument();
+    expect(within(table).getByText('Provisional')).toBeInTheDocument();
+  });
+
+  it('checks in unrated player with 1-tap tier anchor Advanced and displays 4.500 with Provisional badge', async () => {
+    render(<RosterCheckInList />);
+
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+    const advancedPill = screen.getByRole('radio', { name: /Advanced/i });
+
+    fireEvent.change(input, { target: { value: 'Advanced Alice' } });
+    fireEvent.click(advancedPill);
+    fireEvent.click(addButton);
+
+    expect(await screen.findByText('Advanced Alice')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('4.500')).toBeInTheDocument();
+    expect(within(table).getByText('Provisional')).toBeInTheDocument();
+  });
+
+  it('does not display Provisional badge when player has reached 8 matches', async () => {
+    await storageService.savePlayer({
+      id: 'established-player-id',
+      name: 'Established Eric',
+      auth_user_id: null,
+      singles_rating: 1800.0,
+      doubles_rating: 1800.0,
+      doubles_dubr: 4.500,
+      singles_dubr: 4.500,
+      matches_played: 8,
+      status: 'QUEUED',
+      checked_in_at: new Date().toISOString(),
+    });
+
+    render(<RosterCheckInList />);
+
+    expect(await screen.findByText('Established Eric')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('4.500')).toBeInTheDocument();
+    expect(within(table).queryByText('Provisional')).not.toBeInTheDocument();
+  });
+
+  it('checks in a player with tier anchor via the check-in modal', async () => {
+    render(<RosterCheckInList />);
+
+    const openModalBtn = screen.getByRole('button', {
+      name: /Open detailed check-in modal/i,
+    });
+    fireEvent.click(openModalBtn);
+
+    // Modal dialog is displayed
+    expect(await screen.findByText('Check In Roster Player')).toBeInTheDocument();
+
+    const modalNameInput = screen.getByLabelText(/Player Name/i);
+    fireEvent.change(modalNameInput, { target: { value: 'Modal Mike' } });
+
+    // Select Advanced tier inside modal
+    const advancedPills = screen.getAllByRole('radio', { name: /Advanced/i });
+    const modalAdvancedPill = advancedPills[advancedPills.length - 1];
+    if (modalAdvancedPill) {
+      fireEvent.click(modalAdvancedPill);
+    }
+
+    const checkInSubmitBtn = screen.getByRole('button', {
+      name: /Check In Player/i,
+    });
+    fireEvent.click(checkInSubmitBtn);
+
+    // Verifies player is added to bench roster with 4.500 DUBR and Provisional badge
+    expect(await screen.findByText('Modal Mike')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('4.500')).toBeInTheDocument();
+    expect(within(table).getByText('Provisional')).toBeInTheDocument();
+  });
 });
+

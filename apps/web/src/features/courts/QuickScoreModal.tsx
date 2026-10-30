@@ -46,12 +46,16 @@ export function QuickScoreModal({
   const teamA = court.teamA;
   const teamB = court.teamB;
 
-  const ratingDelta = useMemo(() => {
+  const ratingImpact = useMemo(() => {
     if (!teamA || !teamB) {
-      return 14;
+      return { deltaA: 14, deltaB: 14, projectedWinnerDelta: 14 };
     }
     const scoreA = selectedWinner === 'A' ? winnerScore : loserScore;
     const scoreB = selectedWinner === 'B' ? winnerScore : loserScore;
+
+    if (scoreA === scoreB) {
+      return { deltaA: 0, deltaB: 0, projectedWinnerDelta: 0 };
+    }
 
     try {
       const deltas = calculateDoublesMatchDeltas(
@@ -70,13 +74,30 @@ export function QuickScoreModal({
         [[scoreA, scoreB]],
         'SINGLE_30'
       );
-      const firstDelta = deltas[0];
-      if (firstDelta) {
-        return Math.max(4, Math.round(Math.abs(firstDelta.rating_delta)));
-      }
-      return 14;
+      const firstPairDelta = deltas[0];
+      const secondPairDelta = deltas[1];
+      const thirdPairDelta = deltas[2];
+      const fourthPairDelta = deltas[3];
+
+      const averageDeltaTeamA =
+        firstPairDelta && secondPairDelta
+          ? Math.round((firstPairDelta.rating_delta + secondPairDelta.rating_delta) / 2)
+          : 14;
+      const averageDeltaTeamB =
+        thirdPairDelta && fourthPairDelta
+          ? Math.round((thirdPairDelta.rating_delta + fourthPairDelta.rating_delta) / 2)
+          : 14;
+
+      const winningTeamDelta =
+        selectedWinner === 'A' ? Math.abs(averageDeltaTeamA) : Math.abs(averageDeltaTeamB);
+
+      return {
+        deltaA: averageDeltaTeamA,
+        deltaB: averageDeltaTeamB,
+        projectedWinnerDelta: Math.max(1, winningTeamDelta),
+      };
     } catch {
-      return 14;
+      return { deltaA: 14, deltaB: 14, projectedWinnerDelta: 14 };
     }
   }, [teamA, teamB, selectedWinner, winnerScore, loserScore]);
 
@@ -100,7 +121,8 @@ export function QuickScoreModal({
 
   const handleStepWinnerScore = (delta: number): void => {
     setLoserDigitBuffer('');
-    const newWinnerScore = Math.max(21, Math.min(40, winnerScore + delta));
+    const minScore = Math.max(30, loserScore >= 29 ? loserScore + 2 : 30);
+    const newWinnerScore = Math.max(minScore, Math.min(40, winnerScore + delta));
     setWinnerScore(newWinnerScore);
     if (loserScore >= newWinnerScore) {
       setLoserScore(Math.max(0, newWinnerScore - 2));
@@ -109,10 +131,12 @@ export function QuickScoreModal({
 
   const handleStepLoserScore = (delta: number): void => {
     setLoserDigitBuffer('');
-    const newLoserScore = Math.max(0, Math.min(39, loserScore + delta));
+    const newLoserScore = Math.max(0, Math.min(38, loserScore + delta));
     setLoserScore(newLoserScore);
-    if (newLoserScore >= 29 && winnerScore <= newLoserScore + 1) {
+    if (newLoserScore >= 29) {
       setWinnerScore(Math.min(40, newLoserScore + 2));
+    } else if (winnerScore < 30) {
+      setWinnerScore(30);
     }
   };
 
@@ -146,7 +170,7 @@ export function QuickScoreModal({
 
   const handleSubmit = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
-    if (isSubmitting) {
+    if (isSubmitting || winnerScore <= loserScore) {
       return;
     }
     setIsSubmitting(true);
@@ -206,7 +230,7 @@ export function QuickScoreModal({
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
               <span>1. Tap Winning Doubles Pair</span>
               <span className="font-mono text-emerald-400">
-                Projected Rating Impact: ±{ratingDelta} RS
+                Projected Rating Impact: ±{ratingImpact.projectedWinnerDelta} RS
               </span>
             </div>
 
@@ -235,7 +259,9 @@ export function QuickScoreModal({
                       isWinnerA ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
-                    {isWinnerA ? `+${ratingDelta} RS each` : `-${ratingDelta} RS each`}
+                    {ratingImpact.deltaA >= 0
+                      ? `+${ratingImpact.deltaA} RS each`
+                      : `${ratingImpact.deltaA} RS each`}
                   </div>
                 </div>
                 <div className="text-4xl font-mono font-extrabold px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
@@ -267,7 +293,9 @@ export function QuickScoreModal({
                       isWinnerB ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
-                    {isWinnerB ? `+${ratingDelta} RS each` : `-${ratingDelta} RS each`}
+                    {ratingImpact.deltaB >= 0
+                      ? `+${ratingImpact.deltaB} RS each`
+                      : `${ratingImpact.deltaB} RS each`}
                   </div>
                 </div>
                 <div className="text-4xl font-mono font-extrabold px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
@@ -427,7 +455,7 @@ export function QuickScoreModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || winnerScore <= loserScore}
               className="flex-1 w-full min-h-[52px] px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer transition-colors"
             >
               <span>Record Match Score &amp; Rotate Court</span>

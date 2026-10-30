@@ -4,15 +4,20 @@ Pure Python rating calculation and invariant enforcement.
 """
 
 from badminque_api.domain.rating.dubr import (
+    DEFAULT_SKILL_TIER,
     DUBR_BASE_RATING,
     DUBR_DIVISOR,
     DUBR_SCALE_MAX,
     DUBR_SCALE_MIN,
+    TIER_ANCHORS,
+    SkillTier,
     dubr_to_rating,
     format_dubr,
     format_dubr_delta,
     rating_delta_to_dubr_delta,
     rating_to_dubr,
+    tier_to_dubr,
+    tier_to_rating,
 )
 from badminque_api.domain.rating.engine import (
     INITIAL_RATING_BASELINE,
@@ -62,6 +67,7 @@ from badminque_api.domain.rating.soft_mean import (
 )
 
 __all__ = [
+    "DEFAULT_SKILL_TIER",
     "DUBR_BASE_RATING",
     "DUBR_DIVISOR",
     "DUBR_SCALE_MAX",
@@ -79,6 +85,8 @@ __all__ = [
     "RATING_FLOOR",
     "RD_INITIAL",
     "RD_MIN",
+    "SkillTier",
+    "TIER_ANCHORS",
     "WEAK_LINK_GAMMA",
     "BadminqueRatingEngine",
     "Discipline",
@@ -107,4 +115,6 @@ __all__ = [
     "is_provisional",
     "rating_delta_to_dubr_delta",
     "rating_to_dubr",
+    "tier_to_dubr",
+    "tier_to_rating",
 ]

@@ -66,6 +66,7 @@ def upgrade() -> None:
         ),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("auth_user_id", UUID(as_uuid=True), nullable=True),
+        sa.Column("initial_tier", sa.String(32), nullable=True),
         sa.Column(
             "singles_rating", sa.Float(), server_default="1500.0", nullable=False
         ),

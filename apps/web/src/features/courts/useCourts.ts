@@ -74,17 +74,28 @@ function pairTop4Players(
   const sorted = [...candidates].sort((firstPlayer, secondPlayer) => {
     return secondPlayer.doubles_rating - firstPlayer.doubles_rating;
   });
-  const p1 = sorted[0];
-  const p2 = sorted[1];
-  const p3 = sorted[2];
-  const p4 = sorted[3];
-  if (!p1 || !p2 || !p3 || !p4) {
+  const [firstPlayer, secondPlayer, thirdPlayer, fourthPlayer] = sorted;
+  if (!firstPlayer || !secondPlayer || !thirdPlayer || !fourthPlayer) {
     return null;
   }
   return {
-    teamA: [p1, p4],
-    teamB: [p2, p3],
+    teamA: [firstPlayer, fourthPlayer],
+    teamB: [secondPlayer, thirdPlayer],
   };
+}
+
+function mergeRosterPool(
+  storedRoster: RosterPlayer[],
+  inMemoryRoster: RosterPlayer[]
+): RosterPlayer[] {
+  const playerMap = new Map<string, RosterPlayer>();
+  for (const player of inMemoryRoster) {
+    playerMap.set(player.id, player);
+  }
+  for (const player of storedRoster) {
+    playerMap.set(player.id, player);
+  }
+  return Array.from(playerMap.values());
 }
 
 export function useCourts(options: UseCourtsOptions): UseCourtsResult {
@@ -192,7 +203,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
 
   const dispatchCourt = useCallback(
     async (courtId: number): Promise<void> => {
-      const targetCourt = courtsRef.current.find((c) => c.courtId === courtId);
+      const targetCourt = courtsRef.current.find((court) => court.courtId === courtId);
       if (!targetCourt) {
         return;
       }
@@ -200,9 +211,12 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       // Case 1: Court is PROPOSED with players already staged
       if (targetCourt.state === 'PROPOSED' && targetCourt.teamA && targetCourt.teamB) {
         const onCourtPlayers = [...targetCourt.teamA, ...targetCourt.teamB];
+        const latestRoster = await storageService.getRoster();
         for (const player of onCourtPlayers) {
+          const freshPlayer =
+            latestRoster.find((rosterPlayer) => rosterPlayer.id === player.id) ?? player;
           await storageService.savePlayer({
-            ...player,
+            ...freshPlayer,
             status: 'PLAYING',
           });
         }
@@ -224,16 +238,18 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
 
       // Case 2: Court is IDLE, pick 4 available queued players
       const assignedIds = new Set(
-        courtsRef.current.flatMap((c) => {
-          if (c.courtId === courtId) {
+        courtsRef.current.flatMap((court) => {
+          if (court.courtId === courtId) {
             return [];
           }
-          return [...(c.teamA ?? []), ...(c.teamB ?? [])].map((p) => p.id);
+          return [...(court.teamA ?? []), ...(court.teamB ?? [])].map(
+            (player) => player.id
+          );
         })
       );
 
       const latestRoster = await storageService.getRoster();
-      const rosterPool = latestRoster.length > 0 ? latestRoster : roster;
+      const rosterPool = mergeRosterPool(latestRoster, roster);
       const availableQueued = rosterPool.filter(
         (player) => player.status === 'QUEUED' && !assignedIds.has(player.id)
       );
@@ -278,7 +294,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       winningScore: number,
       losingScore: number
     ): Promise<MatchRecordingResult> => {
-      const targetCourt = courtsRef.current.find((c) => c.courtId === courtId);
+      const targetCourt = courtsRef.current.find((court) => court.courtId === courtId);
       if (!targetCourt || !targetCourt.teamA || !targetCourt.teamB) {
         throw new Error(`Court ${courtId} does not have an active match to score`);
       }
@@ -325,7 +341,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       // Badminton Stamina Invariant: All 4 players transition to RESTING and M_i += 1
       const onCourtPlayers = [...targetCourt.teamA, ...targetCourt.teamB];
       for (const delta of deltas) {
-        const player = onCourtPlayers.find((p) => p.id === delta.player_id);
+        const player = onCourtPlayers.find((onCourtPlayer) => onCourtPlayer.id === delta.player_id);
         if (player) {
           const updatedPlayer: RosterPlayer = {
             ...player,
@@ -338,18 +354,21 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       }
 
       // Check remaining available queued players in roster (excluding current court players)
-      const finishedIds = new Set(onCourtPlayers.map((p) => p.id));
+      const finishedIds = new Set(onCourtPlayers.map((player) => player.id));
       const otherCourtsPlayerIds = new Set(
-        courtsRef.current.flatMap((c) => {
-          if (c.courtId === courtId) {
+        courtsRef.current.flatMap((court) => {
+          if (court.courtId === courtId) {
             return [];
           }
-          return [...(c.teamA ?? []), ...(c.teamB ?? [])].map((p) => p.id);
+          return [...(court.teamA ?? []), ...(court.teamB ?? [])].map(
+            (player) => player.id
+          );
         })
       );
 
       const latestRoster = await storageService.getRoster();
-      const remainingQueued = latestRoster.filter(
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const remainingQueued = rosterPool.filter(
         (player) =>
           player.status === 'QUEUED' &&
           !finishedIds.has(player.id) &&
@@ -391,12 +410,12 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
         deltas,
       };
     },
-    [onRosterChange]
+    [roster, onRosterChange]
   );
 
   const activeScoreCourt =
     activeScoreCourtId !== null
-      ? courts.find((c) => c.courtId === activeScoreCourtId) ?? null
+      ? courts.find((court) => court.courtId === activeScoreCourtId) ?? null
       : null;
 
   return {

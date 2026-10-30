@@ -14,6 +14,8 @@ from badminque_api.schemas.match import (
 from badminque_api.schemas.player import (
     PlayerPassportResponse,
     RosterPlayerCreate,
+    RosterPlayerResponse,
+    SkillTierEnum,
 )
 from badminque_api.schemas.sync import BatchSyncRequest
 
@@ -278,3 +280,64 @@ def test_rejects_tied_match_sets() -> None:
             recorded_at=datetime.now(timezone.utc),
             sequence_num=1,
         )
+
+
+def test_roster_player_create_with_tier_and_dubr() -> None:
+    """Verifies RosterPlayerCreate supports initial_tier and decimal DUBR values."""
+    player_id = uuid.uuid4()
+    player = RosterPlayerCreate(
+        id=player_id,
+        name="Marcus Gideon",
+        initial_tier=SkillTierEnum.BEGINNER,
+        singles_dubr=2.500,
+        doubles_dubr=2.500,
+    )
+    assert player.initial_tier == SkillTierEnum.BEGINNER
+    assert player.singles_dubr == 2.500
+    assert player.doubles_dubr == 2.500
+
+
+def test_roster_player_create_dubr_range_validation() -> None:
+    """Rejects DUBR values below 2.0 or above 7.0 in RosterPlayerCreate."""
+    with pytest.raises(ValidationError):
+        RosterPlayerCreate(name="Invalid Player", doubles_dubr=1.999)
+
+    with pytest.raises(ValidationError):
+        RosterPlayerCreate(name="Invalid Player", doubles_dubr=7.001)
+
+
+def test_roster_player_response_computed_dubr_and_provisional() -> None:
+    """Verifies RosterPlayerResponse computes dubr and provisional."""
+    player_id = uuid.uuid4()
+    club_id = uuid.uuid4()
+
+    response = RosterPlayerResponse(
+        id=player_id,
+        club_id=club_id,
+        name="Kevin Sukamuljo",
+        singles_rating=1400.0,
+        doubles_rating=1400.0,
+        matches_played=3,
+        initial_tier=SkillTierEnum.INTERMEDIATE,
+        created_at=datetime.now(timezone.utc),
+    )
+
+    assert response.singles_dubr == 3.500
+    assert response.doubles_dubr == 3.500
+    assert response.is_provisional is True
+    assert response.initial_tier == SkillTierEnum.INTERMEDIATE
+
+    # After 8 matches, is_provisional becomes False
+    graduated_response = RosterPlayerResponse(
+        id=player_id,
+        club_id=club_id,
+        name="Kevin Sukamuljo",
+        singles_rating=1800.0,
+        doubles_rating=1800.0,
+        matches_played=8,
+        initial_tier=SkillTierEnum.ADVANCED,
+        created_at=datetime.now(timezone.utc),
+    )
+    assert graduated_response.singles_dubr == 4.500
+    assert graduated_response.doubles_dubr == 4.500
+    assert graduated_response.is_provisional is False

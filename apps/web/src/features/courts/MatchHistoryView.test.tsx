@@ -97,11 +97,13 @@ describe('MatchHistoryView', () => {
     expect(screen.getByTestId('stat-total-matches')).toHaveTextContent('1');
     expect(screen.getByTestId('stat-total-points')).toHaveTextContent('55');
     expect(screen.getByTestId('stat-avg-score')).toHaveTextContent('30 - 25');
+    expect(screen.getByTestId('stat-avg-delta')).toHaveTextContent(/±\d+ RS/);
 
     // Match card
     expect(screen.getByText('Marcus Lim & Sarah Jenkins')).toBeInTheDocument();
     expect(screen.getByText('Kelvin Teo & Priya Nair')).toBeInTheDocument();
     expect(screen.getAllByText('30 - 25')).toHaveLength(2);
     expect(screen.getByText('Team A Won')).toBeInTheDocument();
+    expect(screen.getByText(/Rating Shift: ±\d+ RS/)).toBeInTheDocument();
   });
 });

@@ -34,7 +34,7 @@ export function CustomMatchModal({
   const selectedPlayers = useMemo(() => {
     return selectedPlayerIds
       .map((id) => playerMap.get(id))
-      .filter((p): p is RosterPlayer => Boolean(p));
+      .filter((player): player is RosterPlayer => Boolean(player));
   }, [selectedPlayerIds, playerMap]);
 
   if (!isOpen) {
@@ -77,13 +77,26 @@ export function CustomMatchModal({
   };
 
   const handleAutoPickTop4 = (): void => {
-    const queued = availablePlayers.filter((p) => p.status === 'QUEUED');
+    const queued = availablePlayers.filter((player) => player.status === 'QUEUED');
     const pool = queued.length >= 4 ? queued : availablePlayers;
     const sorted = [...pool].sort((firstPlayer, secondPlayer) => {
       return secondPlayer.doubles_rating - firstPlayer.doubles_rating;
     });
     const top4 = sorted.slice(0, 4);
-    setSelectedPlayerIds(top4.map((p) => p.id));
+    if (top4.length < 4) {
+      setSelectedPlayerIds(top4.map((player) => player.id));
+      return;
+    }
+    const [firstPlayer, secondPlayer, thirdPlayer, fourthPlayer] = top4;
+    if (firstPlayer && secondPlayer && thirdPlayer && fourthPlayer) {
+      // 1+4 vs 2+3 pairing for optimal spread balance
+      setSelectedPlayerIds([
+        firstPlayer.id,
+        fourthPlayer.id,
+        secondPlayer.id,
+        thirdPlayer.id,
+      ]);
+    }
   };
 
   const handleAutoBalance = (): void => {
@@ -93,13 +106,15 @@ export function CustomMatchModal({
     const sorted = [...selectedPlayers].sort((firstPlayer, secondPlayer) => {
       return secondPlayer.doubles_rating - firstPlayer.doubles_rating;
     });
-    const p1 = sorted[0];
-    const p2 = sorted[1];
-    const p3 = sorted[2];
-    const p4 = sorted[3];
-    if (p1 && p2 && p3 && p4) {
+    const [firstPlayer, secondPlayer, thirdPlayer, fourthPlayer] = sorted;
+    if (firstPlayer && secondPlayer && thirdPlayer && fourthPlayer) {
       // 1+4 vs 2+3 pairing
-      setSelectedPlayerIds([p1.id, p4.id, p2.id, p3.id]);
+      setSelectedPlayerIds([
+        firstPlayer.id,
+        fourthPlayer.id,
+        secondPlayer.id,
+        thirdPlayer.id,
+      ]);
     }
   };
 
@@ -185,8 +200,8 @@ export function CustomMatchModal({
                   <span className="font-mono">{avgA ? `Avg ${avgA}` : '—'}</span>
                 </div>
                 {[0, 1].map((slotIdx) => {
-                  const pid = selectedPlayerIds[slotIdx];
-                  const player = pid ? playerMap.get(pid) : null;
+                  const playerId = selectedPlayerIds[slotIdx];
+                  const player = playerId ? playerMap.get(playerId) : null;
                   if (player) {
                     return (
                       <button
@@ -217,8 +232,8 @@ export function CustomMatchModal({
                   <span className="font-mono">{avgB ? `Avg ${avgB}` : '—'}</span>
                 </div>
                 {[2, 3].map((slotIdx) => {
-                  const pid = selectedPlayerIds[slotIdx];
-                  const player = pid ? playerMap.get(pid) : null;
+                  const playerId = selectedPlayerIds[slotIdx];
+                  const player = playerId ? playerMap.get(playerId) : null;
                   if (player) {
                     return (
                       <button

@@ -216,3 +216,53 @@ def test_update_player_status_endpoint_invalid_enum(
         json={"status": "INVALID_STATE"},
     )
     assert patch_response.status_code == 422
+
+
+def test_create_roster_player_with_tier_anchor_endpoint(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """POST /api/v1/clubs/{id}/players initializes ratings and DUBR
+    via 1-tap tier anchor.
+    """
+    # Test Beginner anchor: 2.500 / 1000 rating
+    response_beg = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "Beginner Bob", "initial_tier": "BEGINNER"},
+    )
+    assert response_beg.status_code == 201
+    data_beg = response_beg.json()
+    assert data_beg["initial_tier"] == "BEGINNER"
+    assert data_beg["singles_rating"] == 1000.0
+    assert data_beg["doubles_rating"] == 1000.0
+    assert data_beg["singles_dubr"] == 2.500
+    assert data_beg["doubles_dubr"] == 2.500
+    assert data_beg["is_provisional"] is True
+
+    # Test Advanced anchor: 4.500 / 1800 rating
+    response_adv = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "Advanced Alice", "initial_tier": "ADVANCED"},
+    )
+    assert response_adv.status_code == 201
+    data_adv = response_adv.json()
+    assert data_adv["initial_tier"] == "ADVANCED"
+    assert data_adv["singles_rating"] == 1800.0
+    assert data_adv["doubles_rating"] == 1800.0
+    assert data_adv["singles_dubr"] == 4.500
+    assert data_adv["doubles_dubr"] == 4.500
+    assert data_adv["is_provisional"] is True
+
+
+def test_create_roster_player_with_dubr_endpoint(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """POST /api/v1/clubs/{id}/players maps decimal DUBR to internal logistic rating."""
+    response = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={"name": "Custom DUBR Dave", "doubles_dubr": 3.500},
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["doubles_rating"] == 1400.0
+    assert data["doubles_dubr"] == 3.500
+    assert data["is_provisional"] is True

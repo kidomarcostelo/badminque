@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   INITIAL_RATING_BASELINE,
+  TIER_ANCHORS,
+  ratingToDubr,
   type PlayerState,
   type RosterPlayer,
+  type SkillTier,
 } from '@badminque/core';
 import { storageService } from '../../services/storageService';
 
@@ -15,7 +18,11 @@ export interface UseRosterResult {
   searchQuery: string;
   isLoading: boolean;
   setSearchQuery: (query: string) => void;
-  checkInPlayer: (name: string, clubId?: string) => Promise<RosterPlayer>;
+  checkInPlayer: (
+    name: string,
+    tierOrClubId?: SkillTier | string,
+    clubId?: string
+  ) => Promise<RosterPlayer>;
   updatePlayerStatus: (playerId: string, status: PlayerState) => Promise<void>;
   refreshRoster: () => Promise<void>;
 }
@@ -77,13 +84,18 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
         for (const remotePlayer of remotePlayers) {
           const localRecord = existingMap.get(remotePlayer.id);
+          const singlesRating = remotePlayer.singles_rating ?? INITIAL_RATING_BASELINE;
+          const doublesRating = remotePlayer.doubles_rating ?? INITIAL_RATING_BASELINE;
           await storageService.savePlayer({
             id: remotePlayer.id,
             club_id: remotePlayer.club_id ?? initialClubId,
             name: remotePlayer.name,
             auth_user_id: remotePlayer.auth_user_id ?? null,
-            singles_rating: remotePlayer.singles_rating ?? INITIAL_RATING_BASELINE,
-            doubles_rating: remotePlayer.doubles_rating ?? INITIAL_RATING_BASELINE,
+            initial_tier: remotePlayer.initial_tier ?? null,
+            singles_rating: singlesRating,
+            doubles_rating: doublesRating,
+            singles_dubr: remotePlayer.singles_dubr ?? ratingToDubr(singlesRating),
+            doubles_dubr: remotePlayer.doubles_dubr ?? ratingToDubr(doublesRating),
             matches_played: remotePlayer.matches_played ?? 0,
             status: localRecord?.status ?? remotePlayer.status ?? 'QUEUED',
             checked_in_at:
@@ -121,22 +133,55 @@ export function useRoster(initialClubId?: string): UseRosterResult {
   }, [roster, normalizedQuery]);
 
   const checkInPlayer = useCallback(
-    async (name: string, clubId?: string): Promise<RosterPlayer> => {
+    async (
+      name: string,
+      tierOrClubId?: SkillTier | string,
+      clubId?: string
+    ): Promise<RosterPlayer> => {
       const trimmedName = name.trim();
       if (trimmedName.length === 0) {
         throw new Error('Player name cannot be empty');
       }
 
-      const effectiveClubId = clubId ?? initialClubId;
+      let tier: SkillTier | undefined = undefined;
+      let effectiveClubId: string | undefined = initialClubId;
+
+      if (
+        tierOrClubId === 'BEGINNER' ||
+        tierOrClubId === 'INTERMEDIATE' ||
+        tierOrClubId === 'ADVANCED'
+      ) {
+        tier = tierOrClubId;
+        effectiveClubId = clubId ?? initialClubId;
+      } else if (typeof tierOrClubId === 'string') {
+        effectiveClubId = tierOrClubId;
+      }
+
       const generatedId = generateUuidV4();
+
+      let singlesRating: number = INITIAL_RATING_BASELINE;
+      let doublesRating: number = INITIAL_RATING_BASELINE;
+      let singlesDubr: number = ratingToDubr(INITIAL_RATING_BASELINE);
+      let doublesDubr: number = ratingToDubr(INITIAL_RATING_BASELINE);
+
+      if (tier && TIER_ANCHORS[tier]) {
+        const anchor = TIER_ANCHORS[tier];
+        singlesRating = anchor.rating;
+        doublesRating = anchor.rating;
+        singlesDubr = anchor.dubr;
+        doublesDubr = anchor.dubr;
+      }
 
       const newPlayer: RosterPlayer = {
         id: generatedId,
         club_id: effectiveClubId,
         name: trimmedName,
         auth_user_id: null,
-        singles_rating: INITIAL_RATING_BASELINE,
-        doubles_rating: INITIAL_RATING_BASELINE,
+        initial_tier: tier ?? null,
+        singles_rating: singlesRating,
+        doubles_rating: doublesRating,
+        singles_dubr: singlesDubr,
+        doubles_dubr: doublesDubr,
         matches_played: 0,
         status: 'QUEUED',
         checked_in_at: new Date().toISOString(),
@@ -154,8 +199,11 @@ export function useRoster(initialClubId?: string): UseRosterResult {
           body: JSON.stringify({
             id: newPlayer.id,
             name: newPlayer.name,
+            initial_tier: newPlayer.initial_tier,
             singles_rating: newPlayer.singles_rating,
             doubles_rating: newPlayer.doubles_rating,
+            singles_dubr: newPlayer.singles_dubr,
+            doubles_dubr: newPlayer.doubles_dubr,
           }),
         }).catch(() => {
           // Offline or network drop: IndexedDB remains authoritative courtside

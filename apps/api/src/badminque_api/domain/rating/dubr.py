@@ -5,11 +5,48 @@ Pure Python standard library with zero external dependencies.
 Deterministic, synchronous, zero side-effects.
 """
 
+from enum import Enum
+
 # DUBR scale constants per ADR 0002 Section 6
 DUBR_BASE_RATING: float = 800.0
 DUBR_DIVISOR: float = 400.0
 DUBR_SCALE_MIN: float = 2.0
 DUBR_SCALE_MAX: float = 7.0
+ESTABLISHED_MATCH_THRESHOLD: int = 8
+
+
+class SkillTier(str, Enum):
+    """Cold-start 1-tap skill tier anchor for unrated roster players."""
+
+    BEGINNER = "BEGINNER"
+    INTERMEDIATE = "INTERMEDIATE"
+    ADVANCED = "ADVANCED"
+
+
+TIER_ANCHORS: dict[SkillTier, dict[str, float]] = {
+    SkillTier.BEGINNER: {"dubr": 2.500, "rating": 1000.0},
+    SkillTier.INTERMEDIATE: {"dubr": 3.500, "rating": 1400.0},
+    SkillTier.ADVANCED: {"dubr": 4.500, "rating": 1800.0},
+}
+
+DEFAULT_SKILL_TIER: SkillTier = SkillTier.INTERMEDIATE
+
+
+def tier_to_dubr(tier: SkillTier | str) -> float:
+    """Returns the calibrated decimal DUBR baseline for the given tier anchor."""
+    tier_enum = SkillTier(tier)
+    return TIER_ANCHORS[tier_enum]["dubr"]
+
+
+def tier_to_rating(tier: SkillTier | str) -> float:
+    """Returns the calibrated logistic rating baseline for the given tier anchor."""
+    tier_enum = SkillTier(tier)
+    return TIER_ANCHORS[tier_enum]["rating"]
+
+
+def is_provisional(matches_played: int) -> bool:
+    """Evaluates whether player is in provisional calibration period (< 8 matches)."""
+    return matches_played < ESTABLISHED_MATCH_THRESHOLD
 
 
 def rating_to_dubr(rating: float) -> float:

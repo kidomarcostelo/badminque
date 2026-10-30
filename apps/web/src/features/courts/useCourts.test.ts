@@ -17,6 +17,16 @@ function createMockPlayer(id: string, name: string, rating: number = 1500): Rost
   };
 }
 
+function makePair(
+  first: RosterPlayer | undefined,
+  second: RosterPlayer | undefined
+): [RosterPlayer, RosterPlayer] {
+  if (!first || !second) {
+    throw new Error('Expected defined players for pair');
+  }
+  return [first, second];
+}
+
 describe('useCourts', () => {
   beforeEach(async () => {
     closeDatabaseConnection();
@@ -65,7 +75,7 @@ describe('useCourts', () => {
 
     // Verify all 4 players persisted as PLAYING in storage
     const stored = await storageService.getRoster();
-    const playing = stored.filter((p) => p.status === 'PLAYING');
+    const playing = stored.filter((player) => player.status === 'PLAYING');
     expect(playing).toHaveLength(4);
   });
 
@@ -85,8 +95,8 @@ describe('useCourts', () => {
     act(() => {
       result.current.stageCustomMatch(
         1,
-        [mockPlayers[0]!, mockPlayers[1]!],
-        [mockPlayers[2]!, mockPlayers[3]!]
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
       );
     });
 
@@ -122,8 +132,8 @@ describe('useCourts', () => {
     await act(async () => {
       result.current.stageCustomMatch(
         1,
-        [mockPlayers[0]!, mockPlayers[1]!],
-        [mockPlayers[2]!, mockPlayers[3]!]
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
       );
       await result.current.dispatchCourt(1);
     });
@@ -169,8 +179,8 @@ describe('useCourts', () => {
     await act(async () => {
       result.current.stageCustomMatch(
         1,
-        [mockPlayers[0]!, mockPlayers[1]!],
-        [mockPlayers[2]!, mockPlayers[3]!]
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
       );
       await result.current.dispatchCourt(1);
     });
@@ -185,8 +195,8 @@ describe('useCourts', () => {
 
     // 1. All 4 finished players must be RESTING with matches_played = 1
     const storedRoster = await storageService.getRoster();
-    const finishedPlayers = storedRoster.filter((p) =>
-      ['p1', 'p2', 'p3', 'p4'].includes(p.id)
+    const finishedPlayers = storedRoster.filter((player) =>
+      ['p1', 'p2', 'p3', 'p4'].includes(player.id)
     );
 
     expect(finishedPlayers).toHaveLength(4);
@@ -196,11 +206,11 @@ describe('useCourts', () => {
     }
 
     // Winners (p1, p2) gained rating
-    const p1 = finishedPlayers.find((p) => p.id === 'p1');
+    const p1 = finishedPlayers.find((player) => player.id === 'p1');
     expect(p1?.doubles_rating).toBeGreaterThan(1600);
 
     // Losers (p3, p4) lost rating
-    const p3 = finishedPlayers.find((p) => p.id === 'p3');
+    const p3 = finishedPlayers.find((player) => player.id === 'p3');
     expect(p3?.doubles_rating).toBeLessThan(1540);
 
     // 2. Cleared court transitions to PROPOSED because p5..p8 are queued
@@ -235,8 +245,8 @@ describe('useCourts', () => {
     await act(async () => {
       result.current.stageCustomMatch(
         1,
-        [mockPlayers[0]!, mockPlayers[1]!],
-        [mockPlayers[2]!, mockPlayers[3]!]
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
       );
       await result.current.dispatchCourt(1);
     });
@@ -251,5 +261,45 @@ describe('useCourts', () => {
     expect(court1After?.state).toBe('IDLE');
     expect(court1After?.teamA).toBeNull();
     expect(court1After?.teamB).toBeNull();
+  });
+
+  it('rotates to PROPOSED using in-memory roster when storage has only on-court players', async () => {
+    const onCourtPlayers = [
+      createMockPlayer('p1', 'Player 1', 1600),
+      createMockPlayer('p2', 'Player 2', 1580),
+      createMockPlayer('p3', 'Player 3', 1540),
+      createMockPlayer('p4', 'Player 4', 1520),
+    ];
+    const queuedRosterPlayers = [
+      createMockPlayer('p5', 'Player 5', 1620),
+      createMockPlayer('p6', 'Player 6', 1590),
+      createMockPlayer('p7', 'Player 7', 1550),
+      createMockPlayer('p8', 'Player 8', 1510),
+    ];
+
+    for (const player of onCourtPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const allPlayers = [...onCourtPlayers, ...queuedRosterPlayers];
+    const { result } = renderHook(() => useCourts({ roster: allPlayers }));
+
+    await act(async () => {
+      result.current.stageCustomMatch(
+        1,
+        makePair(onCourtPlayers[0], onCourtPlayers[1]),
+        makePair(onCourtPlayers[2], onCourtPlayers[3])
+      );
+      await result.current.dispatchCourt(1);
+    });
+
+    await act(async () => {
+      result.current.openScoreModal(1);
+      await result.current.submitScore(1, 'A', 30, 22);
+    });
+
+    const court1After = result.current.courts[0];
+    expect(court1After?.state).toBe('PROPOSED');
+    expect(court1After?.teamA?.[0].name).toBe('Player 5');
   });
 });

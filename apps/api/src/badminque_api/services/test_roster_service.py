@@ -16,7 +16,11 @@ from sqlalchemy.ext.asyncio import (
 from badminque_api.exceptions import EntityNotFoundError
 from badminque_api.models import Base
 from badminque_api.models.club import Club
-from badminque_api.schemas.player import PlayerStateEnum, RosterPlayerCreate
+from badminque_api.schemas.player import (
+    PlayerStateEnum,
+    RosterPlayerCreate,
+    SkillTierEnum,
+)
 from badminque_api.services.roster_service import RosterService
 
 
@@ -243,3 +247,78 @@ async def test_update_player_status_invalid_value(
     with pytest.raises(ValueError) as exc_info:
         await service.update_player_status(sample_club.id, player.id, "BOGUS_STATUS")
     assert "Invalid status" in str(exc_info.value)
+
+
+async def test_create_roster_player_with_tier_anchors(
+    test_session: AsyncSession, sample_club: Club
+) -> None:
+    """Verifies that 1-tap tier anchors calibrate ratings and DUBR correctly."""
+    service = RosterService(test_session)
+
+    # 1. Beginner: 2.500 / 1000.0 rating
+    beginner = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            name="Beginner Player",
+            initial_tier=SkillTierEnum.BEGINNER,
+        ),
+    )
+    assert beginner.initial_tier == "BEGINNER"
+    assert beginner.singles_rating == 1000.0
+    assert beginner.doubles_rating == 1000.0
+    assert beginner.singles_dubr == 2.500
+    assert beginner.doubles_dubr == 2.500
+    assert beginner.is_provisional is True
+
+    # 2. Intermediate [Default]: 3.500 / 1400.0 rating
+    intermediate = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            name="Intermediate Player",
+            initial_tier=SkillTierEnum.INTERMEDIATE,
+        ),
+    )
+    assert intermediate.initial_tier == "INTERMEDIATE"
+    assert intermediate.singles_rating == 1400.0
+    assert intermediate.doubles_rating == 1400.0
+    assert intermediate.singles_dubr == 3.500
+    assert intermediate.doubles_dubr == 3.500
+    assert intermediate.is_provisional is True
+
+    # 3. Advanced: 4.500 / 1800.0 rating
+    advanced = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            name="Advanced Player",
+            initial_tier=SkillTierEnum.ADVANCED,
+        ),
+    )
+    assert advanced.initial_tier == "ADVANCED"
+    assert advanced.singles_rating == 1800.0
+    assert advanced.doubles_rating == 1800.0
+    assert advanced.singles_dubr == 4.500
+    assert advanced.doubles_dubr == 4.500
+    assert advanced.is_provisional is True
+
+
+async def test_create_roster_player_with_explicit_dubr(
+    test_session: AsyncSession, sample_club: Club
+) -> None:
+    """Verifies that explicit DUBR inputs map to internal rating
+    via ADR 0002 formula.
+    """
+    service = RosterService(test_session)
+    player = await service.create_roster_player(
+        sample_club.id,
+        RosterPlayerCreate(
+            name="Custom DUBR Player",
+            singles_dubr=3.250,
+            doubles_dubr=3.750,
+        ),
+    )
+    # R = 800 + (3.25 - 2.0) * 400 = 800 + 500 = 1300
+    assert player.singles_rating == 1300.0
+    assert player.singles_dubr == 3.250
+    # R = 800 + (3.75 - 2.0) * 400 = 800 + 700 = 1500
+    assert player.doubles_rating == 1500.0
+    assert player.doubles_dubr == 3.750

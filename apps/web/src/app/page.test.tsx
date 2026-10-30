@@ -67,10 +67,13 @@ describe('CourtsideStationPage', () => {
 
     // 1. Dispatch Court 1 from IDLE -> IN_MATCH
     const dispatchButtons = screen.getAllByRole('button', { name: /⚡ Dispatch/i });
-    expect(dispatchButtons.length).toBeGreaterThanOrEqual(1);
+    const firstDispatchButton = dispatchButtons[0];
+    if (!firstDispatchButton) {
+      throw new Error('Expected at least one dispatch button');
+    }
 
     await act(async () => {
-      fireEvent.click(dispatchButtons[0]!);
+      fireEvent.click(firstDispatchButton);
     });
 
     // Court 1 should now be IN_MATCH with live elapsed timer and enter score button
