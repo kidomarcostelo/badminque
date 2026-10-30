@@ -27,7 +27,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | Issue | Type | Status | Deliverable / Notes |
 | :--- | :--- | :--- | :--- |
 | **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | ✅ **Done** | Ratified Feature-Driven Vertical Slices (`apps/web/src/features/`) and Pragmatic Clean Domain Core (`apps/api/src/badminque_api/domain/`). Deliverable: [`docs/research/architecture-methodology.md`](file:///docs/research/architecture-methodology.md). |
-| **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | 🟡 **Ready for Human** | Revisit courtside tablet/mobile ergonomics, 3-court grid, 30-pt score keypad, on-deck cards, and bench roster using Google AI Studio. |
+| **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | 🟡 **Ready for Human** | Revisit courtside tablet/mobile ergonomics, 3-court grid, 30-pt score keypad, on-deck cards, and bench roster using Google AI Studio. Embedded prompt package included; when grabbed, instructs user to run prompt in AI Studio. |
 
 ---
 
