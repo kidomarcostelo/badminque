@@ -30,7 +30,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[#24](https://github.com/kidomarcostelo/badminque/issues/24)** | Courtside Roster Check-In with 1-Tap Tier Anchor & DUBR Display | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | 2.000–7.000 decimal DUBR mapping, 1-tap tier anchor pills (Beginner, Intermediate, Advanced) in check-in modal, provisional badge display. |
 | **[#25](https://github.com/kidomarcostelo/badminque/issues/25)** | Match Score Recording with DUBR Rating Delta Calculation | ✅ **Done** | None | Completed | Match score recording, logarithmic MOV multiplier, non-inversion enforcement, DUBR delta calculation, post-match outcome view, and offline batch sync fold. |
 | **[#26](https://github.com/kidomarcostelo/badminque/issues/26)** | Cross-Discipline Prior Seeding (Singles ↔ Doubles) | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Initial discipline baseline seeded from established counterpart, strict mathematical isolation on subsequent match updates. |
-| **[#27](https://github.com/kidomarcostelo/badminque/issues/27)** | Provisional-to-Established Milestone & Club Leaderboard | 🟡 **Ready for Agent** | #25 | Blocked | Club leaderboard ranking (`RANK() OVER`), provisional player exclusion, 8th match graduation milestone. |
+| **[#27](https://github.com/kidomarcostelo/badminque/issues/27)** | Provisional-to-Established Milestone & Club Leaderboard | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Club leaderboard ranking (`RANK() OVER`), provisional player exclusion, 8th match graduation milestone. |
 
 ### Standalone Architectural & Design Tasks
 | Issue | Type | Status | Deliverable / Notes |
