@@ -24,6 +24,18 @@ _Avoid_: Game, bout, fixture
 The numerical calculation representing a player's relative skill level, updated from match results.
 _Avoid_: Score, rank, level, handicap
 
+**DUBR**:
+Dynamic Universal Badminton Rating; the canonical rating algorithm and standard used by Badminque to evaluate match results.
+_Avoid_: UBR, Elo, global rank
+
+**Provisional Rating**:
+A player's rating during their initial calibration period (< 8 matches), subject to elevated volatility and excluded from club leaderboards.
+_Avoid_: Temporary score, trial rank, unverified rating
+
+**Established Rating**:
+A player's rating once calibrated (>= 8 matches), possessing low volatility and eligibility for club leaderboards.
+_Avoid_: Permanent rating, verified rank, official tier
+
 **Roster Player**:
 A player entry recorded on a club roster by an organizer who does not yet have an individual login.
 _Avoid_: Unregistered player, guest, phantom user

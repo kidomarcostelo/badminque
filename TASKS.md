@@ -10,6 +10,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | **[#12 Spec: Badminque MVP Implementation](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec | 🟡 **Ready for Agent** | Unassigned | Parent MVP specification sliced into 8 tracer-bullet vertical tickets below. |
+| **[#23 Spec: DUBR Algorithm & System](https://github.com/kidomarcostelo/badminque/issues/23)** | Spec | 🟡 **Ready for Agent** | Unassigned | Canonical specification for DUBR: 2.000–7.000 decimal scale, 1-tap tier anchors, provisional dynamics, and cross-discipline prior seeding. |
 
 ### Implementation Tickets (Tracer-Bullet Slices)
 | Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
@@ -23,11 +24,19 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | 🟡 **Ready for Agent** | #14, #17 | Blocked | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold. |
 | **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | 🟡 **Ready for Agent** | #19 | Blocked | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
 
+### Implementation Tickets: DUBR Algorithm & System (Spec #23)
+| Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[#24](https://github.com/kidomarcostelo/badminque/issues/24)** | Courtside Roster Check-In with 1-Tap Tier Anchor & DUBR Display | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | 2.000–7.000 decimal DUBR mapping, 1-tap tier anchor pills (Beginner, Intermediate, Advanced) in check-in modal, provisional badge display. |
+| **[#25](https://github.com/kidomarcostelo/badminque/issues/25)** | Match Score Recording with DUBR Rating Delta Calculation | 🟡 **Ready for Agent** | #24 | Blocked | Match score recording, logarithmic MOV multiplier, non-inversion enforcement, post-match rating deltas. |
+| **[#26](https://github.com/kidomarcostelo/badminque/issues/26)** | Cross-Discipline Prior Seeding (Singles ↔ Doubles) | 🟡 **Ready for Agent** | #25 | Blocked | Initial discipline baseline seeded from established counterpart, strict mathematical isolation on subsequent match updates. |
+| **[#27](https://github.com/kidomarcostelo/badminque/issues/27)** | Provisional-to-Established Milestone & Club Leaderboard | 🟡 **Ready for Agent** | #25 | Blocked | Club leaderboard ranking (`RANK() OVER`), provisional player exclusion, 8th match graduation milestone. |
+
 ### Standalone Architectural & Design Tasks
 | Issue | Type | Status | Deliverable / Notes |
 | :--- | :--- | :--- | :--- |
 | **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | ✅ **Done** | Ratified Feature-Driven Vertical Slices (`apps/web/src/features/`) and Pragmatic Clean Domain Core (`apps/api/src/badminque_api/domain/`). Deliverable: [`docs/research/architecture-methodology.md`](file:///docs/research/architecture-methodology.md). |
-| **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | 🟢 **In Progress** | Revisit courtside tablet/mobile ergonomics, 3-court grid, 30-pt score keypad, on-deck cards, and bench roster using Google AI Studio. Embedded prompt package active. |
+| **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | ✅ **Done** | High-contrast courtside UI prototype with 3-court live grid, 30-pt score keypad, on-deck queue cards, bench roster, and Match History tab. Deliverable: [`prototypes/courtside-station-v2.html`](prototypes/courtside-station-v2.html). |
 
 ---
 
