@@ -28,8 +28,10 @@ describe('RosterCheckInList', () => {
 
     // Verifies player is immediately on the active bench roster table
     expect(await screen.findByText('Marcus Gideon')).toBeInTheDocument();
-    expect(screen.getByText('1500')).toBeInTheDocument();
-    expect(screen.getByText('QUEUED')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('3.500')).toBeInTheDocument();
+    expect(within(table).getByText('1400')).toBeInTheDocument();
+    expect(within(table).getByText('QUEUED')).toBeInTheDocument();
 
     // Input is cleared for rapid sequential check-ins (<2 seconds)
     expect(input).toHaveValue('');

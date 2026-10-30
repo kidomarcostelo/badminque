@@ -11,7 +11,7 @@ from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, fu
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from badminque_api.domain.rating.dubr import rating_to_dubr
+from badminque_api.domain.rating.dubr import is_provisional, rating_to_dubr
 from badminque_api.models.base import Base
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ class RosterPlayer(Base):
 
     @property
     def is_provisional(self) -> bool:
-        return self.matches_played < 8
+        return is_provisional(self.matches_played)
 
 
 class ClaimToken(Base):

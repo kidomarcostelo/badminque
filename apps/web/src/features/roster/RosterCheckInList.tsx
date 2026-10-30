@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import {
   formatDubr,
+  isProvisional,
   ratingToDubr,
   type PlayerState,
   type RosterPlayer,
@@ -167,7 +168,7 @@ export function RosterCheckInList({
                     <span className="text-xs text-slate-400 font-mono">
                       DUBR: {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
                     </span>
-                    {player.matches_played < 8 && <ProvisionalBadge />}
+                    {isProvisional(player.matches_played) && <ProvisionalBadge />}
                   </div>
                 </div>
                 <PlayerStatusBadge status={player.status} />
@@ -243,10 +244,10 @@ export function RosterCheckInList({
                           <span className="text-slate-200 font-mono text-xs font-bold">
                             {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
                           </span>
-                          {player.matches_played < 8 && <ProvisionalBadge />}
+                          {isProvisional(player.matches_played) && <ProvisionalBadge />}
                         </div>
                         <span className="text-[10px] text-slate-500 font-mono">
-                          {player.initial_tier === 'INTERMEDIATE' ? '1500' : player.doubles_rating.toFixed(0)}
+                          {player.doubles_rating.toFixed(0)}
                         </span>
                       </div>
                     </td>

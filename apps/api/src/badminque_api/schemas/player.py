@@ -11,9 +11,14 @@ from pydantic import (
     Field,
     computed_field,
     field_validator,
+    model_validator,
 )
 
-from badminque_api.domain.rating.dubr import rating_to_dubr
+from badminque_api.domain.rating.dubr import (
+    is_provisional,
+    rating_to_dubr,
+    tier_to_dubr,
+)
 
 
 class SkillTierEnum(str, Enum):
@@ -99,6 +104,37 @@ class RosterPlayerCreate(RosterPlayerBase):
         description="Optional initial doubles DUBR (2.000–7.000)",
     )
 
+    @field_validator("singles_dubr", "doubles_dubr")
+    @classmethod
+    def validate_dubr_precision(cls, value: float | None) -> float | None:
+        if value is not None:
+            return round(value, 3)
+        return None
+
+    @model_validator(mode="after")
+    def validate_tier_and_dubr_consistency(self) -> "RosterPlayerCreate":
+        if self.initial_tier is not None:
+            tier_expected_dubr = tier_to_dubr(self.initial_tier.value)
+            if (
+                self.singles_dubr is not None
+                and abs(self.singles_dubr - tier_expected_dubr) > 1e-3
+            ):
+                raise ValueError(
+                    f"Conflicting inputs: initial_tier '{self.initial_tier.value}' "
+                    f"implies DUBR {tier_expected_dubr:.3f}, "
+                    f"but singles_dubr is {self.singles_dubr:.3f}"
+                )
+            if (
+                self.doubles_dubr is not None
+                and abs(self.doubles_dubr - tier_expected_dubr) > 1e-3
+            ):
+                raise ValueError(
+                    f"Conflicting inputs: initial_tier '{self.initial_tier.value}' "
+                    f"implies DUBR {tier_expected_dubr:.3f}, "
+                    f"but doubles_dubr is {self.doubles_dubr:.3f}"
+                )
+        return self
+
 
 class RosterPlayerResponse(RosterPlayerBase):
     id: UUID
@@ -126,7 +162,7 @@ class RosterPlayerResponse(RosterPlayerBase):
     @computed_field
     @property
     def is_provisional(self) -> bool:
-        return self.matches_played < 8
+        return is_provisional(self.matches_played)
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -153,6 +189,6 @@ class PlayerPassportResponse(BaseModel):
     @computed_field
     @property
     def is_provisional(self) -> bool:
-        return (self.singles_matches_played + self.doubles_matches_played) < 8
+        return is_provisional(self.singles_matches_played + self.doubles_matches_played)
 
     model_config = ConfigDict(from_attributes=True)

@@ -341,3 +341,31 @@ def test_roster_player_response_computed_dubr_and_provisional() -> None:
     assert graduated_response.singles_dubr == 4.500
     assert graduated_response.doubles_dubr == 4.500
     assert graduated_response.is_provisional is False
+
+
+def test_roster_player_create_dubr_precision_rounding() -> None:
+    """Rounds input DUBR values to 3 decimal places."""
+    player = RosterPlayerCreate(
+        name="Precision Player",
+        singles_dubr=3.4567,
+        doubles_dubr=4.1234,
+    )
+    assert player.singles_dubr == 3.457
+    assert player.doubles_dubr == 4.123
+
+
+def test_roster_player_create_conflicting_tier_and_dubr() -> None:
+    """Rejects contradictory initial_tier and explicit DUBR."""
+    with pytest.raises(ValidationError, match="Conflicting inputs"):
+        RosterPlayerCreate(
+            name="Conflicted Player",
+            initial_tier=SkillTierEnum.BEGINNER,  # implies 2.500
+            doubles_dubr=4.500,  # conflicts with Beginner!
+        )
+
+    with pytest.raises(ValidationError, match="Conflicting inputs"):
+        RosterPlayerCreate(
+            name="Conflicted Player",
+            initial_tier=SkillTierEnum.ADVANCED,  # implies 4.500
+            singles_dubr=2.500,  # conflicts with Advanced!
+        )

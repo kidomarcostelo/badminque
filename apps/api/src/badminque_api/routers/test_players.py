@@ -266,3 +266,19 @@ def test_create_roster_player_with_dubr_endpoint(
     assert data["doubles_rating"] == 1400.0
     assert data["doubles_dubr"] == 3.500
     assert data["is_provisional"] is True
+
+
+def test_create_roster_player_conflicting_tier_and_dubr_returns_422(
+    client_with_db: TestClient, sample_club: Club
+) -> None:
+    """POST /api/v1/clubs/{id}/players returns 422 for conflicting tier and DUBR."""
+    response = client_with_db.post(
+        f"/api/v1/clubs/{sample_club.id}/players",
+        json={
+            "name": "Conflicted Player",
+            "initial_tier": "BEGINNER",
+            "doubles_dubr": 4.500,
+        },
+    )
+    assert response.status_code == 422
+    assert "Conflicting inputs" in response.text
