@@ -23,10 +23,11 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | 🟡 **Ready for Agent** | #14, #17 | Blocked | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold. |
 | **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | 🟡 **Ready for Agent** | #19 | Blocked | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
 
-### Standalone Architectural Tasks
+### Standalone Architectural & Design Tasks
 | Issue | Type | Status | Deliverable / Notes |
 | :--- | :--- | :--- | :--- |
 | **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | ✅ **Done** | Ratified Feature-Driven Vertical Slices (`apps/web/src/features/`) and Pragmatic Clean Domain Core (`apps/api/src/badminque_api/domain/`). Deliverable: [`docs/research/architecture-methodology.md`](file:///docs/research/architecture-methodology.md). |
+| **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | 🟡 **Ready for Human** | Revisit courtside tablet/mobile ergonomics, 3-court grid, 30-pt score keypad, on-deck cards, and bench roster using Google AI Studio. |
 
 ---
 
