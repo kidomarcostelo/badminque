@@ -205,13 +205,16 @@ describe('useCourts', () => {
       expect(player.matches_played).toBe(1);
     }
 
-    // Winners (p1, p2) gained rating
+    // Winners (p1, p2) gained rating and DUBR
     const p1 = finishedPlayers.find((player) => player.id === 'p1');
     expect(p1?.doubles_rating).toBeGreaterThan(1600);
+    expect(p1?.doubles_dubr).toBeDefined();
+    expect(p1?.doubles_dubr).toBeGreaterThan(4.0);
 
     // Losers (p3, p4) lost rating
     const p3 = finishedPlayers.find((player) => player.id === 'p3');
     expect(p3?.doubles_rating).toBeLessThan(1540);
+    expect(p3?.doubles_dubr).toBeDefined();
 
     // 2. Cleared court transitions to PROPOSED because p5..p8 are queued
     const court1After = result.current.courts[0];
@@ -243,7 +246,7 @@ describe('useCourts', () => {
     const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
 
     await act(async () => {
-      result.current.stageCustomMatch(
+      await result.current.stageCustomMatch(
         1,
         makePair(mockPlayers[0], mockPlayers[1]),
         makePair(mockPlayers[2], mockPlayers[3])
@@ -285,7 +288,7 @@ describe('useCourts', () => {
     const { result } = renderHook(() => useCourts({ roster: allPlayers }));
 
     await act(async () => {
-      result.current.stageCustomMatch(
+      await result.current.stageCustomMatch(
         1,
         makePair(onCourtPlayers[0], onCourtPlayers[1]),
         makePair(onCourtPlayers[2], onCourtPlayers[3])
@@ -301,5 +304,91 @@ describe('useCourts', () => {
     const court1After = result.current.courts[0];
     expect(court1After?.state).toBe('PROPOSED');
     expect(court1After?.teamA?.[0].name).toBe('Player 5');
+  });
+
+  it('restores PLAYING players back to QUEUED when setCourtIdle resets an active court', async () => {
+    const mockPlayers = [
+      createMockPlayer('p1', 'Player 1', 1600),
+      createMockPlayer('p2', 'Player 2', 1580),
+      createMockPlayer('p3', 'Player 3', 1540),
+      createMockPlayer('p4', 'Player 4', 1520),
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    await act(async () => {
+      await result.current.stageCustomMatch(
+        1,
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
+      );
+      await result.current.dispatchCourt(1);
+    });
+
+    expect(result.current.courts[0]?.state).toBe('IN_MATCH');
+
+    // Verify players are PLAYING in storage
+    const storedBefore = await storageService.getRoster();
+    expect(storedBefore.filter((player) => player.status === 'PLAYING')).toHaveLength(4);
+
+    // Reset court to IDLE
+    await act(async () => {
+      await result.current.setCourtIdle(1);
+    });
+
+    expect(result.current.courts[0]?.state).toBe('IDLE');
+    expect(result.current.courts[0]?.teamA).toBeNull();
+
+    // Verify all players restored to QUEUED in storage
+    const storedAfter = await storageService.getRoster();
+    expect(storedAfter.filter((player) => player.status === 'QUEUED')).toHaveLength(4);
+    expect(storedAfter.filter((player) => player.status === 'PLAYING')).toHaveLength(0);
+  });
+
+  it('restores replaced PLAYING players back to QUEUED when staging a new custom match', async () => {
+    const mockPlayers = [
+      createMockPlayer('p1', 'Player 1', 1600),
+      createMockPlayer('p2', 'Player 2', 1580),
+      createMockPlayer('p3', 'Player 3', 1540),
+      createMockPlayer('p4', 'Player 4', 1520),
+      createMockPlayer('p5', 'Player 5', 1620),
+      createMockPlayer('p6', 'Player 6', 1590),
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Stage and dispatch p1..p4
+    await act(async () => {
+      await result.current.stageCustomMatch(
+        1,
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
+      );
+      await result.current.dispatchCourt(1);
+    });
+
+    // Now replace court 1 with p1, p2, p5, p6 (replacing p3 and p4)
+    await act(async () => {
+      await result.current.stageCustomMatch(
+        1,
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[4], mockPlayers[5])
+      );
+    });
+
+    // p3 and p4 should be back to QUEUED in storage
+    const storedAfter = await storageService.getRoster();
+    const p3 = storedAfter.find((player) => player.id === 'p3');
+    const p4 = storedAfter.find((player) => player.id === 'p4');
+    expect(p3?.status).toBe('QUEUED');
+    expect(p4?.status).toBe('QUEUED');
   });
 });

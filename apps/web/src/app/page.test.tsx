@@ -38,7 +38,7 @@ describe('CourtsideStationPage', () => {
     expect(await screen.findByText('Anthony Ginting')).toBeInTheDocument();
 
     // Roster count badges updated
-    expect(screen.getByText(/1 Players/i)).toBeInTheDocument();
+    expect(await screen.findByText(/1 Players/i)).toBeInTheDocument();
   });
 
   it('completes full match cycle: active play, 30-point preset scoring, Badminton Stamina Invariant step-off, and court rotation', async () => {

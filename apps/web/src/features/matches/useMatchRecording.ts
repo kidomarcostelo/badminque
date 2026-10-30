@@ -129,8 +129,14 @@ export function useMatchRecording(): UseMatchRecordingReturn {
         const updatedPlayer: RosterPlayer = {
           ...player,
           ...(isDoubles
-            ? { doubles_rating: delta.post_rating }
-            : { singles_rating: delta.post_rating }),
+            ? {
+                doubles_rating: delta.post_rating,
+                doubles_dubr: delta.post_dubr,
+              }
+            : {
+                singles_rating: delta.post_rating,
+                singles_dubr: delta.post_dubr,
+              }),
           matches_played: delta.matches_played_after,
           status: 'RESTING',
         };

@@ -217,19 +217,19 @@ export default function CourtsideStationPage(): React.JSX.Element {
           isOpen={true}
           courtId={activeCustomMatchCourtId}
           availablePlayers={roster.filter((player) => {
-            const isPlayingOnOtherCourt = courts.some(
+            const isAssignedOnOtherCourt = courts.some(
               (court) =>
                 court.courtId !== activeCustomMatchCourtId &&
-                court.state === 'IN_MATCH' &&
+                court.state !== 'IDLE' &&
                 [...(court.teamA ?? []), ...(court.teamB ?? [])].some(
                   (onCourtPlayer) => onCourtPlayer.id === player.id
                 )
             );
-            return !isPlayingOnOtherCourt && player.status !== 'PLAYING';
+            return !isAssignedOnOtherCourt && player.status !== 'PLAYING';
           })}
           onClose={closeCustomMatchModal}
           onConfirmMatch={(courtId, teamA, teamB) => {
-            stageCustomMatch(courtId, teamA, teamB);
+            void stageCustomMatch(courtId, teamA, teamB);
           }}
         />
       )}
