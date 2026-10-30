@@ -1,6 +1,12 @@
 # 🏸 Badminque
 
-> **Club-first badminton rating and match-tracking system delivering universal skill transparency for recreational and competitive badminton communities.**
+[![CI Pipeline](https://github.com/kidomarcostelo/badminque/actions/workflows/ci.yml/badge.svg)](https://github.com/kidomarcostelo/badminque/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+
+> **Open-source, club-first badminton rating and match-tracking system delivering universal skill transparency for recreational and competitive badminton communities.**
 
 Badminque provides the badminton equivalent of the DUPR/RecClub model: an offline-first courtside station board for club organizers, dynamic skill transparency via the **DUBR (Dynamic Universal Badminton Rating)** algorithm, frictionless check-in (Tricount identity model), and portable Player Passports.
 
@@ -105,6 +111,7 @@ badminque/
 ├── AGENTS.md                      # AI agent operating guidelines & repo invariants
 ├── CODING_STANDARDS.md            # Coding style conventions & quality standards
 ├── GLOSSARY.md                    # Canonical domain vocabulary
+├── LICENSE                        # Open-source MIT License
 └── TASKS.md                       # Synchronized project roadmap & task tracking
 ```
 
@@ -230,9 +237,20 @@ All rating computations in `packages/core/src/dubr.ts` and `apps/api/src/badminq
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions from both human developers and AI pair programmers!
+
+1. **Roadmap & Tasks**: Review [`TASKS.md`](TASKS.md) and open issues on [GitHub Issues](https://github.com/kidomarcostelo/badminque/issues).
+2. **Coding Standards**: Read [`CODING_STANDARDS.md`](CODING_STANDARDS.md) before submitting pull requests (no nested ternaries, guard clauses, strict typing, colocated tests).
+3. **AI Agent Guidelines**: Autonomous agents must follow [`AGENTS.md`](AGENTS.md) and adhere to canonical vocabulary in [`GLOSSARY.md`](GLOSSARY.md).
+4. **Pull Requests**: Follow conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`). Ensure all tests and typechecks pass before submitting.
+
+---
+
 ## 📄 Documentation & Architecture Records
 
-For deeper technical deep-dives and design specifications, refer to:
+For technical deep-dives and design specifications, refer to:
 - [`GLOSSARY.md`](GLOSSARY.md) — Canonical Domain Terminology
 - [`AGENTS.md`](AGENTS.md) — AI Agent Operating Guidelines & Rules
 - [`CODING_STANDARDS.md`](CODING_STANDARDS.md) — Code Style & Quality Standards
@@ -245,4 +263,4 @@ For deeper technical deep-dives and design specifications, refer to:
 
 ## 📜 License
 
-Private repository. All rights reserved.
+This project is open-source software licensed under the [MIT License](LICENSE).
