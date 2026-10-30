@@ -6,6 +6,7 @@ import {
   QUICK_SCORE_TARGET,
   STANDARD_SET_WIN_SCORE,
 } from '@badminque/core';
+import { RosterCheckInList } from '../features/roster/RosterCheckInList';
 import { useStorage } from '../hooks/useStorage';
 
 export default function CourtsideStationPage(): React.JSX.Element {
@@ -86,6 +87,13 @@ export default function CourtsideStationPage(): React.JSX.Element {
             </div>
           ))}
         </div>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold text-slate-200 mb-3">
+          Courtside Check-In & Roster
+        </h2>
+        <RosterCheckInList />
       </section>
 
       <footer className="mt-auto pt-4 border-t border-slate-800 text-center text-xs text-slate-400">

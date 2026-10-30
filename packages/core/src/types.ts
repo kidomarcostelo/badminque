@@ -27,6 +27,7 @@ export type SyncStatus = 'PENDING' | 'SYNCING' | 'SYNCED';
 export interface RosterPlayer {
   id: string;
   name: string;
+  club_id?: string;
   auth_user_id: string | null;
   singles_rating: number;
   doubles_rating: number;

@@ -6,6 +6,8 @@ export interface StorageAdapter {
   getPendingMatches(): Promise<MatchRecord[]>;
   markMatchesSynced(matchIds: string[]): Promise<void>;
   getRoster(): Promise<RosterPlayer[]>;
+  savePlayer(player: RosterPlayer): Promise<void>;
+  searchRoster(query: string): Promise<RosterPlayer[]>;
   upsertRosterPlayer(player: RosterPlayer): Promise<void>;
   clearAll(): Promise<void>;
 }

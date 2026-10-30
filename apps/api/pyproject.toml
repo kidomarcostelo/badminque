@@ -17,6 +17,7 @@ dependencies = [
     "alembic>=1.13.3",
     "asyncpg>=0.29.0",
     "greenlet>=3.1.0",
+    "aiosqlite[dev]>=0.22.1",
 ]
 
 [project.optional-dependencies]
@@ -54,6 +55,7 @@ known-first-party = ["badminque_api"]
 testpaths = ["src"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore:.*httpx.*:",
     "ignore::DeprecationWarning:fastapi.*:",

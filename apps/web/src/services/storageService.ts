@@ -96,12 +96,31 @@ export class IndexedDBStorageService implements StorageAdapter {
 
   public async getRoster(): Promise<RosterPlayer[]> {
     const database = await getDatabaseConnection();
-    return database.getAll('roster');
+    const players = await database.getAll('roster');
+    return players.sort((firstPlayer, secondPlayer) =>
+      firstPlayer.name.localeCompare(secondPlayer.name)
+    );
+  }
+
+  public async savePlayer(player: RosterPlayer): Promise<void> {
+    const database = await getDatabaseConnection();
+    await database.put('roster', player);
+  }
+
+  public async searchRoster(query: string): Promise<RosterPlayer[]> {
+    const database = await getDatabaseConnection();
+    const allPlayers = await database.getAll('roster');
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed.length === 0) {
+      return allPlayers;
+    }
+    return allPlayers.filter((player) => {
+      return player.name.toLowerCase().includes(trimmed);
+    });
   }
 
   public async upsertRosterPlayer(player: RosterPlayer): Promise<void> {
-    const database = await getDatabaseConnection();
-    await database.put('roster', player);
+    await this.savePlayer(player);
   }
 
   public async clearAll(): Promise<void> {

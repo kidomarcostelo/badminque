@@ -2,9 +2,9 @@
 
 from datetime import datetime
 from enum import Enum
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, computed_field
 
 
 class PlayerStateEnum(str, Enum):
@@ -16,7 +16,12 @@ class PlayerStateEnum(str, Enum):
 
 
 class RosterPlayerBase(BaseModel):
-    name: str = Field(min_length=1, max_length=255, description="Player full name")
+    name: str = Field(
+        min_length=1,
+        max_length=255,
+        description="Player full name",
+        validation_alias=AliasChoices("name", "display_name"),
+    )
     singles_rating: float = Field(
         default=1500.0,
         ge=0.0,
@@ -30,10 +35,18 @@ class RosterPlayerBase(BaseModel):
         description="Elo/UBR doubles rating",
     )
 
+    model_config = ConfigDict(populate_by_name=True)
+
 
 class RosterPlayerCreate(RosterPlayerBase):
-    id: UUID = Field(description="Client-generated permanent UUID v4")
-    club_id: UUID = Field(description="Club identifier")
+    id: UUID = Field(
+        default_factory=uuid4,
+        description="Client-generated permanent UUID v4",
+    )
+    club_id: UUID | None = Field(
+        default=None,
+        description="Club identifier",
+    )
     auth_user_id: UUID | None = Field(
         default=None,
         description="Associated auth user ID once claimed, otherwise NULL",
@@ -48,7 +61,12 @@ class RosterPlayerResponse(RosterPlayerBase):
     status: PlayerStateEnum = Field(default=PlayerStateEnum.QUEUED)
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        return self.name
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class PlayerPassportResponse(BaseModel):

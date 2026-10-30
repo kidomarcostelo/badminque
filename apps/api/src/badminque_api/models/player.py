@@ -50,6 +50,14 @@ class RosterPlayer(Base):
         "ClaimToken", back_populates="roster_player", cascade="all, delete-orphan"
     )
 
+    @property
+    def matches_played(self) -> int:
+        return self.singles_matches_played + self.doubles_matches_played
+
+    @property
+    def display_name(self) -> str:
+        return self.name
+
 
 class ClaimToken(Base):
     __tablename__ = "claim_tokens"

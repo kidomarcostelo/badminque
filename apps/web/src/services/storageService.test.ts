@@ -32,6 +32,93 @@ describe('IndexedDBStorageService', () => {
     expect(roster[0]?.auth_user_id).toBeNull();
   });
 
+  it('saves player using savePlayer and updates existing record', async () => {
+    const player: RosterPlayer = {
+      id: 'player-uuid-save',
+      name: 'Lin Dan',
+      auth_user_id: null,
+      singles_rating: 1500,
+      doubles_rating: 1500,
+      matches_played: 0,
+      status: 'QUEUED',
+      checked_in_at: new Date().toISOString(),
+    };
+
+    await storageService.savePlayer(player);
+    let roster = await storageService.getRoster();
+    expect(roster).toHaveLength(1);
+    expect(roster[0]?.name).toBe('Lin Dan');
+
+    // Update status and matches played
+    const updatedPlayer: RosterPlayer = {
+      ...player,
+      matches_played: 1,
+      status: 'PLAYING',
+    };
+    await storageService.savePlayer(updatedPlayer);
+    roster = await storageService.getRoster();
+    expect(roster).toHaveLength(1);
+    expect(roster[0]?.status).toBe('PLAYING');
+    expect(roster[0]?.matches_played).toBe(1);
+  });
+
+  it('searches roster players with case-insensitive filtering', async () => {
+    const players: RosterPlayer[] = [
+      {
+        id: 'p1',
+        name: 'Lee Chong Wei',
+        auth_user_id: null,
+        singles_rating: 1500,
+        doubles_rating: 1500,
+        matches_played: 0,
+        status: 'QUEUED',
+        checked_in_at: new Date().toISOString(),
+      },
+      {
+        id: 'p2',
+        name: 'Lee Zii Jia',
+        auth_user_id: null,
+        singles_rating: 1500,
+        doubles_rating: 1500,
+        matches_played: 0,
+        status: 'QUEUED',
+        checked_in_at: new Date().toISOString(),
+      },
+      {
+        id: 'p3',
+        name: 'Taufik Hidayat',
+        auth_user_id: null,
+        singles_rating: 1500,
+        doubles_rating: 1500,
+        matches_played: 0,
+        status: 'QUEUED',
+        checked_in_at: new Date().toISOString(),
+      },
+    ];
+
+    for (const player of players) {
+      await storageService.savePlayer(player);
+    }
+
+    // Empty query returns all players
+    const all = await storageService.searchRoster('');
+    expect(all).toHaveLength(3);
+
+    // Case-insensitive search "lee"
+    const leeResults = await storageService.searchRoster('lee');
+    expect(leeResults).toHaveLength(2);
+    expect(leeResults.map((p) => p.name)).toEqual(['Lee Chong Wei', 'Lee Zii Jia']);
+
+    // Substring match "hidayat"
+    const taufikResults = await storageService.searchRoster('HIDAYAT');
+    expect(taufikResults).toHaveLength(1);
+    expect(taufikResults[0]?.name).toBe('Taufik Hidayat');
+
+    // Non-matching query
+    const noResults = await storageService.searchRoster('Axelsen');
+    expect(noResults).toHaveLength(0);
+  });
+
   it('saves matches and retrieves pending matches ordered by sequence_num', async () => {
     const matchSecond: MatchRecord = {
       id: 'match-uuid-2',
