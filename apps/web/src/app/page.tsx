@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   QUICK_SCORE_TARGET,
   STANDARD_SET_WIN_SCORE,
+  type RosterPlayer,
   type RotationPolicy,
 } from '@badminque/core';
 import {
@@ -14,11 +15,13 @@ import {
   QuickScoreModal,
   useCourts,
 } from '../features/courts';
-import { RosterCheckInList } from '../features/roster/RosterCheckInList';
+import { PlayerTouchActionSheet, RosterCheckInList } from '../features/roster';
 import { useStorage } from '../hooks/useStorage';
 
 export default function CourtsideStationPage(): React.JSX.Element {
   const [mainView, setMainView] = useState<'board' | 'history'>('board');
+  const [customMatchTargetSlot, setCustomMatchTargetSlot] = useState<number | null>(null);
+  const [selectedActionSheetPlayer, setSelectedActionSheetPlayer] = useState<RosterPlayer | null>(null);
   const { roster, pendingMatches, isPersistent, refresh } = useStorage();
 
   const {
@@ -35,6 +38,12 @@ export default function CourtsideStationPage(): React.JSX.Element {
     dispatchCourt,
     dispatchDeckMatch,
     stageCustomMatch,
+    stageCustomSlot3,
+    pinPlayerPair,
+    unpinPlayerPair,
+    togglePlayerSkip,
+    togglePlayerRest,
+    assignPlayerToCourt,
     setCourtIdle,
     submitScore,
   } = useCourts({
@@ -51,6 +60,15 @@ export default function CourtsideStationPage(): React.JSX.Element {
     await submitScore(courtId, winner, winningScore, losingScore);
     await refresh();
   };
+
+  const handleCloseCustomMatchModal = (): void => {
+    closeCustomMatchModal();
+    setCustomMatchTargetSlot(null);
+  };
+
+  const activeActionPlayer = selectedActionSheetPlayer
+    ? roster.find((p) => p.id === selectedActionSheetPlayer.id) ?? selectedActionSheetPlayer
+    : null;
 
   const queuedPlayersCount = roster.filter((player) => player.status === 'QUEUED').length;
 
@@ -208,7 +226,10 @@ export default function CourtsideStationPage(): React.JSX.Element {
                     court={court}
                     onDispatch={dispatchCourt}
                     onEnterScore={openScoreModal}
-                    onCustomMatch={openCustomMatchModal}
+                    onCustomMatch={(courtId) => {
+                      setCustomMatchTargetSlot(null);
+                      openCustomMatchModal(courtId);
+                    }}
                     onResetIdle={setCourtIdle}
                   />
                 ))}
@@ -220,6 +241,10 @@ export default function CourtsideStationPage(): React.JSX.Element {
               <OnDeckStagingPool
                 onDeckGroups={onDeckGroups}
                 onDispatchToCourt={dispatchDeckMatch}
+                onOpenCustomBuilder={(slotIndex) => {
+                  setCustomMatchTargetSlot(slotIndex);
+                  openCustomMatchModal(1);
+                }}
               />
             </section>
 
@@ -229,7 +254,11 @@ export default function CourtsideStationPage(): React.JSX.Element {
                 <span>👥</span>
                 <span>Courtside Check-In &amp; Bench Roster</span>
               </h2>
-              <RosterCheckInList onRosterChange={refresh} />
+              <RosterCheckInList
+                roster={roster}
+                onRosterChange={refresh}
+                onSelectPlayer={(player) => setSelectedActionSheetPlayer(player)}
+              />
             </section>
           </div>
         ) : (
@@ -255,6 +284,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
         <CustomMatchModal
           isOpen={true}
           courtId={activeCustomMatchCourtId}
+          targetSlot={customMatchTargetSlot}
           availablePlayers={roster.filter((player) => {
             const isAssignedOnOtherCourt = courts.some(
               (court) =>
@@ -266,12 +296,42 @@ export default function CourtsideStationPage(): React.JSX.Element {
             );
             return !isAssignedOnOtherCourt && player.status !== 'PLAYING';
           })}
-          onClose={closeCustomMatchModal}
+          onClose={handleCloseCustomMatchModal}
           onConfirmMatch={(courtId, teamA, teamB) => {
             void stageCustomMatch(courtId, teamA, teamB);
           }}
+          onConfirmSlotStage={(_slotIndex, teamA, teamB) => {
+            stageCustomSlot3(teamA, teamB);
+          }}
         />
       )}
+
+      {/* Player Touch Action Sheet */}
+      <PlayerTouchActionSheet
+        isOpen={activeActionPlayer !== null}
+        player={activeActionPlayer}
+        roster={roster}
+        courts={courts}
+        onClose={() => setSelectedActionSheetPlayer(null)}
+        onAssignToCourt={async (playerId, courtId) => {
+          await assignPlayerToCourt(playerId, courtId);
+          setSelectedActionSheetPlayer(null);
+        }}
+        onToggleSkip={async (playerId) => {
+          await togglePlayerSkip(playerId);
+        }}
+        onToggleRest={async (playerId) => {
+          await togglePlayerRest(playerId);
+        }}
+        onPinPair={async (playerAId, playerBId) => {
+          await pinPlayerPair(playerAId, playerBId);
+          setSelectedActionSheetPlayer(null);
+        }}
+        onUnpinPair={async (playerId) => {
+          await unpinPlayerPair(playerId);
+          setSelectedActionSheetPlayer(null);
+        }}
+      />
 
       <footer className="mt-auto py-4 border-t border-slate-800 text-center text-xs text-slate-400">
         Badminque v0.1.0 • Universal Badminton Skill Transparency

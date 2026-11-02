@@ -7,6 +7,7 @@ export interface OnDeckStagingPoolProps {
   onDeckGroups: OnDeckMatchGroup[];
   onDispatchToCourt?: (slotIndex: number, targetCourtId?: number) => void;
   availableCourtIds?: number[];
+  onOpenCustomBuilder?: (slotIndex: number) => void;
 }
 
 interface SlotMeta {
@@ -55,6 +56,7 @@ function renderPlayerRow(player: RosterPlayer, teamColor: 'emerald' | 'amber'): 
 export function OnDeckStagingPool({
   onDeckGroups,
   onDispatchToCourt,
+  onOpenCustomBuilder,
 }: OnDeckStagingPoolProps): React.JSX.Element {
   return (
     <div className="space-y-3">
@@ -73,6 +75,42 @@ export function OnDeckStagingPool({
           const group = onDeckGroups.find((g) => g.slotIndex === def.slotIndex);
 
           if (!group) {
+            if (def.slotIndex === 3) {
+              return (
+                <div
+                  key={`slot-${def.slotIndex}`}
+                  className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col justify-between min-h-[220px]"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
+                    <span className="text-xs font-mono font-bold text-slate-300">
+                      #3 · Custom Staging (Organizer Slot)
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold border ${def.badgeStyle}`}
+                    >
+                      {def.label}
+                    </span>
+                  </div>
+                  <div className="my-auto text-center space-y-1.5 py-3">
+                    <div className="text-amber-400 font-mono text-base">🛠</div>
+                    <div className="text-xs font-bold text-slate-200">Custom Match Staging</div>
+                    <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+                      Assemble hand-picked doubles pairs for the next free court.
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => onOpenCustomBuilder?.(3)}
+                      className="w-full min-h-[42px] px-3 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <span>+ Assemble Custom Match</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div
                 key={`slot-${def.slotIndex}`}
@@ -112,7 +150,7 @@ export function OnDeckStagingPool({
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-mono font-extrabold border ${def.badgeStyle}`}
                   >
-                    {group.label}
+                    {def.slotIndex === 3 ? '#3 · Custom Staging' : group.label}
                   </span>
                   <span className="text-[11px] font-mono text-slate-400 font-semibold">
                     Spread: <strong className="text-slate-200">{group.spread} RS</strong>
@@ -153,14 +191,38 @@ export function OnDeckStagingPool({
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => onDispatchToCourt?.(group.slotIndex)}
-                  className="w-full min-h-[42px] px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-md shadow-emerald-500/20"
-                >
-                  <span>⚡ Dispatch to Court</span>
-                </button>
+              <div className="pt-2 border-t border-slate-800 space-y-2">
+                {def.slotIndex === 3 ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[1, 2, 3].map((cId) => (
+                        <button
+                          key={cId}
+                          type="button"
+                          onClick={() => onDispatchToCourt?.(3, cId)}
+                          className="min-h-[38px] px-1.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-[11px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <span>⚡ Send C{cId}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onOpenCustomBuilder?.(3)}
+                      className="w-full min-h-[36px] px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <span>Edit Pairs</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onDispatchToCourt?.(group.slotIndex)}
+                    className="w-full min-h-[42px] px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-md shadow-emerald-500/20"
+                  >
+                    <span>⚡ Dispatch to Court</span>
+                  </button>
+                )}
               </div>
             </div>
           );

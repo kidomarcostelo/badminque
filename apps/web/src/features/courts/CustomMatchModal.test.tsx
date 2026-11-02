@@ -76,9 +76,9 @@ describe('CustomMatchModal', () => {
     );
 
     expect(screen.getByText(/Assemble Custom Match/i)).toBeInTheDocument();
-    expect(screen.getByText('Court 2')).toBeInTheDocument();
+    expect(screen.getAllByText('Court 2').length).toBeGreaterThanOrEqual(1);
 
-    const submitBtn = screen.getByRole('button', { name: /Stage Custom Match on Court 2/i });
+    const submitBtn = screen.getByRole('button', { name: /Stage Match to Court 2/i });
     expect(submitBtn).toBeDisabled();
 
     // Select 4 players
@@ -113,7 +113,7 @@ describe('CustomMatchModal', () => {
     const autoPickBtn = screen.getByRole('button', { name: /Auto-Pick Top 4/i });
     fireEvent.click(autoPickBtn);
 
-    const submitBtn = screen.getByRole('button', { name: /Stage Custom Match on Court 1/i });
+    const submitBtn = screen.getByRole('button', { name: /Stage Match to Court 1/i });
     expect(submitBtn).not.toBeDisabled();
 
     // Auto-balance
@@ -124,6 +124,36 @@ describe('CustomMatchModal', () => {
     // In balanced mode: [p1(1740), p3(1515)] vs [p4(1620), p2(1585)]
     expect(handleConfirm).toHaveBeenCalledWith(
       1,
+      [mockRoster[0], mockRoster[2]],
+      [mockRoster[3], mockRoster[1]]
+    );
+  });
+
+  it('allows selecting Slot 3 (On-Deck) destination and triggers onConfirmSlotStage', () => {
+    const handleSlotStage = vi.fn();
+
+    render(
+      <CustomMatchModal
+        isOpen={true}
+        courtId={1}
+        targetSlot={3}
+        availablePlayers={mockRoster}
+        onClose={vi.fn()}
+        onConfirmMatch={vi.fn()}
+        onConfirmSlotStage={handleSlotStage}
+      />
+    );
+
+    // Auto-pick 4 players
+    fireEvent.click(screen.getByRole('button', { name: /Auto-Pick Top 4/i }));
+
+    const submitBtn = screen.getByRole('button', {
+      name: /Stage Match to On-Deck Slot 3 \(Custom Staging\)/i,
+    });
+    fireEvent.click(submitBtn);
+
+    expect(handleSlotStage).toHaveBeenCalledWith(
+      3,
       [mockRoster[0], mockRoster[2]],
       [mockRoster[3], mockRoster[1]]
     );

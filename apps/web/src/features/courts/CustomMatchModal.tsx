@@ -14,6 +14,12 @@ export interface CustomMatchModalProps {
     teamA: [RosterPlayer, RosterPlayer],
     teamB: [RosterPlayer, RosterPlayer]
   ) => void;
+  targetSlot?: number | null;
+  onConfirmSlotStage?: (
+    slotIndex: number,
+    teamA: [RosterPlayer, RosterPlayer],
+    teamB: [RosterPlayer, RosterPlayer]
+  ) => void;
 }
 
 export function CustomMatchModal({
@@ -22,8 +28,13 @@ export function CustomMatchModal({
   availablePlayers,
   onClose,
   onConfirmMatch,
+  targetSlot,
+  onConfirmSlotStage,
 }: CustomMatchModalProps): React.JSX.Element | null {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [destination, setDestination] = useState<number | 'slot3'>(
+    targetSlot === 3 ? 'slot3' : courtId
+  );
 
   const playerMap = useMemo(() => {
     return new Map<string, RosterPlayer>(
@@ -132,9 +143,16 @@ export function CustomMatchModal({
     if (!teamAPair || !teamBPair) {
       return;
     }
-    onConfirmMatch(courtId, teamAPair, teamBPair);
+    if (destination === 'slot3') {
+      onConfirmSlotStage?.(3, teamAPair, teamBPair);
+    } else {
+      onConfirmMatch(destination, teamAPair, teamBPair);
+    }
     onClose();
   };
+
+  const destinationLabel =
+    destination === 'slot3' ? 'On-Deck Slot 3 (Custom Staging)' : `Court ${destination}`;
 
   return (
     <div
@@ -150,7 +168,7 @@ export function CustomMatchModal({
               Assemble Custom Match
             </h3>
             <p className="text-xs text-slate-400">
-              Select 4 Roster Players for <span className="font-semibold text-slate-200">Court {courtId}</span> (Pair A vs Pair B)
+              Select 4 Roster Players for <span className="font-semibold text-slate-200">{destinationLabel}</span>
             </p>
           </div>
           <button
@@ -164,6 +182,39 @@ export function CustomMatchModal({
         </div>
 
         <div className="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+          {/* Destination Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-slate-300">
+              Target Destination:
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3].map((cId) => (
+                <button
+                  key={cId}
+                  type="button"
+                  onClick={() => setDestination(cId)}
+                  className={`min-h-[40px] px-2.5 py-1.5 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer ${
+                    destination === cId
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  Court {cId}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setDestination('slot3')}
+                className={`min-h-[40px] px-2 py-1.5 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer ${
+                  destination === 'slot3'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+              >
+                Slot 3 (Deck)
+              </button>
+            </div>
+          </div>
           {/* Pairing preview */}
           <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -334,7 +385,7 @@ export function CustomMatchModal({
               onClick={handleConfirm}
               className="flex-1 min-h-[48px] px-5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:cursor-not-allowed"
             >
-              <span>Stage Custom Match on Court {courtId}</span>
+              <span>Stage Match to {destinationLabel}</span>
             </button>
           </div>
         </div>

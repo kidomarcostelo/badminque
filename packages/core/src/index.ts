@@ -10,3 +10,4 @@ export * from './queue/policies/splitAndMix';
 export * from './queue/policies/courtLadder';
 export * from './queue/policies/flightedTiers';
 export * from './queue/matchmaking';
+export * from './queue/lockedPair';

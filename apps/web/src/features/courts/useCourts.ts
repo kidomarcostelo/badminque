@@ -4,13 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildCoPlayHistory,
   calculateDoublesMatchDeltas,
+  calculateWeakLinkSoftMean,
   generateMatchPairing,
   generateOnDeckPool,
   handleLadderMatchCompletion,
+  pinPlayerPair,
+  reconcileLockedPairStatus,
+  togglePlayerSkip,
+  unpinPlayerPair,
   type CourtLadderBufferState,
   type MatchRecord,
   type MatchRecordingResult,
   type OnDeckMatchGroup,
+  type PlayerState,
   type RosterPlayer,
   type RotationPolicy,
 } from '@badminque/core';
@@ -43,6 +49,17 @@ export interface UseCourtsResult {
     teamB: [RosterPlayer, RosterPlayer]
   ) => Promise<void> | void;
   setCourtIdle: (courtId: number) => Promise<void> | void;
+  customStagedSlot3: OnDeckMatchGroup | null;
+  stageCustomSlot3: (
+    teamA: [RosterPlayer, RosterPlayer],
+    teamB: [RosterPlayer, RosterPlayer]
+  ) => void;
+  clearCustomSlot3: () => void;
+  pinPlayerPair: (playerAId: string, playerBId: string) => Promise<void>;
+  unpinPlayerPair: (playerId: string) => Promise<void>;
+  togglePlayerSkip: (playerId: string) => Promise<void>;
+  togglePlayerRest: (playerId: string) => Promise<void>;
+  assignPlayerToCourt: (playerId: string, courtId: number) => Promise<void>;
   submitScore: (
     courtId: number,
     winner: 'A' | 'B',
@@ -162,23 +179,70 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       )
     );
     return roster.filter(
-      (player) => player.status === 'QUEUED' && !activeCourtPlayerIds.has(player.id)
+      (player) =>
+        (player.status === 'QUEUED' || player.status === 'SKIPPED') &&
+        !activeCourtPlayerIds.has(player.id)
     );
   }, [courts, roster]);
 
-  // Automated On-Deck match groups (Slot 1: "Next Up", Slot 2: "Following", Slot 3: "In the Hole")
+  const [customStagedSlot3, setCustomStagedSlot3] = useState<OnDeckMatchGroup | null>(null);
+  const customStagedSlot3Ref = useRef<OnDeckMatchGroup | null>(customStagedSlot3);
+  customStagedSlot3Ref.current = customStagedSlot3;
+
+  // Automated On-Deck match groups (Slot 1: "Next Up", Slot 2: "Following", Slot 3: "In the Hole" / "Custom Staging")
   const onDeckGroups = useMemo(() => {
-    return generateOnDeckPool(
+    const maxSlots = customStagedSlot3 ? 2 : 3;
+    const generated = generateOnDeckPool(
       availableQueued,
       activePolicy,
       Date.now(),
       coPlayHistory,
-      3
+      maxSlots
     );
-  }, [availableQueued, activePolicy, coPlayHistory]);
+
+    if (customStagedSlot3) {
+      return [...generated.slice(0, 2), customStagedSlot3];
+    }
+    return generated;
+  }, [availableQueued, activePolicy, coPlayHistory, customStagedSlot3]);
 
   const onDeckGroupsRef = useRef<OnDeckMatchGroup[]>(onDeckGroups);
   onDeckGroupsRef.current = onDeckGroups;
+
+  const stageCustomSlot3 = useCallback(
+    (
+      teamA: [RosterPlayer, RosterPlayer],
+      teamB: [RosterPlayer, RosterPlayer]
+    ): void => {
+      const ratingA = calculateWeakLinkSoftMean(
+        teamA[0].doubles_rating,
+        teamA[1].doubles_rating
+      );
+      const ratingB = calculateWeakLinkSoftMean(
+        teamB[0].doubles_rating,
+        teamB[1].doubles_rating
+      );
+      const spread = Math.round(Math.abs(ratingA - ratingB) * 10) / 10;
+
+      const group: OnDeckMatchGroup = {
+        slotIndex: 3,
+        label: 'In the Hole',
+        pairA: teamA,
+        pairB: teamB,
+        pairARating: Math.round(ratingA),
+        pairBRating: Math.round(ratingB),
+        spread,
+        policy: activePolicyRef.current,
+      };
+
+      setCustomStagedSlot3(group);
+    },
+    []
+  );
+
+  const clearCustomSlot3 = useCallback((): void => {
+    setCustomStagedSlot3(null);
+  }, []);
 
   const setRotationPolicy = useCallback((policy: RotationPolicy): void => {
     // Policy change guardrail: mid-session policy switches apply only at the queue boundary
@@ -496,6 +560,26 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
           ...freshPlayer,
           status: 'PLAYING',
         });
+
+        // Locked pair invariant: If partner is off-court, set them to WAITING_PARTNER
+        if (freshPlayer.locked_partner_id) {
+          const isPartnerDispatched = playersToDispatch.some(
+            (p) => p.id === freshPlayer.locked_partner_id
+          );
+          if (!isPartnerDispatched) {
+            const partner = rosterPool.find((p) => p.id === freshPlayer.locked_partner_id);
+            if (partner && partner.status !== 'PLAYING') {
+              await storageService.savePlayer({
+                ...partner,
+                status: 'WAITING_PARTNER',
+              });
+            }
+          }
+        }
+      }
+
+      if (slotIndex === 3) {
+        setCustomStagedSlot3(null);
       }
 
       const nextCourts = courtsRef.current.map((court) => {
@@ -516,6 +600,152 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       await onRosterChange?.();
     },
     [onDeckGroups, roster, onRosterChange]
+  );
+
+  const pinPlayerPairHandler = useCallback(
+    async (playerAId: string, playerBId: string): Promise<void> => {
+      const latestRoster = await storageService.getRoster();
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const pA = rosterPool.find((p) => p.id === playerAId);
+      const pB = rosterPool.find((p) => p.id === playerBId);
+      if (!pA || !pB) {
+        return;
+      }
+      const [pinnedA, pinnedB] = pinPlayerPair(pA, pB);
+      await storageService.savePlayer(pinnedA);
+      await storageService.savePlayer(pinnedB);
+      await onRosterChange?.();
+    },
+    [roster, onRosterChange]
+  );
+
+  const unpinPlayerPairHandler = useCallback(
+    async (playerId: string): Promise<void> => {
+      const latestRoster = await storageService.getRoster();
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const pA = rosterPool.find((p) => p.id === playerId);
+      if (!pA) {
+        return;
+      }
+      const partnerId = pA.locked_partner_id;
+      const pB = partnerId ? rosterPool.find((p) => p.id === partnerId) : undefined;
+      const [unpinnedA, unpinnedB] = unpinPlayerPair(pA, pB);
+      await storageService.savePlayer(unpinnedA);
+      if (unpinnedB) {
+        await storageService.savePlayer(unpinnedB);
+      }
+      await onRosterChange?.();
+    },
+    [roster, onRosterChange]
+  );
+
+  const togglePlayerSkipHandler = useCallback(
+    async (playerId: string): Promise<void> => {
+      const latestRoster = await storageService.getRoster();
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const player = rosterPool.find((p) => p.id === playerId);
+      if (!player) {
+        return;
+      }
+      const updated = togglePlayerSkip(player);
+      await storageService.savePlayer(updated);
+      await onRosterChange?.();
+    },
+    [roster, onRosterChange]
+  );
+
+  const togglePlayerRestHandler = useCallback(
+    async (playerId: string): Promise<void> => {
+      const latestRoster = await storageService.getRoster();
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const player = rosterPool.find((p) => p.id === playerId);
+      if (!player) {
+        return;
+      }
+      const nextStatus: PlayerState = player.status === 'RESTING' ? 'QUEUED' : 'RESTING';
+      const updated: RosterPlayer = {
+        ...player,
+        status: nextStatus,
+      };
+      await storageService.savePlayer(updated);
+
+      if (player.locked_partner_id) {
+        const partner = rosterPool.find((p) => p.id === player.locked_partner_id);
+        if (partner) {
+          const reconciled = reconcileLockedPairStatus(partner, [updated, partner]);
+          await storageService.savePlayer(reconciled);
+        }
+      }
+
+      await onRosterChange?.();
+    },
+    [roster, onRosterChange]
+  );
+
+  const assignPlayerToCourt = useCallback(
+    async (playerId: string, courtId: number): Promise<void> => {
+      const latestRoster = await storageService.getRoster();
+      const rosterPool = mergeRosterPool(latestRoster, roster);
+      const player = rosterPool.find((p) => p.id === playerId);
+      if (!player) {
+        return;
+      }
+
+      const targetCourt = courtsRef.current.find((c) => c.courtId === courtId);
+      if (!targetCourt || targetCourt.state === 'IN_MATCH' || targetCourt.state === 'SCORE_ENTRY') {
+        return;
+      }
+
+      const assignedIds = new Set(
+        courtsRef.current.flatMap((c) => {
+          if (c.courtId === courtId) {
+            return [];
+          }
+          return [...(c.teamA ?? []), ...(c.teamB ?? [])].map((p) => p.id);
+        })
+      );
+      assignedIds.add(playerId);
+
+      const otherQueued = rosterPool.filter(
+        (p) => (p.status === 'QUEUED' || p.status === 'SKIPPED') && !assignedIds.has(p.id)
+      );
+
+      const quad: RosterPlayer[] = [player];
+      if (player.locked_partner_id) {
+        const partner = otherQueued.find((p) => p.id === player.locked_partner_id);
+        if (partner) {
+          quad.push(partner);
+        }
+      }
+
+      const needed = 4 - quad.length;
+      const additional = otherQueued
+        .filter((p) => !quad.some((q) => q.id === p.id))
+        .slice(0, needed);
+      quad.push(...additional);
+
+      if (quad.length === 4) {
+        const teamA: [RosterPlayer, RosterPlayer] = [quad[0] as RosterPlayer, quad[1] as RosterPlayer];
+        const teamB: [RosterPlayer, RosterPlayer] = [quad[2] as RosterPlayer, quad[3] as RosterPlayer];
+
+        const nextCourts = courtsRef.current.map((c) => {
+          if (c.courtId === courtId) {
+            return {
+              ...c,
+              state: 'PROPOSED' as const,
+              elapsedSeconds: 0,
+              teamA,
+              teamB,
+            };
+          }
+          return c;
+        });
+        courtsRef.current = nextCourts;
+        setCourts(nextCourts);
+        await onRosterChange?.();
+      }
+    },
+    [roster, onRosterChange]
   );
 
   const submitScore = useCallback(
@@ -688,6 +918,14 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
     activePolicy,
     setRotationPolicy,
     onDeckGroups,
+    customStagedSlot3,
+    stageCustomSlot3,
+    clearCustomSlot3,
+    pinPlayerPair: pinPlayerPairHandler,
+    unpinPlayerPair: unpinPlayerPairHandler,
+    togglePlayerSkip: togglePlayerSkipHandler,
+    togglePlayerRest: togglePlayerRestHandler,
+    assignPlayerToCourt,
     openScoreModal,
     closeScoreModal,
     openCustomMatchModal,

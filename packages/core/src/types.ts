@@ -39,6 +39,9 @@ export interface RosterPlayer {
   matches_played: number;
   status: PlayerState;
   checked_in_at: string;
+  locked_partner_id?: string | null;
+  locked_partner_name?: string | null;
+  is_skipped?: boolean;
 }
 
 export interface MatchRecord {

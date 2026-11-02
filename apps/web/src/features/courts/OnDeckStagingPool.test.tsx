@@ -62,9 +62,12 @@ describe('OnDeckStagingPool', () => {
     // DUBR displays
     expect(screen.getAllByText(/DUBR:/i).length).toBeGreaterThanOrEqual(4);
 
-    // Slot 3: In the Hole placeholder is shown when only 2 groups are ready
-    expect(screen.getByText('In the Hole')).toBeInTheDocument();
-    expect(screen.getByText(/Awaiting Queue Backfill/i)).toBeInTheDocument();
+    // Slot 3: Custom Staging placeholder is shown when slot 3 is empty
+    expect(screen.getByText('#3 · Custom Staging (Organizer Slot)')).toBeInTheDocument();
+    expect(screen.getByText(/Custom Match Staging/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /\+ Assemble Custom Match/i })
+    ).toBeInTheDocument();
   });
 
   it('triggers onDispatchToCourt in 1 tap when dispatch button is tapped', () => {
@@ -84,5 +87,52 @@ describe('OnDeckStagingPool', () => {
 
     fireEvent.click(dispatchButtons[1] as HTMLElement);
     expect(handleDispatch).toHaveBeenCalledWith(2);
+  });
+
+  it('renders Slot 3 custom staged card with Edit Pairs and Send C1/C2/C3 buttons', () => {
+    const handleDispatch = vi.fn();
+    const handleOpenCustom = vi.fn();
+
+    const threeGroups: OnDeckMatchGroup[] = [
+      ...mockGroups,
+      {
+        slotIndex: 3,
+        label: 'In the Hole',
+        pairA: [createPlayer('p9', 'Ian', 1650, 3.8), createPlayer('p10', 'Jack', 1620, 3.75)],
+        pairB: [createPlayer('p11', 'Kelly', 1640, 3.78), createPlayer('p12', 'Leo', 1610, 3.72)],
+        pairARating: 1635,
+        pairBRating: 1625,
+        spread: 10,
+        policy: 'FAIR_PLAY',
+      },
+    ];
+
+    render(
+      <OnDeckStagingPool
+        onDeckGroups={threeGroups}
+        onDispatchToCourt={handleDispatch}
+        onOpenCustomBuilder={handleOpenCustom}
+      />
+    );
+
+    expect(screen.getByText('#3 · Custom Staging')).toBeInTheDocument();
+    expect(screen.getByText('Ian')).toBeInTheDocument();
+
+    // Edit Pairs button
+    const editBtn = screen.getByRole('button', { name: /Edit Pairs/i });
+    fireEvent.click(editBtn);
+    expect(handleOpenCustom).toHaveBeenCalledWith(3);
+
+    // Send C1, C2, C3 buttons
+    const sendC1 = screen.getByRole('button', { name: /⚡ Send C1/i });
+    const sendC2 = screen.getByRole('button', { name: /⚡ Send C2/i });
+    const sendC3 = screen.getByRole('button', { name: /⚡ Send C3/i });
+
+    expect(sendC1).toBeInTheDocument();
+    expect(sendC2).toBeInTheDocument();
+    expect(sendC3).toBeInTheDocument();
+
+    fireEvent.click(sendC2);
+    expect(handleDispatch).toHaveBeenCalledWith(3, 2);
   });
 });

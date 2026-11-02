@@ -1,6 +1,7 @@
 import { calculateWeakLinkSoftMean } from '../../dubr';
 import type { RosterPlayer } from '../../types';
 import type { CoPlayHistoryLookup, DoublesPairing } from '../types';
+import { respectsLockedPartners } from './fairPlay';
 
 export const SPLIT_AND_MIX_WEIGHT_PARTNER = 100.0 as const;
 export const SPLIT_AND_MIX_WEIGHT_OPPONENT = 25.0 as const;
@@ -127,7 +128,7 @@ export function pairSplitAndMix(
 
   const effectiveMatchIndex = currentMatchIndex ?? history.getTotalMatches() + 1;
 
-  const configurations: Array<{
+  const allConfigurations: Array<{
     teamA: [RosterPlayer, RosterPlayer];
     teamB: [RosterPlayer, RosterPlayer];
   }> = [
@@ -135,6 +136,13 @@ export function pairSplitAndMix(
     { teamA: [p0, p2], teamB: [p1, p3] },
     { teamA: [p0, p3], teamB: [p1, p2] },
   ];
+
+  const validConfigurations = allConfigurations.filter((config) =>
+    respectsLockedPartners(config.teamA, config.teamB)
+  );
+
+  const configurations =
+    validConfigurations.length > 0 ? validConfigurations : allConfigurations;
 
   let bestPairing: DoublesPairing | null = null;
   let lowestCost = Number.POSITIVE_INFINITY;

@@ -23,6 +23,57 @@ const ON_DECK_LABELS: ReadonlyArray<'Next Up' | 'Following' | 'In the Hole'> = [
 ];
 
 /**
+ * Selects the top 4 eligible players respecting locked pair partnerships.
+ * If a candidate has a locked partner, both must be ready and drafted together.
+ */
+export function selectTopQuadWithLockedPairs(
+  sortedQueue: readonly QueueCandidate[]
+): QueueCandidate[] | null {
+  const eligible = sortedQueue.filter(
+    (p) => p.status === 'QUEUED' || p.status === 'SKIPPED'
+  );
+  if (eligible.length < 4) {
+    return null;
+  }
+
+  const selected: QueueCandidate[] = [];
+  const selectedIds = new Set<string>();
+
+  for (const candidate of eligible) {
+    if (selectedIds.has(candidate.id)) {
+      continue;
+    }
+
+    if (candidate.locked_partner_id) {
+      const partner = eligible.find(
+        (p) => p.id === candidate.locked_partner_id && !selectedIds.has(p.id)
+      );
+      if (!partner) {
+        // Partner is not available in eligible pool, skip candidate
+        continue;
+      }
+      if (selected.length + 2 > 4) {
+        // Not enough room for both partners in this quad
+        continue;
+      }
+      selected.push(candidate);
+      selected.push(partner);
+      selectedIds.add(candidate.id);
+      selectedIds.add(partner.id);
+    } else {
+      selected.push(candidate);
+      selectedIds.add(candidate.id);
+    }
+
+    if (selected.length === 4) {
+      return selected;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Generates an optimal doubles match pairing according to the specified policy.
  */
 export function generateMatchPairing(options: MatchmakingOptions): DoublesPairing | null {
@@ -30,18 +81,20 @@ export function generateMatchPairing(options: MatchmakingOptions): DoublesPairin
   const currentTimestampMs = options.currentTimestampMs ?? Date.now();
 
   const sortedQueue = sortEligibleQueue(queue, currentTimestampMs);
-  if (sortedQueue.length < 4 && policy !== 'COURT_LADDER') {
+  const quad = selectTopQuadWithLockedPairs(sortedQueue);
+
+  if (!quad && policy !== 'COURT_LADDER') {
     return null;
   }
 
   const effectiveHistory = history ?? new CoPlayHistoryTracker();
 
   if (policy === 'FAIR_PLAY') {
-    return pairFairPlayPegboard(sortedQueue.slice(0, 4));
+    return quad ? pairFairPlayPegboard(quad) : null;
   }
 
   if (policy === 'SPLIT_AND_MIX') {
-    return pairSplitAndMix(sortedQueue.slice(0, 4), effectiveHistory);
+    return quad ? pairSplitAndMix(quad, effectiveHistory) : null;
   }
 
   if (policy === 'COURT_LADDER') {
@@ -60,7 +113,7 @@ export function generateMatchPairing(options: MatchmakingOptions): DoublesPairin
     return pairFlightedTiers(sortedQueue, currentTimestampMs);
   }
 
-  return pairFairPlayPegboard(sortedQueue.slice(0, 4));
+  return quad ? pairFairPlayPegboard(quad) : null;
 }
 
 /**

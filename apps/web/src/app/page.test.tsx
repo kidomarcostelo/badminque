@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import CourtsideStationPage from './page';
 import { closeDatabaseConnection, storageService } from '../services/storageService';
@@ -62,7 +62,7 @@ describe('CourtsideStationPage', () => {
     for (const name of playerNames) {
       fireEvent.change(input, { target: { value: name } });
       fireEvent.click(addButton);
-      expect(await screen.findByText(name, {}, { timeout: 3000 })).toBeInTheDocument();
+      expect((await screen.findAllByText(name, {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
     }
 
     // 1. Dispatch Court 1 from IDLE -> IN_MATCH
@@ -169,7 +169,7 @@ describe('CourtsideStationPage', () => {
     for (const name of playerNames) {
       fireEvent.change(input, { target: { value: name } });
       fireEvent.click(addButton);
-      expect(await screen.findByText(name, {}, { timeout: 3000 })).toBeInTheDocument();
+      expect((await screen.findAllByText(name, {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
     }
 
     // Both Slot 1 ("Next Up") and Slot 2 ("Following") have 1-tap dispatch buttons
@@ -186,6 +186,73 @@ describe('CourtsideStationPage', () => {
       expect(screen.getByRole('button', { name: /Enter Score \(30 pts\)/i })).toBeInTheDocument();
     });
     expect(screen.getByText('Court 1 • Show Court')).toBeInTheDocument();
+  });
+
+  it('supports organizer overrides: touch action sheet, pair pinning, 1-match skip, and slot 3 custom staging', async () => {
+    render(<CourtsideStationPage />);
+
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+
+    const playerNames = ['Player Alpha', 'Player Beta', 'Player Gamma', 'Player Delta'];
+    for (const name of playerNames) {
+      fireEvent.change(input, { target: { value: name } });
+      fireEvent.click(addButton);
+      expect((await screen.findAllByText(name, {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+    }
+
+    // 1. Open Player Touch Action Sheet for Player Alpha
+    const manageButton = screen.getByRole('button', { name: /Open action sheet for Player Alpha/i });
+    fireEvent.click(manageButton);
+
+    // Action sheet modal is open
+    expect(await screen.findByText(/Player Quick Actions/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Player Alpha').length).toBeGreaterThanOrEqual(1);
+
+    // 2. Pin Player Alpha with Player Beta
+    const partnerSelect = screen.getByLabelText(/Select partner to pin/i);
+    const latestRoster = await storageService.getRoster();
+    const betaId = latestRoster.find((p) => p.name === 'Player Beta')?.id;
+    fireEvent.change(partnerSelect, { target: { value: betaId } });
+
+    const lockButton = screen.getByRole('button', { name: /Pin Locked Pair/i });
+    await act(async () => {
+      fireEvent.click(lockButton);
+    });
+
+    // Action sheet closes after pinning, badge shows pinned partner
+    await waitFor(() => {
+      expect(screen.queryByText(/Player Quick Actions/i)).not.toBeInTheDocument();
+    });
+    expect(screen.getByText(/Pinned to Player Beta/i)).toBeInTheDocument();
+
+    // 3. Assemble Custom Match for Slot 3 from On-Deck Pool
+    const assembleCustomBtn = screen.getByRole('button', { name: /\+ Assemble Custom Match/i });
+    fireEvent.click(assembleCustomBtn);
+
+    // Custom Match Modal is open with destination On-Deck Slot 3
+    const modal = await screen.findByRole('dialog');
+    expect(within(modal).getByRole('heading', { name: /Assemble Custom Match/i })).toBeInTheDocument();
+    expect(within(modal).getAllByText(/On-Deck Slot 3 \(Custom Staging\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Auto-pick top 4
+    const autoPickBtn = within(modal).getByRole('button', { name: /Auto-Pick Top 4/i });
+    fireEvent.click(autoPickBtn);
+
+    // Stage Match to On-Deck Slot 3
+    const stageButton = within(modal).getByRole('button', {
+      name: /Stage Match to On-Deck Slot 3 \(Custom Staging\)/i,
+    });
+    await act(async () => {
+      fireEvent.click(stageButton);
+    });
+
+    // Modal closes, Slot 3 card now shows staged match and [Edit Pairs] & [Send C1]
+    await waitFor(() => {
+      expect(screen.queryByText(/Assemble Custom Match/i)).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /Edit Pairs/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Send C1/i })).toBeInTheDocument();
   });
 });
 

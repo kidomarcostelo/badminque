@@ -107,4 +107,39 @@ describe('Matchmaking & On-Deck Staging Engine', () => {
       expect(players[1]?.checked_in_at).toBe('2026-10-30T10:05:00.000Z');
     }
   });
+
+  it('guarantees locked pairs are drafted together and assigned to the same team', () => {
+    const players: RosterPlayer[] = [
+      createPlayer('p1', 'Player 1', 1700, 0, '2026-10-30T10:00:00.000Z'),
+      createPlayer('p2', 'Player 2', 1500, 0, '2026-10-30T10:00:00.000Z'),
+      createPlayer('p3', 'Player 3', 1600, 0, '2026-10-30T10:00:00.000Z'),
+      createPlayer('p4', 'Player 4', 1550, 0, '2026-10-30T10:00:00.000Z'),
+    ];
+
+    // Lock p1 and p2 together
+    const p0 = players[0];
+    const p1 = players[1];
+    if (p0 && p1) {
+      p0.locked_partner_id = 'p2';
+      p1.locked_partner_id = 'p1';
+    }
+
+    const pairing = generateMatchPairing({
+      policy: 'FAIR_PLAY',
+      queue: players,
+      currentTimestampMs,
+    });
+
+    expect(pairing).not.toBeNull();
+    if (!pairing) {
+      return;
+    }
+
+    const teamAIds = pairing.teamA.map((p) => p.id);
+    const teamBIds = pairing.teamB.map((p) => p.id);
+
+    const bothInA = teamAIds.includes('p1') && teamAIds.includes('p2');
+    const bothInB = teamBIds.includes('p1') && teamBIds.includes('p2');
+    expect(bothInA || bothInB).toBe(true);
+  });
 });

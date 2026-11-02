@@ -577,5 +577,140 @@ describe('useCourts', () => {
     const playing = stored.filter((player) => player.status === 'PLAYING');
     expect(playing).toHaveLength(4);
   });
+
+  it('pins player pair in storage, sets locked_partner_id, and puts off-court partner to WAITING_PARTNER', async () => {
+    const mockPlayers = [
+      createMockPlayer('p1', 'Player 1', 1600),
+      createMockPlayer('p2', 'Player 2', 1550),
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Pin p1 and p2
+    await act(async () => {
+      await result.current.pinPlayerPair('p1', 'p2');
+    });
+
+    const stored = await storageService.getRoster();
+    const p1 = stored.find((p) => p.id === 'p1');
+    const p2 = stored.find((p) => p.id === 'p2');
+
+    expect(p1?.locked_partner_id).toBe('p2');
+    expect(p1?.locked_partner_name).toBe('Player 2');
+    expect(p2?.locked_partner_id).toBe('p1');
+    expect(p2?.locked_partner_name).toBe('Player 1');
+
+    // Unpin p1
+    await act(async () => {
+      await result.current.unpinPlayerPair('p1');
+    });
+
+    const unpinnedRoster = await storageService.getRoster();
+    const up1 = unpinnedRoster.find((p) => p.id === 'p1');
+    const up2 = unpinnedRoster.find((p) => p.id === 'p2');
+    expect(up1?.locked_partner_id).toBeNull();
+    expect(up2?.locked_partner_id).toBeNull();
+  });
+
+  it('stages a custom match into On-Deck Slot 3 and dispatches it cleanly', async () => {
+    const mockPlayers: RosterPlayer[] = [];
+    for (let i = 1; i <= 8; i++) {
+      mockPlayers.push(createMockPlayer(`p${i}`, `Player ${i}`, 1500 + i * 20));
+    }
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Stage custom match into Slot 3
+    act(() => {
+      result.current.stageCustomSlot3(
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
+      );
+    });
+
+    expect(result.current.customStagedSlot3).not.toBeNull();
+    const slot3Group = result.current.onDeckGroups.find((g) => g.slotIndex === 3);
+    expect(slot3Group).toBeDefined();
+    expect(slot3Group?.pairA[0].id).toBe('p1');
+
+    // Dispatch Slot 3 to Court 2
+    await act(async () => {
+      await result.current.dispatchDeckMatch(3, 2);
+    });
+
+    expect(result.current.courts[1]?.state).toBe('IN_MATCH');
+    expect(result.current.customStagedSlot3).toBeNull();
+  });
+
+  it('toggles 1-match skip breather and extended rest', async () => {
+    const mockPlayer = createMockPlayer('p1', 'Player 1');
+    await storageService.savePlayer(mockPlayer);
+
+    const { result } = renderHook(() => useCourts({ roster: [mockPlayer] }));
+
+    // Toggle skip
+    await act(async () => {
+      await result.current.togglePlayerSkip('p1');
+    });
+
+    let stored = await storageService.getRoster();
+    let p = stored.find((player) => player.id === 'p1');
+    expect(p?.is_skipped).toBe(true);
+    expect(p?.status).toBe('SKIPPED');
+
+    // Toggle rest
+    await act(async () => {
+      await result.current.togglePlayerRest('p1');
+    });
+
+    stored = await storageService.getRoster();
+    p = stored.find((player) => player.id === 'p1');
+    expect(p?.status).toBe('RESTING');
+  });
+
+  it('bypassed players retain cumulative wait times at the head of the queue', async () => {
+    const p1 = createMockPlayer('p1', 'Early Queued', 1500);
+    p1.checked_in_at = '2026-10-30T09:00:00.000Z'; // Waited 1 hour
+
+    const p2 = createMockPlayer('p2', 'Late Arrival 1', 1500);
+    p2.checked_in_at = '2026-10-30T09:50:00.000Z';
+    const p3 = createMockPlayer('p3', 'Late Arrival 2', 1500);
+    p3.checked_in_at = '2026-10-30T09:50:00.000Z';
+    const p4 = createMockPlayer('p4', 'Late Arrival 3', 1500);
+    p4.checked_in_at = '2026-10-30T09:50:00.000Z';
+    const p5 = createMockPlayer('p5', 'Late Arrival 4', 1500);
+    p5.checked_in_at = '2026-10-30T09:50:00.000Z';
+
+    const mockPlayers = [p1, p2, p3, p4, p5];
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Organizer bypasses p1 by manually staging a match with p2, p3, p4, p5 on Court 1
+    await act(async () => {
+      result.current.stageCustomMatch(
+        1,
+        makePair(mockPlayers[1], mockPlayers[2]),
+        makePair(mockPlayers[3], mockPlayers[4])
+      );
+      await result.current.dispatchCourt(1);
+    });
+
+    // p1 was bypassed; verify p1 is still QUEUED and checked_in_at is preserved
+    const stored = await storageService.getRoster();
+    const bypassedP1 = stored.find((p) => p.id === 'p1');
+    expect(bypassedP1?.status).toBe('QUEUED');
+    expect(bypassedP1?.checked_in_at).toBe('2026-10-30T09:00:00.000Z');
+  });
 });
 

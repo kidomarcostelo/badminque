@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   formatDubr,
   isProvisional,
@@ -18,6 +18,8 @@ import { useRoster } from './useRoster';
 export interface RosterCheckInListProps {
   clubId?: string;
   onRosterChange?: () => void;
+  onSelectPlayer?: (player: RosterPlayer) => void;
+  roster?: RosterPlayer[];
 }
 
 function getPlayerInitials(name: string): string {
@@ -43,20 +45,40 @@ function getNextToggleStatus(currentStatus: PlayerState): PlayerState {
 export function RosterCheckInList({
   clubId,
   onRosterChange,
+  onSelectPlayer,
+  roster: propRoster,
 }: RosterCheckInListProps): React.JSX.Element {
   const {
     roster,
-    filteredRoster,
     suggestions,
     searchQuery,
     setSearchQuery,
     checkInPlayer,
     updatePlayerStatus,
+    refreshRoster,
   } = useRoster(clubId);
 
   const [inputName, setInputName] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<SkillTier>('INTERMEDIATE');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (propRoster) {
+      void refreshRoster();
+    }
+  }, [propRoster, refreshRoster]);
+
+  const effectiveRoster = propRoster ?? roster;
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const effectiveFilteredRoster = useMemo(() => {
+    if (normalizedQuery.length === 0) {
+      return effectiveRoster;
+    }
+    return effectiveRoster.filter((player) =>
+      player.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [effectiveRoster, normalizedQuery]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
@@ -72,7 +94,7 @@ export function RosterCheckInList({
     }
 
     // Check if player with exact name already exists to prevent duplicate profiles
-    const existing = roster.find(
+    const existing = effectiveRoster.find(
       (player) => player.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (existing) {
@@ -186,17 +208,17 @@ export function RosterCheckInList({
               Active Bench Roster
             </h3>
             <span className="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-emerald-400 font-medium">
-              {roster.length}
+              {effectiveRoster.length}
             </span>
           </div>
           {searchQuery.trim().length > 0 && (
             <span className="text-xs text-slate-400">
-              Filtered: {filteredRoster.length} of {roster.length}
+              Filtered: {effectiveFilteredRoster.length} of {effectiveRoster.length}
             </span>
           )}
         </div>
 
-        {filteredRoster.length === 0 ? (
+        {effectiveFilteredRoster.length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-400">
             No players checked in yet. Type a name above to check in.
           </div>
@@ -223,7 +245,7 @@ export function RosterCheckInList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredRoster.map((player) => (
+                {effectiveFilteredRoster.map((player) => (
                   <tr
                     key={player.id}
                     className="hover:bg-slate-800/40 transition-colors"
@@ -233,9 +255,21 @@ export function RosterCheckInList({
                         <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-emerald-400">
                           {getPlayerInitials(player.name)}
                         </div>
-                        <span className="font-medium text-slate-200">
-                          {player.name}
-                        </span>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => onSelectPlayer?.(player)}
+                            className="font-medium text-slate-200 hover:text-emerald-400 text-left transition-colors cursor-pointer"
+                          >
+                            {player.name}
+                          </button>
+                          {player.locked_partner_name && (
+                            <div className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
+                              <span>🔗</span>
+                              <span>Pinned to {player.locked_partner_name}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
@@ -258,14 +292,26 @@ export function RosterCheckInList({
                       <PlayerStatusBadge status={player.status} />
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(player)}
-                        aria-label={`Toggle status for ${player.name}`}
-                        className="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-                      >
-                        {player.status === 'QUEUED' ? 'Rest' : 'Queue'}
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onSelectPlayer && (
+                          <button
+                            type="button"
+                            onClick={() => onSelectPlayer(player)}
+                            aria-label={`Open action sheet for ${player.name}`}
+                            className="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold transition-colors cursor-pointer"
+                          >
+                            Manage
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(player)}
+                          aria-label={`Toggle status for ${player.name}`}
+                          className="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                        >
+                          {player.status === 'QUEUED' ? 'Rest' : 'Queue'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
