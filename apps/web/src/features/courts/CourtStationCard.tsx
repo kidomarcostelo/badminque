@@ -206,7 +206,7 @@ export function CourtStationCard({
               onClick={() => onDispatch?.(courtId)}
               className="flex-1 min-h-[50px] px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
-              <span>⚡ Dispatch</span>
+              <span>⚡ Dispatch to Court</span>
             </button>
             <button
               type="button"

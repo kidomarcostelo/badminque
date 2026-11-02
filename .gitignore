@@ -58,6 +58,9 @@ coverage/
 .ruff_cache/
 .eslintcache
 
+# Scratch
+.scratch/
+
 # IDE & OS
 .vscode/
 .idea/

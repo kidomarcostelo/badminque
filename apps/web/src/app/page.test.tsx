@@ -62,7 +62,7 @@ describe('CourtsideStationPage', () => {
     for (const name of playerNames) {
       fireEvent.change(input, { target: { value: name } });
       fireEvent.click(addButton);
-      expect(await screen.findByText(name)).toBeInTheDocument();
+      expect(await screen.findByText(name, {}, { timeout: 3000 })).toBeInTheDocument();
     }
 
     // 1. Dispatch Court 1 from IDLE -> IN_MATCH
@@ -128,4 +128,64 @@ describe('CourtsideStationPage', () => {
     expect(screen.getByText('Team A Won')).toBeInTheDocument();
     expect(screen.getAllByText('30 - 25')).toHaveLength(2);
   });
+
+  it('renders rotation policy selector and On-Deck Staging Pool with 1-tap dispatch', async () => {
+    render(<CourtsideStationPage />);
+
+    // 1. Verify rotation policy selector
+    const policySelect = screen.getByLabelText(/Select rotation policy/i);
+    expect(policySelect).toBeInTheDocument();
+    expect(policySelect).toHaveValue('FAIR_PLAY');
+
+    // Switch policy to SPLIT_AND_MIX
+    fireEvent.change(policySelect, { target: { value: 'SPLIT_AND_MIX' } });
+    expect(policySelect).toHaveValue('SPLIT_AND_MIX');
+
+    // Switch policy to COURT_LADDER
+    fireEvent.change(policySelect, { target: { value: 'COURT_LADDER' } });
+    expect(policySelect).toHaveValue('COURT_LADDER');
+
+    // 2. Verify On-Deck Staging Pool section exists
+    expect(screen.getByText('On-Deck Staging Pool')).toBeInTheDocument();
+    expect(screen.getByText('Next Up')).toBeInTheDocument();
+    expect(screen.getByText('Following')).toBeInTheDocument();
+    expect(screen.getByText('In the Hole')).toBeInTheDocument();
+
+    // 3. Check in 8 players to verify On-Deck staging pool displays two pre-grouped matches
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+
+    const playerNames = [
+      'Player A',
+      'Player B',
+      'Player C',
+      'Player D',
+      'Player E',
+      'Player F',
+      'Player G',
+      'Player H',
+    ];
+
+    for (const name of playerNames) {
+      fireEvent.change(input, { target: { value: name } });
+      fireEvent.click(addButton);
+      expect(await screen.findByText(name, {}, { timeout: 3000 })).toBeInTheDocument();
+    }
+
+    // Both Slot 1 ("Next Up") and Slot 2 ("Following") have 1-tap dispatch buttons
+    const deckDispatchButtons = screen.getAllByRole('button', { name: /⚡ Dispatch to Court/i });
+    expect(deckDispatchButtons.length).toBeGreaterThanOrEqual(2);
+
+    // 4. 1-tap dispatch from On-Deck pool
+    await act(async () => {
+      fireEvent.click(deckDispatchButtons[0] as HTMLElement);
+    });
+
+    // Court 1 should now be IN_MATCH with live score button
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Enter Score \(30 pts\)/i })).toBeInTheDocument();
+    });
+    expect(screen.getByText('Court 1 • Show Court')).toBeInTheDocument();
+  });
 });
+

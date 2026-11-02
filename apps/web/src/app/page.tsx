@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import {
   QUICK_SCORE_TARGET,
   STANDARD_SET_WIN_SCORE,
+  type RotationPolicy,
 } from '@badminque/core';
 import {
   CourtStationCard,
   CustomMatchModal,
   MatchHistoryView,
+  OnDeckStagingPool,
   QuickScoreModal,
   useCourts,
 } from '../features/courts';
@@ -23,11 +25,15 @@ export default function CourtsideStationPage(): React.JSX.Element {
     courts,
     activeScoreCourt,
     activeCustomMatchCourtId,
+    activePolicy,
+    setRotationPolicy,
+    onDeckGroups,
     openScoreModal,
     closeScoreModal,
     openCustomMatchModal,
     closeCustomMatchModal,
     dispatchCourt,
+    dispatchDeckMatch,
     stageCustomMatch,
     setCourtIdle,
     submitScore,
@@ -74,6 +80,31 @@ export default function CourtsideStationPage(): React.JSX.Element {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <div className="min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 leading-none">
+                Policy:
+              </span>
+              <select
+                aria-label="Select rotation policy"
+                value={activePolicy}
+                onChange={(e) => setRotationPolicy(e.target.value as RotationPolicy)}
+                className="bg-transparent text-xs font-mono font-bold text-emerald-400 focus:outline-none cursor-pointer"
+              >
+                <option value="FAIR_PLAY" className="bg-slate-900 text-slate-100">
+                  Fair Play Pegboard
+                </option>
+                <option value="SPLIT_AND_MIX" className="bg-slate-900 text-slate-100">
+                  Split &amp; Mix
+                </option>
+                <option value="COURT_LADDER" className="bg-slate-900 text-slate-100">
+                  Court Ladder
+                </option>
+                <option value="FLIGHTED_TIERS" className="bg-slate-900 text-slate-100">
+                  Flighted Tiers
+                </option>
+              </select>
+            </div>
+
             <div className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 leading-none">
                 Active Roster:
@@ -182,6 +213,14 @@ export default function CourtsideStationPage(): React.JSX.Element {
                   />
                 ))}
               </div>
+            </section>
+
+            {/* On-Deck Staging Pool */}
+            <section aria-label="On-Deck Staging Pool">
+              <OnDeckStagingPool
+                onDeckGroups={onDeckGroups}
+                onDispatchToCourt={dispatchDeckMatch}
+              />
             </section>
 
             {/* Courtside Check-In & Bench Roster */}

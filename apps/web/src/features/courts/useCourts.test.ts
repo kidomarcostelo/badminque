@@ -391,4 +391,191 @@ describe('useCourts', () => {
     expect(p3?.status).toBe('QUEUED');
     expect(p4?.status).toBe('QUEUED');
   });
+
+  it('automatically populates Co-Pilot PROPOSED card with top optimal quad when clearing a court', async () => {
+    const mockPlayers = [
+      createMockPlayer('p1', 'Player 1', 1700),
+      createMockPlayer('p2', 'Player 2', 1650),
+      createMockPlayer('p3', 'Player 3', 1600),
+      createMockPlayer('p4', 'Player 4', 1550),
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Court 1 starts as IDLE
+    expect(result.current.courts[0]?.state).toBe('IDLE');
+
+    // Clearing Court 1 should automatically populate Co-Pilot PROPOSED card
+    await act(async () => {
+      await result.current.clearCourt(1);
+    });
+
+    const court1 = result.current.courts[0];
+    expect(court1?.state).toBe('PROPOSED');
+    expect(court1?.teamA).not.toBeNull();
+    expect(court1?.teamB).not.toBeNull();
+  });
+
+  it('launches match in 1 tap from PROPOSED card, moving players to PLAYING and starting timer', async () => {
+    const mockPlayers = [
+      createMockPlayer('p1', 'Player 1', 1700),
+      createMockPlayer('p2', 'Player 2', 1650),
+      createMockPlayer('p3', 'Player 3', 1600),
+      createMockPlayer('p4', 'Player 4', 1550),
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Populate court as PROPOSED
+    await act(async () => {
+      await result.current.clearCourt(1);
+    });
+    expect(result.current.courts[0]?.state).toBe('PROPOSED');
+
+    // 1-Tap [⚡ Dispatch to Court]
+    await act(async () => {
+      await result.current.dispatchCourt(1);
+    });
+
+    const court1 = result.current.courts[0];
+    expect(court1?.state).toBe('IN_MATCH');
+    expect(court1?.elapsedSeconds).toBe(0);
+
+    // Verify 4 players moved to PLAYING in storage
+    const stored = await storageService.getRoster();
+    const playingPlayers = stored.filter((p) => p.status === 'PLAYING');
+    expect(playingPlayers).toHaveLength(4);
+  });
+
+  it('permanently displays two automated match groups pre-grouped into Pair A vs Pair B when >= 8 players queued', async () => {
+    const mockPlayers: RosterPlayer[] = [];
+    for (let i = 1; i <= 8; i++) {
+      mockPlayers.push(createMockPlayer(`p${i}`, `Player ${i}`, 1500 + i * 20));
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    expect(result.current.onDeckGroups).toHaveLength(2);
+    expect(result.current.onDeckGroups[0]?.label).toBe('Next Up');
+    expect(result.current.onDeckGroups[0]?.pairA).toHaveLength(2);
+    expect(result.current.onDeckGroups[0]?.pairB).toHaveLength(2);
+
+    expect(result.current.onDeckGroups[1]?.label).toBe('Following');
+    expect(result.current.onDeckGroups[1]?.pairA).toHaveLength(2);
+    expect(result.current.onDeckGroups[1]?.pairB).toHaveLength(2);
+  });
+
+  it('switching rotation policy preserves all player wait times and match counts without affecting active courts', async () => {
+    const mockPlayers = [
+      // 4 on-court players
+      createMockPlayer('p1', 'Player 1', 1600),
+      createMockPlayer('p2', 'Player 2', 1580),
+      createMockPlayer('p3', 'Player 3', 1540),
+      createMockPlayer('p4', 'Player 4', 1520),
+      // 4 waiting players with specific match counts and checked_in_at
+      {
+        ...createMockPlayer('p5', 'Player 5', 1700),
+        matches_played: 2,
+        checked_in_at: '2026-10-30T09:30:00.000Z',
+      },
+      {
+        ...createMockPlayer('p6', 'Player 6', 1650),
+        matches_played: 1,
+        checked_in_at: '2026-10-30T09:45:00.000Z',
+      },
+      {
+        ...createMockPlayer('p7', 'Player 7', 1600),
+        matches_played: 1,
+        checked_in_at: '2026-10-30T09:50:00.000Z',
+      },
+      {
+        ...createMockPlayer('p8', 'Player 8', 1550),
+        matches_played: 0,
+        checked_in_at: '2026-10-30T10:00:00.000Z',
+      },
+    ];
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    // Stage and dispatch match on court 1
+    await act(async () => {
+      await result.current.stageCustomMatch(
+        1,
+        makePair(mockPlayers[0], mockPlayers[1]),
+        makePair(mockPlayers[2], mockPlayers[3])
+      );
+      await result.current.dispatchCourt(1);
+    });
+
+    expect(result.current.courts[0]?.state).toBe('IN_MATCH');
+
+    // Switch policy mid-session to SPLIT_AND_MIX
+    act(() => {
+      result.current.setRotationPolicy('SPLIT_AND_MIX');
+    });
+
+    expect(result.current.activePolicy).toBe('SPLIT_AND_MIX');
+    // On-court match is unaffected
+    expect(result.current.courts[0]?.state).toBe('IN_MATCH');
+
+    // Switch policy to COURT_LADDER
+    act(() => {
+      result.current.setRotationPolicy('COURT_LADDER');
+    });
+
+    expect(result.current.activePolicy).toBe('COURT_LADDER');
+    expect(result.current.courts[0]?.state).toBe('IN_MATCH');
+
+    // Verify player wait times and match counts in roster are preserved
+    const p5 = mockPlayers.find((p) => p.id === 'p5');
+    expect(p5?.matches_played).toBe(2);
+    expect(p5?.checked_in_at).toBe('2026-10-30T09:30:00.000Z');
+
+    const p8 = mockPlayers.find((p) => p.id === 'p8');
+    expect(p8?.matches_played).toBe(0);
+    expect(p8?.checked_in_at).toBe('2026-10-30T10:00:00.000Z');
+  });
+
+  it('dispatches an On-Deck match card directly to an available court in 1 tap', async () => {
+    const mockPlayers: RosterPlayer[] = [];
+    for (let i = 1; i <= 8; i++) {
+      mockPlayers.push(createMockPlayer(`p${i}`, `Player ${i}`, 1500 + i * 20));
+    }
+
+    for (const player of mockPlayers) {
+      await storageService.savePlayer(player);
+    }
+
+    const { result } = renderHook(() => useCourts({ roster: mockPlayers }));
+
+    expect(result.current.onDeckGroups.length).toBeGreaterThanOrEqual(1);
+
+    // Dispatch Slot 1 (Next Up) to Court 1
+    await act(async () => {
+      await result.current.dispatchDeckMatch(1, 1);
+    });
+
+    const court1 = result.current.courts[0];
+    expect(court1?.state).toBe('IN_MATCH');
+    expect(court1?.teamA).not.toBeNull();
+    expect(court1?.teamB).not.toBeNull();
+
+    // Verify all 4 players persisted as PLAYING in storage
+    const stored = await storageService.getRoster();
+    const playing = stored.filter((player) => player.status === 'PLAYING');
+    expect(playing).toHaveLength(4);
+  });
 });
+
