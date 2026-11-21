@@ -75,7 +75,7 @@ export function OnDeckStagingPool({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+      <div className="flex flex-col gap-2 flex-1">
         {SLOT_DEFINITIONS.map((def) => {
           const group = onDeckGroups.find((g) => g.slotIndex === def.slotIndex);
 
@@ -84,7 +84,7 @@ export function OnDeckStagingPool({
               return (
                 <div
                   key={`slot-${def.slotIndex}`}
-                  className="silk-sunken-shallow p-2.5 rounded-xl border-l-4 border-l-amber-500 border-t border-r border-b border-outline-variant flex flex-col justify-between min-h-[190px] bg-amber-50/20"
+                  className="silk-sunken-shallow p-2.5 rounded-xl border-l-4 border-l-amber-500 border-t border-r border-b border-outline-variant flex flex-col justify-between bg-amber-50/20"
                 >
                   <div className="flex items-center justify-between border-b border-outline-variant pb-1.5">
                     <span className="text-[10px] font-mono font-bold text-slate-800">
@@ -96,8 +96,7 @@ export function OnDeckStagingPool({
                       {def.label}
                     </span>
                   </div>
-                  <div className="my-auto text-center space-y-1 py-2">
-                    <div className="text-amber-600 font-mono text-base">🛠</div>
+                  <div className="py-2 text-center space-y-0.5">
                     <div className="text-xs font-headline-sm font-bold text-slate-900">Custom Match Staging</div>
                     <p className="text-[10px] text-on-surface-variant max-w-[200px] mx-auto font-body-base">
                       Assemble hand-picked doubles pairs for the next free court.
@@ -107,7 +106,7 @@ export function OnDeckStagingPool({
                     <button
                       type="button"
                       onClick={() => onOpenCustomBuilder?.(3)}
-                      className="silk-btn-primary w-full min-h-[32px] px-3 py-1 rounded-lg text-white font-headline-sm font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all shadow-xs"
+                      className="silk-btn-primary w-full h-7 px-3 rounded-lg text-white font-headline-sm font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all shadow-xs"
                     >
                       <span>+ Assemble Custom Match</span>
                     </button>
@@ -119,7 +118,7 @@ export function OnDeckStagingPool({
             return (
               <div
                 key={`slot-${def.slotIndex}`}
-                className="silk-sunken-shallow p-2.5 rounded-xl border-l-4 border-l-slate-300 border-t border-r border-b border-outline-variant border-dashed flex flex-col justify-between min-h-[190px] bg-slate-50/50"
+                className="silk-sunken-shallow p-2.5 rounded-xl border-l-4 border-l-slate-300 border-t border-r border-b border-outline-variant border-dashed flex flex-col justify-between bg-slate-50/50"
               >
                 <div className="flex items-center justify-between border-b border-outline-variant pb-1.5">
                   <span className="text-[10px] font-mono font-bold text-slate-600">
@@ -131,12 +130,12 @@ export function OnDeckStagingPool({
                     {def.label}
                   </span>
                 </div>
-                <div className="my-auto text-center space-y-1 py-3">
-                  <div className="text-slate-400 font-mono text-base">⏳</div>
-                  <div className="text-xs font-headline-sm font-bold text-slate-600">Awaiting Queue Backfill</div>
-                  <p className="text-[10px] text-slate-500 font-body-base">
-                    Needs 4 waiting players to form match
-                  </p>
+                <div className="py-2.5 text-center flex items-center justify-center gap-2">
+                  <span className="text-slate-400 font-mono text-sm">⏳</span>
+                  <span className="text-xs font-headline-sm font-bold text-slate-600">Awaiting Queue Backfill</span>
+                  <span className="text-[10px] text-slate-400 font-body-base">
+                    (Needs 4 waiting players to form match)
+                  </span>
                 </div>
               </div>
             );
@@ -154,7 +153,7 @@ export function OnDeckStagingPool({
           return (
             <div
               key={`slot-${def.slotIndex}`}
-              className={`silk-sunken-shallow p-2.5 rounded-xl border-l-4 ${borderAccent} border-t border-r border-b border-outline-variant flex flex-col justify-between shadow-xs transition-all min-h-[190px]`}
+              className={`silk-sunken-shallow p-2.5 rounded-xl border-l-4 ${borderAccent} border-t border-r border-b border-outline-variant flex flex-col justify-between shadow-xs transition-all`}
             >
               <div className="flex items-center justify-between border-b border-outline-variant pb-1.5">
                 <div className="flex items-center gap-1.5">
@@ -172,7 +171,7 @@ export function OnDeckStagingPool({
                 </span>
               </div>
 
-              <div className="my-2 space-y-1.5">
+              <div className="my-1.5 space-y-1.5">
                 {/* Team A */}
                 <div className="p-1.5 rounded-lg bg-white border border-outline-variant shadow-2xs">
                   <div className="flex items-center justify-between text-[9px] uppercase font-mono font-bold text-indigo-700 mb-0.5">
@@ -203,7 +202,7 @@ export function OnDeckStagingPool({
                           key={cId}
                           type="button"
                           onClick={() => onDispatchToCourt?.(3, cId)}
-                          className="min-h-[28px] px-1 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-mono font-bold text-[10px] flex items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition-all"
+                          className="min-h-[26px] h-6 px-1 rounded-md bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-mono font-bold text-[10px] flex items-center justify-center gap-0.5 cursor-pointer active:scale-95 transition-all"
                         >
                           <span>⚡ Send C{cId}</span>
                         </button>
@@ -212,7 +211,7 @@ export function OnDeckStagingPool({
                     <button
                       type="button"
                       onClick={() => onOpenCustomBuilder?.(3)}
-                      className="silk-extruded-sm w-full min-h-[26px] px-2 py-0.5 rounded-lg border border-outline-variant text-slate-800 text-[10px] font-mono font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all"
+                      className="silk-extruded-sm w-full h-6 px-2 rounded-md border border-outline-variant text-slate-800 text-[10px] font-mono font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all"
                     >
                       <span>Edit Pairs</span>
                     </button>
@@ -221,7 +220,7 @@ export function OnDeckStagingPool({
                   <button
                     type="button"
                     onClick={() => onDispatchToCourt?.(group.slotIndex)}
-                    className="silk-btn-primary w-full min-h-[30px] px-3 py-1 rounded-lg text-white font-headline-sm font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all shadow-xs"
+                    className="silk-btn-primary w-full h-7 px-3 rounded-lg text-white font-headline-sm font-bold text-xs flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all shadow-xs"
                   >
                     <span>⚡ Dispatch to Court</span>
                   </button>
