@@ -37,10 +37,10 @@ export function TierAnchorSelector({
         const isDefault = tierKey === 'INTERMEDIATE';
 
         const baseStyles =
-          'relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer select-none';
+          'relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer select-none font-mono-badge shadow-xs';
         const activeStyles = isSelected
-          ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500 shadow-sm shadow-emerald-500/20'
-          : 'bg-slate-900/90 text-slate-400 border border-slate-700/80 hover:bg-slate-800 hover:text-slate-200';
+          ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-2 border-indigo-600 dark:border-indigo-500 shadow-xs'
+          : 'bg-surface-container dark:bg-slate-900/90 text-slate-600 dark:text-slate-400 border border-outline-variant dark:border-slate-700/80 hover:bg-surface-container-high dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200';
         const disabledStyles = disabled
           ? 'opacity-50 cursor-not-allowed pointer-events-none'
           : '';

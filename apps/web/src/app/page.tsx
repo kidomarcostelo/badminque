@@ -21,6 +21,8 @@ import { PlayerPassportModal } from '../features/passport';
 import { PlayerTouchActionSheet, RosterCheckInList } from '../features/roster';
 import { SyncStatusIndicator, useSync } from '../features/sync';
 import { useStorage } from '../hooks/useStorage';
+import { seedMockData } from '../services/mockFixtures';
+import { storageService } from '../services/storageService';
 
 export default function CourtsideStationPage(): React.JSX.Element {
   const [mainView, setMainView] = useState<'board' | 'history' | 'leaderboard'>('board');
@@ -88,64 +90,86 @@ export default function CourtsideStationPage(): React.JSX.Element {
 
   const queuedPlayersCount = roster.filter((player) => player.status === 'QUEUED').length;
 
+  const handleSeedDemoData = async (): Promise<void> => {
+    await seedMockData(storageService);
+    await refresh();
+  };
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950">
-      {/* 1. Header Bar */}
-      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-lg">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-extrabold text-lg shrink-0">
-              ⚡
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+      {/* 1. Google Stitch Compact Telemetry App Bar */}
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-outline-variant dark:border-slate-800 px-3 sm:px-4 py-2 shadow-xs transition-colors">
+        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2.5">
+          {/* Logo & App Identification */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg silk-btn-primary flex items-center justify-center text-white font-extrabold text-sm shrink-0 shadow-sm">
+              🏸
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
+              <div className="flex items-center gap-1.5">
+                <span className="font-headline-md font-extrabold uppercase tracking-tight text-slate-900 dark:text-slate-100 text-xs">
                   Badminque
                 </span>
-                <span className="text-slate-600 font-bold">•</span>
-                <span className="text-xs font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                <span className="font-mono-badge text-[9px] px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold uppercase tracking-wider">
+                  STATION OS
+                </span>
+                <span className="text-slate-400 font-bold">•</span>
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-surface-container-high dark:bg-slate-800 px-1.5 py-0.5 rounded border border-outline-variant dark:border-slate-700">
                   Organizer Console
                 </span>
               </div>
-              <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-100 leading-tight">
+              <h1 className="font-headline-md text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-none">
                 Badminque Courtside Station
               </h1>
             </div>
           </div>
 
+          {/* Telemetry Metrics & Fast Controls */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <div className="min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 leading-none">
+            {roster.length === 0 && (
+              <button
+                type="button"
+                onClick={() => void handleSeedDemoData()}
+                className="tactile-btn min-h-[36px] px-3 py-1 rounded-lg silk-btn-primary text-white font-headline-md text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                title="Seed 12 sample players across Beginner, Intermediate, and Advanced tiers"
+              >
+                <span>⚡</span>
+                <span>Seed Demo Roster</span>
+              </button>
+            )}
+
+            <div className="min-h-[36px] px-2.5 py-1 rounded-lg bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 flex items-center gap-1.5 shadow-xs">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 leading-none">
                 Policy:
               </span>
               <select
                 aria-label="Select rotation policy"
                 value={activePolicy}
                 onChange={(e) => setRotationPolicy(e.target.value as RotationPolicy)}
-                className="bg-transparent text-xs font-mono font-bold text-emerald-400 focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-mono font-bold text-indigo-600 dark:text-emerald-400 focus:outline-none cursor-pointer"
               >
-                <option value="FAIR_PLAY" className="bg-slate-900 text-slate-100">
+                <option value="FAIR_PLAY" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                   Fair Play Pegboard
                 </option>
-                <option value="SPLIT_AND_MIX" className="bg-slate-900 text-slate-100">
+                <option value="SPLIT_AND_MIX" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                   Split &amp; Mix
                 </option>
-                <option value="COURT_LADDER" className="bg-slate-900 text-slate-100">
+                <option value="COURT_LADDER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                   Court Ladder
                 </option>
-                <option value="FLIGHTED_TIERS" className="bg-slate-900 text-slate-100">
+                <option value="FLIGHTED_TIERS" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                   Flighted Tiers
                 </option>
               </select>
             </div>
 
-            <div className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 leading-none">
+            <div className="min-h-[36px] px-3 py-1 rounded-lg bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 flex items-center gap-2 shadow-xs">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 leading-none">
                 Active Roster:
               </span>
-              <span className="text-xs sm:text-sm font-mono font-bold text-slate-100">
+              <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                 {roster.length} Players{' '}
-                <span className="text-emerald-400 text-xs">({queuedPlayersCount} Queued)</span>
+                <span className="text-emerald-600 dark:text-emerald-400 text-xs">({queuedPlayersCount} Queued)</span>
               </span>
             </div>
 
@@ -160,9 +184,9 @@ export default function CourtsideStationPage(): React.JSX.Element {
               }}
             />
 
-            <div className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2 text-xs">
-              <span className="text-slate-400">Storage:</span>
-              <span className={isPersistent ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
+            <div className="min-h-[36px] px-2.5 py-1 rounded-lg bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 flex items-center gap-1.5 text-xs shadow-xs">
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-semibold">Storage:</span>
+              <span className={isPersistent ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-600 dark:text-slate-400'}>
                 {isPersistent ? 'Persisted' : 'Standard'}
               </span>
             </div>

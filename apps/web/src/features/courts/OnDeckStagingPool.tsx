@@ -20,17 +20,17 @@ const SLOT_DEFINITIONS: SlotMeta[] = [
   {
     slotIndex: 1,
     label: 'Next Up',
-    badgeStyle: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    badgeStyle: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
   },
   {
     slotIndex: 2,
     label: 'Following',
-    badgeStyle: 'bg-sky-500/20 text-sky-300 border-sky-400/50',
+    badgeStyle: 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
   },
   {
     slotIndex: 3,
     label: 'In the Hole',
-    badgeStyle: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    badgeStyle: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
   },
 ];
 
@@ -39,13 +39,13 @@ function renderPlayerRow(player: RosterPlayer, teamColor: 'emerald' | 'amber'): 
 
   return (
     <div className="flex items-center justify-between text-xs py-0.5">
-      <span className="font-semibold text-slate-100 truncate max-w-[130px]">
+      <span className="font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[130px] font-body-base">
         {player.name}
       </span>
-      <div className="flex items-center gap-1.5 font-mono text-[11px] shrink-0">
-        <span className="text-slate-400">{player.doubles_rating}</span>
-        <span className="text-slate-600">•</span>
-        <span className={teamColor === 'emerald' ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+      <div className="flex items-center gap-1.5 font-mono-data text-[11px] shrink-0">
+        <span className="text-slate-500 dark:text-slate-400">{player.doubles_rating}</span>
+        <span className="text-slate-400 dark:text-slate-600">•</span>
+        <span className={teamColor === 'emerald' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-amber-600 dark:text-amber-400 font-bold'}>
           DUBR: {formatDubr(dubrValue)}
         </span>
       </div>
@@ -61,11 +61,11 @@ export function OnDeckStagingPool({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+        <h3 className="text-sm font-headline-md font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <span>🎯</span>
           <span>On-Deck Staging Pool</span>
         </h3>
-        <span className="text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-full font-bold">
+        <span className="text-xs font-mono-data text-slate-600 dark:text-slate-400 bg-surface-container dark:bg-slate-900 border border-outline-variant dark:border-slate-800 px-2 py-0.5 rounded-full font-bold">
           Pre-Grouped Pairs • 1-Tap Dispatch
         </span>
       </div>
@@ -79,30 +79,30 @@ export function OnDeckStagingPool({
               return (
                 <div
                   key={`slot-${def.slotIndex}`}
-                  className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col justify-between min-h-[220px]"
+                  className="silk-extruded bg-white/70 dark:bg-slate-900/50 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex flex-col justify-between min-h-[220px] shadow-sm"
                 >
-                  <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
-                    <span className="text-xs font-mono font-bold text-slate-300">
+                  <div className="flex items-center justify-between border-b border-outline-variant dark:border-slate-800/60 pb-2">
+                    <span className="text-xs font-mono-data font-bold text-slate-700 dark:text-slate-300">
                       #3 · Custom Staging (Organizer Slot)
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold border ${def.badgeStyle}`}
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-mono-badge font-bold border ${def.badgeStyle}`}
                     >
                       {def.label}
                     </span>
                   </div>
                   <div className="my-auto text-center space-y-1.5 py-3">
-                    <div className="text-amber-400 font-mono text-base">🛠</div>
-                    <div className="text-xs font-bold text-slate-200">Custom Match Staging</div>
-                    <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+                    <div className="text-amber-500 font-mono text-base">🛠</div>
+                    <div className="text-xs font-headline-md font-bold text-slate-800 dark:text-slate-200">Custom Match Staging</div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto font-body-base">
                       Assemble hand-picked doubles pairs for the next free court.
                     </p>
                   </div>
-                  <div className="pt-2 border-t border-slate-800">
+                  <div className="pt-2 border-t border-outline-variant dark:border-slate-800">
                     <button
                       type="button"
                       onClick={() => onOpenCustomBuilder?.(3)}
-                      className="w-full min-h-[42px] px-3 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      className="tactile-btn w-full min-h-[42px] px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 border border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 font-headline-md font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
                     >
                       <span>+ Assemble Custom Match</span>
                     </button>
@@ -114,22 +114,22 @@ export function OnDeckStagingPool({
             return (
               <div
                 key={`slot-${def.slotIndex}`}
-                className="bg-slate-900/50 border border-slate-800/80 border-dashed rounded-xl p-4 flex flex-col justify-between min-h-[220px]"
+                className="silk-extruded bg-surface-container-low/50 dark:bg-slate-900/50 border border-outline-variant/80 dark:border-slate-800/80 border-dashed rounded-xl p-4 flex flex-col justify-between min-h-[220px]"
               >
-                <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
-                  <span className="text-xs font-mono font-bold text-slate-400">
+                <div className="flex items-center justify-between border-b border-outline-variant dark:border-slate-800/60 pb-2">
+                  <span className="text-xs font-mono-data font-bold text-slate-500 dark:text-slate-400">
                     Slot {def.slotIndex}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold border ${def.badgeStyle}`}
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono-badge font-bold border ${def.badgeStyle}`}
                   >
                     {def.label}
                   </span>
                 </div>
                 <div className="my-auto text-center space-y-1 py-4">
-                  <div className="text-slate-500 font-mono text-base">⏳</div>
-                  <div className="text-xs font-bold text-slate-400">Awaiting Queue Backfill</div>
-                  <p className="text-[11px] text-slate-400">
+                  <div className="text-slate-400 font-mono text-base">⏳</div>
+                  <div className="text-xs font-headline-md font-bold text-slate-500 dark:text-slate-400">Awaiting Queue Backfill</div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-body-base">
                     Needs 4 waiting players to form match
                   </p>
                 </div>
@@ -143,55 +143,55 @@ export function OnDeckStagingPool({
           return (
             <div
               key={`slot-${def.slotIndex}`}
-              className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-lg transition-all min-h-[220px]"
+              className="silk-extruded bg-white dark:bg-slate-900/90 border border-outline-variant dark:border-slate-800 hover:border-indigo-400 dark:hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-sm transition-all min-h-[220px]"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div className="flex items-center justify-between border-b border-outline-variant dark:border-slate-800 pb-2.5">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-mono font-extrabold border ${def.badgeStyle}`}
+                    className={`px-2 py-0.5 rounded-full text-xs font-mono-badge font-extrabold border ${def.badgeStyle}`}
                   >
                     {def.slotIndex === 3 ? '#3 · Custom Staging' : group.label}
                   </span>
-                  <span className="text-[11px] font-mono text-slate-400 font-semibold">
-                    Spread: <strong className="text-slate-200">{group.spread} RS</strong>
+                  <span className="text-[11px] font-mono-data text-slate-500 dark:text-slate-400 font-semibold">
+                    Spread: <strong className="text-slate-800 dark:text-slate-200">{group.spread} RS</strong>
                   </span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                <span className="text-[10px] font-mono-badge font-bold text-slate-600 dark:text-slate-400 bg-surface-container dark:bg-slate-950 px-2 py-0.5 rounded border border-outline-variant dark:border-slate-800">
                   {group.policy}
                 </span>
               </div>
 
               <div className="my-2.5 space-y-2">
                 {/* Team A */}
-                <div className="p-2 rounded-lg bg-slate-950/80 border border-slate-800/80">
-                  <div className="flex items-center justify-between text-[10px] uppercase font-bold text-emerald-400 mb-1">
+                <div className="silk-sunken-shallow p-2 rounded-lg bg-surface-container dark:bg-slate-950/80 border border-outline-variant/60 dark:border-slate-800/80">
+                  <div className="flex items-center justify-between text-[10px] uppercase font-mono-badge font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                     <span>Pair A</span>
-                    <span className="font-mono">Avg: {group.pairARating}</span>
+                    <span className="font-mono-data">Avg: {group.pairARating}</span>
                   </div>
                   {renderPlayerRow(playerA1, 'emerald')}
                   {renderPlayerRow(playerA2, 'emerald')}
                 </div>
 
                 <div className="relative flex items-center justify-center">
-                  <div className="border-t border-slate-800/80 w-full" />
-                  <span className="bg-slate-900 px-2 text-[10px] font-mono font-bold text-slate-400 uppercase">
+                  <div className="border-t border-outline-variant dark:border-slate-800/80 w-full" />
+                  <span className="bg-white dark:bg-slate-900 px-2 text-[10px] font-mono-badge font-bold text-slate-400 uppercase">
                     VS
                   </span>
-                  <div className="border-t border-slate-800/80 w-full" />
+                  <div className="border-t border-outline-variant dark:border-slate-800/80 w-full" />
                 </div>
 
                 {/* Team B */}
-                <div className="p-2 rounded-lg bg-slate-950/80 border border-slate-800/80">
-                  <div className="flex items-center justify-between text-[10px] uppercase font-bold text-amber-400 mb-1">
+                <div className="silk-sunken-shallow p-2 rounded-lg bg-surface-container dark:bg-slate-950/80 border border-outline-variant/60 dark:border-slate-800/80">
+                  <div className="flex items-center justify-between text-[10px] uppercase font-mono-badge font-bold text-amber-600 dark:text-amber-400 mb-1">
                     <span>Pair B</span>
-                    <span className="font-mono">Avg: {group.pairBRating}</span>
+                    <span className="font-mono-data">Avg: {group.pairBRating}</span>
                   </div>
                   {renderPlayerRow(playerB1, 'amber')}
                   {renderPlayerRow(playerB2, 'amber')}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 space-y-2">
+              <div className="pt-2 border-t border-outline-variant dark:border-slate-800 space-y-2">
                 {def.slotIndex === 3 ? (
                   <>
                     <div className="grid grid-cols-3 gap-1.5">
@@ -200,7 +200,7 @@ export function OnDeckStagingPool({
                           key={cId}
                           type="button"
                           onClick={() => onDispatchToCourt?.(3, cId)}
-                          className="min-h-[38px] px-1.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-extrabold text-[11px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="tactile-btn min-h-[38px] px-1.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 hover:bg-indigo-100 dark:hover:bg-indigo-500/25 border border-indigo-200 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300 font-headline-md font-extrabold text-[11px] flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-xs"
                         >
                           <span>⚡ Send C{cId}</span>
                         </button>
@@ -209,7 +209,7 @@ export function OnDeckStagingPool({
                     <button
                       type="button"
                       onClick={() => onOpenCustomBuilder?.(3)}
-                      className="w-full min-h-[36px] px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                      className="tactile-btn w-full min-h-[36px] px-3 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-headline-md font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-xs"
                     >
                       <span>Edit Pairs</span>
                     </button>
@@ -218,7 +218,7 @@ export function OnDeckStagingPool({
                   <button
                     type="button"
                     onClick={() => onDispatchToCourt?.(group.slotIndex)}
-                    className="w-full min-h-[42px] px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-md shadow-emerald-500/20"
+                    className="silk-btn-primary w-full min-h-[42px] px-3 py-2 rounded-lg text-white font-headline-md font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                   >
                     <span>⚡ Dispatch to Court</span>
                   </button>

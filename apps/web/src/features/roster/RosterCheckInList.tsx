@@ -138,12 +138,12 @@ export function RosterCheckInList({
             value={inputName}
             onChange={handleInputChange}
             placeholder="Search roster or enter name to check in..."
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="flex-1 bg-surface-container dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-body-base shadow-xs"
           />
           <button
             type="submit"
             disabled={inputName.trim().length === 0}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium text-sm rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed shadow-md shadow-emerald-600/10"
+            className="silk-btn-primary px-4 py-2.5 text-white font-headline-md font-bold text-sm rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
           >
             Add Player
           </button>
@@ -151,7 +151,7 @@ export function RosterCheckInList({
             type="button"
             onClick={() => setIsModalOpen(true)}
             aria-label="Open detailed check-in modal"
-            className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm rounded-lg transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap border border-slate-700"
+            className="tactile-btn px-3 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-headline-md font-medium text-sm rounded-lg transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap border border-outline-variant dark:border-slate-700 shadow-xs"
           >
             + Modal
           </button>
@@ -167,8 +167,8 @@ export function RosterCheckInList({
 
         {/* Typeahead Suggestions Dropdown */}
         {suggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 top-12 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
-            <div className="px-3 py-1.5 text-xs text-slate-400 bg-slate-950/60 border-b border-slate-800">
+          <div className="absolute z-20 left-0 right-0 top-12 mt-1 bg-white dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+            <div className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 bg-surface-container dark:bg-slate-950/60 border-b border-outline-variant dark:border-slate-800">
               Existing Roster Suggestions (Click to select)
             </div>
             {suggestions.map((player) => (
@@ -177,17 +177,17 @@ export function RosterCheckInList({
                 type="button"
                 onClick={() => handleSelectSuggestion(player)}
                 aria-label={`Select existing player ${player.name}`}
-                className="w-full text-left px-4 py-2.5 hover:bg-slate-800 flex items-center justify-between transition-colors border-b border-slate-800/50 last:border-b-0 cursor-pointer"
+                className="w-full text-left px-4 py-2.5 hover:bg-surface-container dark:hover:bg-slate-800 flex items-center justify-between transition-colors border-b border-outline-variant/50 dark:border-slate-800/50 last:border-b-0 cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-emerald-400">
+                  <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono-badge font-bold text-indigo-700 dark:text-indigo-400">
                     {getPlayerInitials(player.name)}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-200">
+                    <span className="text-sm font-body-base font-medium text-slate-900 dark:text-slate-200">
                       {player.name}
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono-data">
                       DUBR: {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
                     </span>
                     {isProvisional(player.matches_played) && <ProvisionalBadge />}
@@ -201,31 +201,31 @@ export function RosterCheckInList({
       </div>
 
       {/* Active Bench Roster Table */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+      <div className="silk-extruded bg-white dark:bg-slate-900/60 border border-outline-variant dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
+        <div className="px-5 py-3.5 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between bg-surface-container-low dark:bg-slate-900">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-slate-200 text-sm md:text-base">
+            <h3 className="font-headline-md font-semibold text-slate-900 dark:text-slate-200 text-sm md:text-base">
               Active Bench Roster
             </h3>
-            <span className="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-emerald-400 font-medium">
+            <span className="px-2 py-0.5 rounded-full text-xs font-mono-badge bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-emerald-400 font-bold border border-indigo-200 dark:border-slate-700">
               {effectiveRoster.length}
             </span>
           </div>
           {searchQuery.trim().length > 0 && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">
               Filtered: {effectiveFilteredRoster.length} of {effectiveRoster.length}
             </span>
           )}
         </div>
 
         {effectiveFilteredRoster.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
+          <div className="p-8 text-center text-sm font-body-base text-slate-500 dark:text-slate-400">
             No players checked in yet. Type a name above to check in.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950/40 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-surface-container dark:bg-slate-950/40 text-xs font-mono-badge text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-outline-variant dark:border-slate-800">
                 <tr>
                   <th scope="col" className="px-5 py-3 font-medium">
                     Player
@@ -244,27 +244,27 @@ export function RosterCheckInList({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-outline-variant/60 dark:divide-slate-800/60">
                 {effectiveFilteredRoster.map((player) => (
                   <tr
                     key={player.id}
-                    className="hover:bg-slate-800/40 transition-colors"
+                    className="hover:bg-surface-container-low dark:hover:bg-slate-800/40 transition-colors"
                   >
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-emerald-400">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono-badge font-bold text-indigo-700 dark:text-emerald-400 shadow-xs">
                           {getPlayerInitials(player.name)}
                         </div>
                         <div>
                           <button
                             type="button"
                             onClick={() => onSelectPlayer?.(player)}
-                            className="font-medium text-slate-200 hover:text-emerald-400 text-left transition-colors cursor-pointer"
+                            className="font-body-base font-semibold text-slate-900 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-emerald-400 transition-colors text-left"
                           >
                             {player.name}
                           </button>
                           {player.locked_partner_name && (
-                            <div className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
+                            <div className="text-[10px] text-amber-600 dark:text-amber-400 font-mono-data flex items-center gap-1 mt-0.5">
                               <span>🔗</span>
                               <span>Pinned to {player.locked_partner_name}</span>
                             </div>
@@ -274,18 +274,16 @@ export function RosterCheckInList({
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-slate-200 font-mono text-xs font-bold">
-                            {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
-                          </span>
+                        <div className="flex items-center gap-1.5 font-mono-data text-xs font-bold text-slate-900 dark:text-slate-200">
+                          <span>{formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}</span>
                           {isProvisional(player.matches_played) && <ProvisionalBadge />}
                         </div>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono-data">
                           {player.doubles_rating.toFixed(0)}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-slate-400 text-xs">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-xs font-mono-data text-slate-600 dark:text-slate-400">
                       {player.matches_played}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
@@ -298,16 +296,20 @@ export function RosterCheckInList({
                             type="button"
                             onClick={() => onSelectPlayer(player)}
                             aria-label={`Open action sheet for ${player.name}`}
-                            className="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold transition-colors cursor-pointer"
+                            className="tactile-btn px-2.5 py-1 text-xs rounded-md bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-indigo-700 dark:text-emerald-400 border border-outline-variant dark:border-slate-700 font-headline-md font-bold transition-colors cursor-pointer shadow-xs"
                           >
                             Manage
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => handleToggleStatus(player)}
+                          onClick={() => void handleToggleStatus(player)}
                           aria-label={`Toggle status for ${player.name}`}
-                          className="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                          className={`tactile-btn px-2.5 py-1 rounded-md text-xs font-headline-md font-bold transition-all cursor-pointer shadow-xs ${
+                            player.status === 'QUEUED'
+                              ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100'
+                              : 'bg-indigo-50 dark:bg-emerald-500/15 text-indigo-700 dark:text-emerald-300 border border-indigo-200 dark:border-emerald-500/30 hover:bg-indigo-100'
+                          }`}
                         >
                           {player.status === 'QUEUED' ? 'Rest' : 'Queue'}
                         </button>

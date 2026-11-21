@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html class="h-full overflow-hidden light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Badminque Station OS — Google Stitch Design Reference</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        user-select: none;
+      }
+    }
+    ::-webkit-scrollbar { display: none; }
+    
+    /* Silk Light Soft Depth & Neomorphic Subtle System */
+    .silk-extruded {
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+    .silk-extruded-sm {
+      background: #f8fafc;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .silk-sunken {
+      background: #f8fafc;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    .silk-sunken-shallow {
+      background: #f8fafc;
+      box-shadow: inset 0.5px 0.5px 2px rgba(0, 0, 0, 0.04);
+    }
+    .silk-btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.28);
+    }
+    .silk-btn-primary:active {
+      box-shadow: inset 0 2px 4px rgba(30, 27, 75, 0.25);
+    }
+    .excel-focus-ring {
+      outline: 2px solid #6366f1 !important;
+      outline-offset: -2px;
+    }
+    .court-active {
+      border: 2px solid #6366f1 !important;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(99, 102, 241, 0.08) !important;
+    }
+</style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class", 
+      theme: {
+        extend: {
+          colors: {
+            surface: "#f8fafc", 
+            "surface-dim": "#f1f5f9", 
+            "surface-bright": "#ffffff", 
+            "surface-container-lowest": "#ffffff", 
+            "surface-container-low": "#f8fafc", 
+            "surface-container": "#f1f5f9", 
+            "surface-container-high": "#e2e8f0", 
+            "surface-container-highest": "#cbd5e1", 
+            "on-surface": "#0f172a", 
+            "on-surface-variant": "#64748b", 
+            outline: "#94a3b8", 
+            "outline-variant": "#e2e8f0", 
+            primary: "#4f46e5", 
+            "primary-container": "#6366f1", 
+            "on-primary": "#ffffff", 
+            "on-primary-container": "#ffffff", 
+            secondary: "#475569", 
+            "secondary-container": "#f1f5f9", 
+            "on-secondary": "#1e293b", 
+            tertiary: "#7c3aed", 
+            "tertiary-container": "#ede9fe", 
+            "emerald-accent": "#059669", 
+            "emerald-container": "#ecfdf5", 
+            "error-container": "#fef2f2", 
+            "on-secondary-container": "#334155", 
+            "primary-fixed": "#e0e7ff", 
+            "tertiary-fixed": "#f5f3ff", 
+            "on-primary-fixed-variant": "#4338ca", 
+            "on-tertiary": "#ffffff", 
+            "surface-variant": "#f1f5f9", 
+            "inverse-primary": "#c7d2fe", 
+            "error-dim": "#dc2626", 
+            "on-background": "#0f172a", 
+            "on-tertiary-container": "#5b21b6", 
+            "on-error-container": "#991b1b", 
+            background: "#f1f5f9", 
+            "secondary-dim": "#64748b", 
+            "tertiary-fixed-dim": "#ddd6fe", 
+            error: "#ef4444", 
+            "on-error": "#ffffff", 
+            "on-secondary-fixed": "#0f172a", 
+            "on-secondary-fixed-variant": "#475569", 
+            "on-tertiary-fixed": "#4c1d95", 
+            "on-tertiary-fixed-variant": "#6d28d9", 
+            "inverse-surface": "#0f172a", 
+            "secondary-fixed-dim": "#cbd5e1", 
+            "inverse-on-surface": "#f8fafc", 
+            "primary-dim": "#4338ca", 
+            "secondary-fixed": "#f1f5f9", 
+            "surface-tint": "#6366f1", 
+            "tertiary-dim": "#6d28d9", 
+            "primary-fixed-dim": "#c7d2fe", 
+            "on-primary-fixed": "#312e81"
+          }, 
+          fontFamily: {
+            "body-base": ["Plus Jakarta Sans", "sans-serif"], 
+            "headline-sm": ["Plus Jakarta Sans", "sans-serif"], 
+            "headline-md": ["Plus Jakarta Sans", "sans-serif"], 
+            "mono-data": ["JetBrains Mono", "monospace"], 
+            "mono-badge": ["JetBrains Mono", "monospace"], 
+            headline: ["Plus Jakarta Sans"], 
+            display: ["Plus Jakarta Sans"], 
+            body: ["Plus Jakarta Sans"], 
+            label: ["Plus Jakarta Sans"]
+          }, 
+          borderRadius: {
+            DEFAULT: "0.25rem", 
+            lg: "0.5rem", 
+            xl: "0.75rem", 
+            full: "9999px"
+          }
+        }
+      }
+    }
+</script>
+</head>
+<body class="bg-surface font-body-base text-on-surface h-screen w-screen overflow-hidden flex flex-col justify-between text-xs antialiased selection:bg-primary selection:text-white">
+<!-- TOP COMPACT TELEMETRY & APP BAR (~46px) -->
+<header class="h-11 flex-shrink-0 bg-white border-b border-outline-variant px-3 flex items-center justify-between gap-2 z-30 shadow-xs">
+<div class="flex items-center gap-3">
+<!-- Logo & Mode -->
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-lg silk-btn-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[15px]">sports_tennis</span>
+</div>
+<span class="font-headline-md font-extrabold uppercase tracking-tight text-slate-900 text-[13px]">Badminque</span>
+<span class="font-mono-badge text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-600 text-white font-bold uppercase tracking-wider">STATION OS</span>
+</div>
+<!-- Session Title Chip -->
+<div class="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg silk-sunken-shallow text-[11px] border border-outline-variant">
+<span class="material-symbols-outlined text-indigo-600 text-[14px]">event_note</span>
+<span class="text-on-surface-variant font-medium">Club Night:</span>
+<span class="font-mono text-slate-900 font-semibold">Friday Night Smashers #42</span>
+</div>
+<!-- Quick Operational Metrics -->
+<div class="flex items-center gap-1.5">
+<div class="flex items-center gap-1 px-2 py-0.5 rounded-lg silk-extruded-sm border border-outline-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-[10px] text-slate-800 font-mono font-medium">3 Courts</span>
+<span class="text-[9px] text-indigo-600 hidden sm:inline font-semibold">(2 In Play, 1 Enter Score)</span>
+</div>
+<div class="flex items-center gap-1 px-2 py-0.5 rounded-lg silk-extruded-sm border border-outline-variant">
+<span class="material-symbols-outlined text-slate-500 text-[13px]">groups</span>
+<span class="text-[10px] font-mono text-slate-700">12 Court  <span class="text-emerald-600 font-bold">11 Queue</span>  5 Rest</span>
+</div>
+</div>
+</div>
+<!-- Center/Right: Shortcuts Pills & Organiser Triggers -->
+<div class="flex items-center gap-1.5">
+<div class="hidden xl:flex items-center gap-1.5 text-[10px] text-on-surface-variant font-mono">
+<button class="px-2 py-0.5 rounded-lg silk-extruded-sm hover:text-primary hover:bg-slate-100 text-slate-700 border border-outline-variant active:scale-95 transition-all" onclick="toggleHelpModal()">
+<kbd class="font-bold text-primary">[?]</kbd> Shortcuts
+      </button>
+<button class="px-2 py-0.5 rounded-lg silk-extruded-sm hover:text-slate-900 hover:bg-slate-100 text-slate-700 border border-outline-variant active:scale-95 transition-all" onclick="triggerAutoDispatch()">
+<kbd class="font-bold text-slate-600">[Space]</kbd> Auto-Dispatch
+      </button>
+<button class="px-2 py-0.5 rounded-lg silk-extruded-sm hover:text-slate-900 hover:bg-slate-100 text-slate-700 border border-outline-variant active:scale-95 transition-all" onclick="focusSearchInput()">
+<kbd class="font-bold text-on-surface-variant">[/]</kbd> Find
+      </button>
+</div>
+<!-- Primary Action Buttons (EXACT COLORS INTACT) -->
+<button class="h-7 px-3 rounded-lg silk-btn-primary active:scale-95 text-white font-headline-sm font-bold text-[11px] flex items-center gap-1 transition-all" id="btn-quick-dispatch" onclick="triggerAutoDispatch()">
+<span class="material-symbols-outlined text-[15px]">bolt</span>
+<span>Auto-Dispatch</span>
+</button>
+<button class="h-7 px-2.5 rounded-lg silk-extruded-sm hover:bg-slate-100 active:scale-95 text-slate-800 font-headline-sm font-semibold text-[11px] flex items-center gap-1 border border-outline-variant transition-all" onclick="openCheckInModal()">
+<span class="material-symbols-outlined text-primary text-[15px]">person_add</span>
+<span>Check-In <kbd class="text-on-surface-variant text-[9px] font-mono">[N]</kbd></span>
+</button>
+<!-- Connected Indicator -->
+<div class="w-7 h-7 rounded-lg silk-extruded-sm flex items-center justify-center text-emerald-600 border border-outline-variant" title="Station Connected  Latency: 14ms">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+</div>
+</div>
+</header>
+<!-- NOTIFICATION TOAST FLOAT -->
+<div class="hidden fixed top-12 left-1/2 -translate-x-1/2 z-50 px-3.5 py-1.5 rounded-xl bg-white/95 border border-primary/30 text-slate-900 text-[11px] font-medium shadow-xl flex items-center gap-2 transition-all backdrop-blur-md" id="toast-banner">
+<span class="material-symbols-outlined text-primary text-[16px]">info</span>
+<span id="toast-text">System telemetry ready</span>
+</div>
+<!-- MAIN OPERATIONAL COCKPIT (100% - Header - Status Bar, NO SCROLL) -->
+<main class="flex-1 w-full max-w-[1720px] mx-auto p-2 gap-2 flex flex-col min-h-0 overflow-hidden bg-surface">
+<!-- TOP SECTION: ULTRA-COMPACT 3-COURT ACTIVE MATRIX -->
+<section aria-label="Active Courts" class="h-[28%] min-h-[175px] max-h-[220px] grid grid-cols-3 gap-2.5 flex-shrink-0">
+<!-- COURT 1: IN MATCH -->
+<article class="court-card rounded-xl silk-extruded p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:translate-y-[-1px] border border-outline-variant" id="court-card-1" onclick="selectCourt(1)" tabindex="0">
+<!-- Court Header -->
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-outline-variant">KEY [1]</span>
+<span class="font-headline-sm text-[13px] font-extrabold uppercase text-slate-900 tracking-wide">Court 1</span>
+<span class="text-[9px] font-mono text-on-surface-variant uppercase font-semibold">Doubles</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-mono text-[9px] font-bold uppercase border border-amber-300">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            In Match
+          </span>
+<span class="font-mono text-[11px] font-bold text-amber-700 silk-sunken-shallow px-2 py-0.5 rounded-lg border border-amber-200" id="court-1-timer">14:32</span>
+</div>
+</div>
+<!-- Pairings Dense Grid -->
+<div class="grid grid-cols-2 gap-2 my-1">
+<!-- Team A -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-outline-variant flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-0.5 mb-0.5 border-b border-outline-variant/60">
+<span class="text-slate-700 font-bold">TEAM A</span>
+<span class="text-emerald-600 font-bold">Avg 1600  51%</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">M. Vance</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1620</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">L. Tan</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1580</span>
+</div>
+</div>
+<!-- Team B -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-outline-variant flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-0.5 mb-0.5 border-b border-outline-variant/60">
+<span class="text-slate-700 font-bold">TEAM B</span>
+<span class="text-on-surface-variant font-semibold">Avg 1602  49%</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">S. Lin</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1595</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">D. Wong</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1610</span>
+</div>
+</div>
+</div>
+<!-- Compact Bottom Row Controls -->
+<div class="flex items-center gap-1.5 pt-1 border-t border-outline-variant">
+<button class="h-[28px] flex-1 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-800 font-mono text-[10px] font-bold flex items-center justify-center gap-1 active:scale-95 transition-all border border-outline-variant" onclick="event.stopPropagation(); openScoreModal('Court 1', 'Marcus Vance &amp; Leo Tan', 1600, 'Sarah Lin &amp; Derek Wong', 1602)">
+<span class="material-symbols-outlined text-[14px] text-primary">scoreboard</span>
+<span>Score (30p)</span>
+</button>
+<button class="h-[28px] px-2.5 rounded-lg silk-extruded-sm hover:bg-slate-100 text-on-surface-variant font-mono text-[10px] flex items-center justify-center gap-1 active:scale-95 transition-all border border-outline-variant" onclick="event.stopPropagation(); triggerSub(1)">
+<span class="material-symbols-outlined text-[13px]">swap_horiz</span>
+<span>Sub</span>
+</button>
+</div>
+</article>
+<!-- COURT 2: SCORE ENTRY (ACTIVE URGENT) -->
+<article class="court-card rounded-xl silk-extruded p-2.5 flex flex-col justify-between cursor-pointer transition-all relative court-active" id="court-card-2" onclick="selectCourt(2)" tabindex="0">
+<div class="absolute -top-2 right-2 px-2 py-0.5 bg-primary text-white font-mono text-[8px] font-extrabold uppercase rounded-full shadow-md">
+        URGENT ACTION
+      </div>
+<!-- Court Header -->
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-primary text-white font-bold">KEY [2]</span>
+<span class="font-headline-sm text-[13px] font-extrabold uppercase text-slate-900 tracking-wide">Court 2</span>
+<span class="text-[9px] font-mono text-on-surface-variant uppercase font-semibold">Doubles</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-mono text-[9px] font-bold uppercase border border-emerald-300">
+<span class="material-symbols-outlined text-[11px]">flag</span>
+            Score Entry
+          </span>
+<span class="font-mono text-[11px] font-bold text-primary silk-sunken-shallow px-2 py-0.5 rounded-lg border border-primary/20">18:45</span>
+</div>
+</div>
+<!-- Pairings Dense Grid -->
+<div class="grid grid-cols-2 gap-2 my-1">
+<!-- Team A -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-primary/30 flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] font-mono pb-0.5 mb-0.5 border-b border-primary/20">
+<span class="text-primary font-bold">TEAM A (Won)</span>
+<span class="text-slate-800 font-bold">Avg 1695</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">K. Sato</span>
+<span class="font-mono text-[10px] text-primary font-bold">1710</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">M. Patel</span>
+<span class="font-mono text-[10px] text-primary font-bold">1680</span>
+</div>
+</div>
+<!-- Team B -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-outline-variant flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-0.5 mb-0.5 border-b border-outline-variant/60">
+<span class="text-slate-700 font-bold">TEAM B</span>
+<span class="font-mono text-[9px] text-on-surface-variant">Avg 1677</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">A. Chen</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1690</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">D. Kim</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1665</span>
+</div>
+</div>
+</div>
+<!-- Action Row (EXACT BUTTON COLOR INTACT) -->
+<div class="flex items-center gap-1.5 pt-1 border-t border-outline-variant">
+<button class="h-[28px] flex-1 rounded-lg silk-btn-primary active:scale-95 text-white font-headline-sm text-[11px] font-bold flex items-center justify-center gap-1 transition-all" onclick="event.stopPropagation(); openScoreModal('Court 2', 'Kenji Sato &amp; Maya Patel', 1695, 'Alex Chen &amp; David Kim', 1677)">
+<span class="material-symbols-outlined text-[15px]">emoji_events</span>
+<span>Enter Score (30 Pts) <kbd class="font-mono text-[9px] bg-white/20 text-white px-1 py-0.2 rounded ml-1">[Enter]</kbd></span>
+</button>
+</div>
+</article>
+<!-- COURT 3: PROPOSED MATCH -->
+<article class="court-card rounded-xl silk-extruded p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:translate-y-[-1px] border border-outline-variant" id="court-card-3" onclick="selectCourt(3)" tabindex="0">
+<!-- Court Header -->
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-outline-variant">KEY [3]</span>
+<span class="font-headline-sm text-[13px] font-extrabold uppercase text-slate-900 tracking-wide">Court 3</span>
+<span class="text-[9px] font-mono text-on-surface-variant uppercase font-semibold">Doubles</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono text-[9px] font-bold uppercase border border-outline-variant" id="court-3-status-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+<span id="court-3-status-label">Proposed</span>
+</span>
+<span class="font-mono text-[11px] font-bold text-on-surface-variant silk-sunken-shallow px-2 py-0.5 rounded-lg border border-outline-variant" id="court-3-timer">00:00</span>
+</div>
+</div>
+<!-- Pairings Dense Grid -->
+<div class="grid grid-cols-2 gap-2 my-1">
+<!-- Team A -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-outline-variant flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-0.5 mb-0.5 border-b border-outline-variant/60">
+<span class="text-slate-700 font-bold">TEAM A</span>
+<span class="text-emerald-600 font-bold">Avg 1502</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">C. Zhao</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1510</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">R. Brooks</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1495</span>
+</div>
+</div>
+<!-- Team B -->
+<div class="silk-sunken-shallow p-1.5 rounded-lg border border-outline-variant flex flex-col justify-between">
+<div class="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-0.5 mb-0.5 border-b border-outline-variant/60">
+<span class="text-slate-700 font-bold">TEAM B</span>
+<span class="text-on-surface-variant font-semibold">Avg 1502  Δ0.5</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">J. Taylor</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1525</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="truncate font-bold text-slate-900">T. Evans</span>
+<span class="font-mono text-[10px] text-slate-500 font-medium">1480</span>
+</div>
+</div>
+</div>
+<!-- Action Row (EXACT BUTTON COLORS INTACT) -->
+<div class="flex items-center gap-1.5 pt-1 border-t border-outline-variant">
+<button class="h-[28px] flex-1 rounded-lg bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-mono text-[10px] font-bold flex items-center justify-center gap-1 shadow-sm transition-all" id="btn-dispatch-court-3" onclick="event.stopPropagation(); dispatchCourt3()">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+<span>Dispatch Court 3</span>
+</button>
+<button class="h-[28px] px-2.5 rounded-lg silk-extruded-sm hover:bg-slate-100 text-on-surface-variant font-mono text-[10px] flex items-center justify-center gap-1 active:scale-95 transition-all border border-outline-variant" onclick="event.stopPropagation(); shuffleCourt3()" title="Re-balance algorithm">
+<span class="material-symbols-outlined text-[13px]">shuffle</span>
+<span>Re-balance</span>
+</button>
+</div>
+</article>
+</section>
+<!-- LOWER SECTION: SPLIT 2-COLUMN DENSE OPERATIONAL PANE -->
+<section aria-label="Staging &amp; Bench Roster" class="flex-1 min-h-0 grid grid-cols-12 gap-2.5 overflow-hidden">
+<!-- LEFT COLUMN: ON-DECK STAGING QUEUE (5 cols) -->
+<div class="col-span-12 lg:col-span-5 flex flex-col silk-extruded rounded-xl p-2.5 min-h-0 overflow-hidden border border-outline-variant">
+<!-- Panel Header -->
+<div class="flex items-center justify-between pb-1.5 border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[17px]">queue_play_next</span>
+<h2 class="font-headline-sm text-[12px] font-extrabold uppercase tracking-tight text-slate-900">On-Deck Staging</h2>
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-600 text-white font-bold">3 BAYS FORMED</span>
+</div>
+<span class="text-[9px] font-mono text-on-surface-variant uppercase font-medium">Rotations  Fair Δ</span>
+</div>
+<!-- Staging Cards Stack -->
+<div class="flex-1 flex flex-col justify-between py-1.5 gap-1.5 min-h-0 overflow-hidden">
+<!-- Bay 1 (Next Up) -->
+<div class="silk-sunken-shallow p-2 rounded-xl border-l-4 border-l-indigo-600 border-t border-r border-b border-outline-variant flex flex-col justify-between flex-1 bg-indigo-50/20">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded bg-indigo-600 text-white font-extrabold uppercase tracking-wide">BAY 1  NEXT UP</span>
+<span class="font-mono text-[10px] text-indigo-700 font-bold">Est. 4m  Δ 5 RS</span>
+<button class="text-[9px] font-mono text-indigo-600 hover:underline uppercase font-bold" onclick="showToast('Bay 1 bumped to top priority')">Bump ^</button>
+</div>
+<div class="grid grid-cols-2 gap-1.5 text-[11px] font-medium pt-1">
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Liam G. &amp; Noah V.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1545</span>
+</div>
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Eileen W. &amp; Carlos S.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1550</span>
+</div>
+</div>
+</div>
+<!-- Bay 2 (Following) -->
+<div class="silk-sunken-shallow p-2 rounded-xl border-l-4 border-l-sky-500 border-t border-r border-b border-outline-variant flex flex-col justify-between flex-1 bg-sky-50/20">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 font-extrabold uppercase tracking-wide border border-sky-300">BAY 2  FOLLOWING</span>
+<span class="font-mono text-[10px] text-on-surface-variant font-semibold">Est. 12m  Δ 8 RS</span>
+<button class="text-[9px] font-mono text-slate-700 hover:underline uppercase font-bold" onclick="showToast('Bay 2 locked for Court 1')">Lock</button>
+</div>
+<div class="grid grid-cols-2 gap-1.5 text-[11px] font-medium pt-1">
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Devin P. &amp; Aaron M.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1620</span>
+</div>
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Zackary C. &amp; Wei T.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1612</span>
+</div>
+</div>
+</div>
+<!-- Bay 3 (In The Hole) -->
+<div class="silk-sunken-shallow p-2 rounded-xl border-l-4 border-l-slate-400 border-t border-r border-b border-outline-variant flex flex-col justify-between flex-1 bg-slate-50/50">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-extrabold uppercase tracking-wide border border-slate-300">BAY 3  IN THE HOLE</span>
+<span class="font-mono text-[10px] text-on-surface-variant font-semibold">Est. 19m  Δ 12 RS</span>
+<button class="text-[9px] font-mono text-on-surface-variant hover:underline uppercase font-bold" onclick="showToast('Bay 3 rebalanced')">Rebalance</button>
+</div>
+<div class="grid grid-cols-2 gap-1.5 text-[11px] font-medium pt-1">
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Samantha R. &amp; Grace O.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1480</span>
+</div>
+<div class="truncate text-slate-900 bg-white px-2 py-0.5 rounded-lg flex justify-between border border-outline-variant shadow-xs">
+<span class="font-semibold text-slate-800">Hannah G. &amp; Ben F.</span>
+<span class="font-mono text-[10px] text-slate-600 font-bold">1492</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: COURTSIDE BENCH & ROSTER (7 cols, Excel style) -->
+<div class="col-span-12 lg:col-span-7 flex flex-col silk-extruded rounded-xl p-2.5 min-h-0 overflow-hidden border border-outline-variant">
+<!-- Table Toolbar -->
+<div class="flex items-center justify-between gap-2 pb-1.5 border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[17px]">table_chart</span>
+<h2 class="font-headline-sm text-[12px] font-extrabold uppercase tracking-tight text-slate-900">Bench Roster &amp; Queue</h2>
+<span class="font-mono text-[9px] text-on-surface-variant hidden sm:inline font-medium">28 Registered  16 On Bench</span>
+</div>
+<!-- Search bar with neomorphic sunken inset -->
+<div class="flex items-center gap-1.5">
+<div class="relative w-44 sm:w-56">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-on-surface-variant text-[14px]">search</span>
+<input class="w-full h-[26px] pl-6 pr-2 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant shadow-2xs" id="roster-search-input" onkeyup="filterRoster()" placeholder="Search [ / ]..." type="text"/>
+</div>
+<button class="h-[26px] px-2.5 rounded-lg silk-btn-primary active:scale-95 text-white font-mono text-[10px] font-bold flex items-center gap-0.5 transition-all" onclick="openCheckInModal()">
+<span class="material-symbols-outlined text-[13px]">add</span>
+<span>Add [N]</span>
+</button>
+</div>
+</div>
+<!-- Excel Dense Table Grid -->
+<div class="flex-1 min-h-0 overflow-hidden flex flex-col pt-1">
+<table class="w-full text-left border-collapse text-[11px]">
+<thead>
+<tr class="bg-slate-50 text-slate-600 font-mono text-[9px] uppercase border-b border-outline-variant">
+<th class="py-1 px-2 w-8 text-center font-bold">Row</th>
+<th class="py-1 px-2 font-bold">Player Name &amp; ID</th>
+<th class="py-1 px-2 font-bold">Rating (RD / RS)</th>
+<th class="py-1 px-1.5 text-center font-bold">Played</th>
+<th class="py-1 px-2 font-bold">Bench Wait</th>
+<th class="py-1 px-2 text-right font-bold">Status [Q]</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 font-mono text-[10px]" id="roster-table-body">
+<!-- Row 1 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group bg-slate-50/50" data-row-index="0">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">1</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 text-[9px] font-extrabold flex items-center justify-center border border-emerald-300">LG</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Liam Gallagher</span>
+<span class="text-on-surface-variant text-[9px]">#4012</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1545 <span class="text-on-surface-variant font-normal">/ Rs 1520</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">2</td>
+<td class="py-1 px-2 text-on-surface-variant">14m</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all" onclick="togglePlayerStatus(this)">
+                  Queued
+                </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group" data-row-index="1">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">2</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md bg-sky-100 text-sky-700 text-[9px] font-extrabold flex items-center justify-center border border-sky-300">NV</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Noah Vance</span>
+<span class="text-on-surface-variant text-[9px]">#4028</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1545 <span class="text-on-surface-variant font-normal">/ Rs 1570</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">1</td>
+<td class="py-1 px-2 text-on-surface-variant">18m</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all" onclick="togglePlayerStatus(this)">
+                  Queued
+                </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group" data-row-index="2">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">3</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md silk-extruded-sm text-slate-700 text-[9px] font-extrabold flex items-center justify-center border border-outline-variant">EW</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Eileen Wu</span>
+<span class="text-on-surface-variant text-[9px]">#4034</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1550 <span class="text-on-surface-variant font-normal">/ Rs 1540</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">3</td>
+<td class="py-1 px-2 text-on-surface-variant">8m</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md silk-sunken-shallow text-slate-600 text-[9px] font-bold uppercase active:scale-95 transition-all border border-outline-variant" onclick="togglePlayerStatus(this)">
+                  Resting
+                </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group" data-row-index="3">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">4</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md silk-extruded-sm text-slate-700 text-[9px] font-extrabold flex items-center justify-center border border-outline-variant">CS</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Carlos Santos</span>
+<span class="text-on-surface-variant text-[9px]">#4055</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1550 <span class="text-on-surface-variant font-normal">/ Rs 1515</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">2</td>
+<td class="py-1 px-2 text-on-surface-variant">12m</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all" onclick="togglePlayerStatus(this)">
+                  Queued
+                </button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group" data-row-index="4">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">5</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md bg-amber-100 text-amber-800 text-[9px] font-extrabold flex items-center justify-center border border-amber-300">AM</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Aaron Miller</span>
+<span class="text-on-surface-variant text-[9px]">#4089</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1620 <span class="text-on-surface-variant font-normal">/ Rs 1660</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">4</td>
+<td class="py-1 px-2 text-amber-700 font-semibold">26m (Fatigue)</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md silk-sunken-shallow text-slate-600 text-[9px] font-bold uppercase active:scale-95 transition-all border border-outline-variant" onclick="togglePlayerStatus(this)">
+                  Resting
+                </button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="roster-row hover:bg-slate-50 transition-colors cursor-pointer group" data-row-index="5">
+<td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">6</td>
+<td class="py-1 px-2">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 text-[9px] font-extrabold flex items-center justify-center border border-emerald-300">WT</span>
+<span class="player-name font-bold text-slate-900 font-body-base text-[11px]">Wei Tang</span>
+<span class="text-on-surface-variant text-[9px]">#4102</span>
+</div>
+</td>
+<td class="py-1 px-2 text-primary font-bold">Rd 1612 <span class="text-on-surface-variant font-normal">/ Rs 1600</span></td>
+<td class="py-1 px-1.5 text-center text-slate-900 font-bold">2</td>
+<td class="py-1 px-2 text-on-surface-variant">10m</td>
+<td class="py-1 px-2 text-right">
+<button class="status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all" onclick="togglePlayerStatus(this)">
+                  Queued
+                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM EXCEL-STYLE STATUS & SHORTCUT BAR (Sticky, ~28px) -->
+<footer class="h-7 flex-shrink-0 bg-white border-t border-outline-variant px-3 flex items-center justify-between text-[10px] font-mono text-on-surface-variant z-20">
+<div class="flex items-center gap-3 overflow-x-auto whitespace-nowrap">
+<span class="flex items-center gap-1 text-emerald-600 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> READY
+    </span>
+<span class="text-slate-800 font-semibold">HOTKEYS:</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[1-3]</kbd> Select Court</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[Enter]</kbd> Enter Score</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[Space]</kbd> Auto-Dispatch</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[/]</kbd> Search</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[N]</kbd> Check-In</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[Q]</kbd> Toggle Queue/Rest</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[?]</kbd> Shortcuts</span>
+<span><kbd class="text-slate-800 bg-slate-100 shadow-2xs px-1.5 py-0.2 rounded font-bold border border-outline-variant">[Esc]</kbd> Dismiss</span>
+</div>
+<div class="hidden md:flex items-center gap-2 flex-shrink-0">
+<span class="text-on-surface-variant">Badminque v0.1.0</span>
+<span class="text-primary font-bold"> Silk Station OS</span>
+</div>
+</footer>
+<!-- MODAL 1: INTERACTIVE 30-POINT QUICK SCORE MODAL -->
+<div class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-3" id="score-modal">
+<div class="w-full max-w-lg rounded-2xl silk-extruded border border-outline-variant p-5 shadow-2xl flex flex-col gap-3.5 bg-white">
+<!-- Modal Header -->
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl silk-btn-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[19px]">scoreboard</span>
+</div>
+<div>
+<h3 class="font-headline-sm font-extrabold text-slate-900 text-[14px] uppercase tracking-wide" id="modal-court-title">Court 2  Score Entry</h3>
+<span class="text-[10px] text-on-surface-variant font-mono">30-Point Standard Badminton Rally Turnover</span>
+</div>
+</div>
+<button class="w-7 h-7 rounded-lg silk-extruded-sm hover:bg-slate-100 text-on-surface-variant flex items-center justify-center border border-outline-variant" onclick="closeScoreModal()">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<!-- Winner Selection Segmented Touch Buttons -->
+<div class="grid grid-cols-2 gap-2.5">
+<button class="p-2.5 rounded-xl bg-indigo-600 border-2 border-indigo-700 text-left flex flex-col justify-between active:scale-98 transition-all shadow-sm" id="modal-winner-a" onclick="selectWinner('A')">
+<div class="flex justify-between items-center text-[10px] font-mono font-bold text-white">
+<span>TEAM A</span>
+<span class="bg-white text-indigo-700 px-1.5 py-0.2 rounded text-[9px] font-extrabold" id="badge-winner-a">WINNER</span>
+</div>
+<span class="font-bold text-white text-[12px] truncate mt-1.5" id="modal-team-a-names">Kenji Sato &amp; Maya Patel</span>
+</button>
+<button class="p-2.5 rounded-xl silk-sunken-shallow border border-outline-variant text-left flex flex-col justify-between active:scale-98 transition-all hover:bg-slate-100" id="modal-winner-b" onclick="selectWinner('B')">
+<div class="flex justify-between items-center text-[10px] font-mono font-bold text-on-surface-variant">
+<span>TEAM B</span>
+<span class="hidden bg-white text-indigo-700 px-1.5 py-0.2 rounded text-[9px] font-extrabold" id="badge-winner-b">WINNER</span>
+</div>
+<span class="font-semibold text-slate-800 text-[12px] truncate mt-1.5" id="modal-team-b-names">Alex Chen &amp; David Kim</span>
+</button>
+</div>
+<!-- Live Score Readout -->
+<div class="flex items-center justify-center gap-8 py-3 silk-sunken rounded-xl border border-outline-variant">
+<div class="text-center">
+<span class="text-[9px] font-mono text-slate-500 uppercase font-bold block">Winner Score</span>
+<span class="font-mono text-3xl font-extrabold text-primary" id="display-winner-score">30</span>
+</div>
+<span class="font-mono text-2xl font-bold text-on-surface-variant">:</span>
+<div class="text-center">
+<span class="text-[9px] font-mono text-on-surface-variant uppercase font-bold block">Opponent Score</span>
+<span class="font-mono text-3xl font-extrabold text-slate-900" id="display-loser-score">25</span>
+</div>
+</div>
+<!-- Quick Presets -->
+<div>
+<span class="text-[10px] font-mono text-on-surface-variant uppercase font-bold block mb-1.5">Quick-Tap 30-Point Presets:</span>
+<div class="grid grid-cols-6 gap-1.5">
+<button class="h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 font-mono text-[11px] text-slate-800 font-bold active:scale-95 border border-outline-variant" onclick="setScorePreset(30, 28)">30-28</button>
+<button class="h-8 rounded-lg silk-btn-primary text-white font-mono text-[11px] font-extrabold active:scale-95 shadow" onclick="setScorePreset(30, 25)">30-25</button>
+<button class="h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 font-mono text-[11px] text-slate-800 font-bold active:scale-95 border border-outline-variant" onclick="setScorePreset(30, 20)">30-20</button>
+<button class="h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 font-mono text-[11px] text-slate-800 font-bold active:scale-95 border border-outline-variant" onclick="setScorePreset(30, 15)">30-15</button>
+<button class="h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 font-mono text-[11px] text-slate-800 font-bold active:scale-95 border border-outline-variant" onclick="setScorePreset(30, 10)">30-10</button>
+<button class="h-8 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 font-mono text-[10px] font-bold active:scale-95" onclick="setScorePreset(31, 29)">31-29</button>
+</div>
+</div>
+<!-- Loser Score Steppers -->
+<div class="flex items-center justify-between p-2 rounded-xl silk-sunken-shallow border border-outline-variant">
+<span class="text-[11px] text-on-surface-variant font-semibold">Fine-tune Opponent Score:</span>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-800 font-mono font-bold text-base active:scale-95 border border-outline-variant" onclick="adjustLoserScore(-1)">-</button>
+<button class="w-8 h-8 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-800 font-mono font-bold text-base active:scale-95 border border-outline-variant" onclick="adjustLoserScore(1)">+</button>
+</div>
+</div>
+<!-- Rating Telemetry Projection -->
+<div class="p-2 rounded-xl silk-sunken-shallow flex items-center justify-between text-[11px] font-mono border border-outline-variant">
+<span class="text-on-surface-variant flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-primary text-[15px]">trending_up</span> Rating Delta:
+      </span>
+<span class="text-primary font-bold" id="rating-impact-text">Team A +14 RD  Team B -14 RD</span>
+</div>
+<!-- Submit CTA -->
+<button class="h-10 w-full rounded-xl silk-btn-primary active:scale-98 text-white font-headline-sm text-[12px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-md" onclick="submitScoreMatch()">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+<span>Confirm Score &amp; Turnover Court [Enter]</span>
+</button>
+</div>
+</div>
+<!-- MODAL 2: QUICK CHECK-IN MODAL (KEY [N]) -->
+<div class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-3" id="checkin-modal">
+<div class="w-full max-w-md rounded-2xl silk-extruded border border-outline-variant p-5 shadow-2xl flex flex-col gap-3.5 bg-white">
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">person_add</span>
+<h3 class="font-headline-sm font-extrabold text-slate-900 text-[14px] uppercase">Quick Check-In Player</h3>
+</div>
+<button class="w-7 h-7 rounded-lg silk-extruded-sm text-on-surface-variant flex items-center justify-center border border-outline-variant" onclick="closeCheckInModal()">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="space-y-3">
+<div>
+<label class="text-[10px] font-mono text-on-surface-variant uppercase font-bold block mb-1">Player Full Name</label>
+<input class="w-full h-8 px-3 rounded-lg bg-slate-50 text-slate-900 font-body-base text-xs focus:ring-1 focus:ring-primary border border-outline-variant focus:outline-none placeholder:text-slate-400" id="input-new-player-name" placeholder="e.g. Jason Blake" type="text"/>
+</div>
+<div>
+<label class="text-[10px] font-mono text-on-surface-variant uppercase font-bold block mb-1">Skill Tier &amp; Initial Rating</label>
+<div class="grid grid-cols-3 gap-2">
+<button class="tier-btn h-9 rounded-xl silk-extruded-sm text-slate-800 text-center font-mono text-[10px] p-1 border border-outline-variant" onclick="selectTier(1200, this)" type="button">
+            Beginner<br/><span class="text-on-surface-variant font-bold">1200</span>
+</button>
+<button class="tier-btn h-9 rounded-xl bg-indigo-600 border-2 border-indigo-700 text-white text-center font-mono text-[10px] font-extrabold p-1 shadow-sm" onclick="selectTier(1500, this)" type="button">
+            Interm.<br/><span>1500</span>
+</button>
+<button class="tier-btn h-9 rounded-xl silk-extruded-sm text-slate-800 text-center font-mono text-[10px] p-1 border border-outline-variant" onclick="selectTier(1800, this)" type="button">
+            Advanced<br/><span class="text-on-surface-variant font-bold">1800</span>
+</button>
+</div>
+</div>
+<div>
+<label class="text-[10px] font-mono text-on-surface-variant uppercase font-bold block mb-1">Session Mode</label>
+<div class="flex items-center gap-4 text-xs text-slate-800">
+<label class="flex items-center gap-1.5 cursor-pointer font-medium">
+<input checked="" class="accent-primary" name="session-mode" type="radio"/>
+<span>Doubles Priority</span>
+</label>
+<label class="flex items-center gap-1.5 cursor-pointer font-medium">
+<input class="accent-primary" name="session-mode" type="radio"/>
+<span>Singles / Any</span>
+</label>
+</div>
+</div>
+</div>
+<button class="h-9 w-full rounded-xl silk-btn-primary active:scale-98 text-white font-headline-sm text-xs font-bold flex items-center justify-center gap-1.5 shadow transition-all mt-1" onclick="submitNewPlayer()">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+<span>Register to Bench Queue</span>
+</button>
+</div>
+</div>
+<!-- MODAL 3: EXCEL SHORTCUTS REFERENCE MODAL (KEY [?]) -->
+<div class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-3" id="help-modal">
+<div class="w-full max-w-lg rounded-2xl silk-extruded border border-outline-variant p-5 shadow-2xl flex flex-col gap-3.5 bg-white">
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">keyboard</span>
+<h3 class="font-headline-sm font-extrabold text-slate-900 text-[14px] uppercase">Excel Dashboard Hotkeys</h3>
+</div>
+<button class="w-7 h-7 rounded-lg silk-extruded-sm text-on-surface-variant flex items-center justify-center border border-outline-variant" onclick="toggleHelpModal()">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Focus Court 1 / 2 / 3</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ 1 ] [ 2 ] [ 3 ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Score Modal / Confirm</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ Enter ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Auto-Dispatch Courts</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ Space ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Focus Player Search</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ / ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Quick Check-In</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ N ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Toggle Queue / Rest</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ Q ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Navigate Table Rows</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ ↑ / ↓ ]</kbd>
+</div>
+<div class="silk-sunken-shallow p-2 rounded-xl border border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-medium">Close Any Modal</span>
+<kbd class="text-primary font-bold bg-white px-1.5 py-0.5 rounded border border-outline-variant shadow-2xs">[ Esc ]</kbd>
+</div>
+</div>
+<div class="p-2 rounded-xl silk-sunken-shallow text-[10px] text-on-surface-variant border border-outline-variant">
+      Silk Light operational mode optimized for clipboard stations, sunlight visibility, and Bluetooth keypads.
+    </div>
+</div>
+</div>
+<!-- JAVASCRIPT: EXCEL KEYBOARD LISTENER & LOGIC -->
+<script>
+    // State
+    let selectedCourtIndex = 2; // Default to urgent Court 2
+    let activeWinner = 'A';
+    let winnerScore = 30;
+    let loserScore = 25;
+    let selectedRatingTier = 1500;
+    let court1Seconds = 14 * 60 + 32;
+    let court3Seconds = 0;
+    let court3TimerInterval = null;
+    let focusedRowIndex = 0;
+
+    // Timer Ticker Court 1
+    setInterval(() => {
+      court1Seconds++;
+      const mins = String(Math.floor(court1Seconds / 60)).padStart(2, '0');
+      const secs = String(court1Seconds % 60).padStart(2, '0');
+      const el = document.getElementById('court-1-timer');
+      if (el) el.textContent = `${mins}:${secs}`;
+    }, 1000);
+
+    // Court Selection Function
+    function selectCourt(index) {
+      selectedCourtIndex = index;
+      [1, 2, 3].forEach(i => {
+        const card = document.getElementById(`court-card-${i}`);
+        if (card) {
+          if (i === index) {
+            card.classList.add('court-active');
+          } else {
+            card.classList.remove('court-active');
+          }
+        }
+      });
+      showToast(`Court ${index} selected (Ready for hotkeys)`);
+    }
+
+    // Hotkey Listener (Excel Spreadsheet Paradigm)
+    window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+      // Esc closes all modals
+      if (e.key === 'Escape') {
+        closeScoreModal();
+        closeCheckInModal();
+        const helpModal = document.getElementById('help-modal');
+        if (helpModal && !helpModal.classList.contains('hidden')) {
+          helpModal.classList.add('hidden');
+        }
+        if (isInput) activeEl.blur();
+        return;
+      }
+
+      // If user is currently typing in an input, don't trigger alpha/num shortcuts
+      if (isInput) {
+        if (e.key === 'Enter') {
+          if (activeEl.id === 'input-new-player-name') submitNewPlayer();
+        }
+        return;
+      }
+
+      // Single Key Triggers
+      if (e.key === '1') {
+        e.preventDefault();
+        selectCourt(1);
+      } else if (e.key === '2') {
+        e.preventDefault();
+        selectCourt(2);
+      } else if (e.key === '3') {
+        e.preventDefault();
+        selectCourt(3);
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        triggerAutoDispatch();
+      } else if (e.key === '/') {
+        e.preventDefault();
+        focusSearchInput();
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        openCheckInModal();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        toggleHelpModal();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const scoreModal = document.getElementById('score-modal');
+        if (!scoreModal.classList.contains('hidden')) {
+          submitScoreMatch();
+        } else {
+          // Open score for selected court
+          if (selectedCourtIndex === 1) {
+            openScoreModal('Court 1', 'Marcus Vance & Leo Tan', 1600, 'Sarah Lin & Derek Wong', 1602);
+          } else if (selectedCourtIndex === 2) {
+            openScoreModal('Court 2', 'Kenji Sato & Maya Patel', 1695, 'Alex Chen & David Kim', 1677);
+          } else {
+            showToast('Court 3 is not ready for score entry. Dispatch first.');
+          }
+        }
+      } else if (e.key === 'q' || e.key === 'Q') {
+        e.preventDefault();
+        toggleFocusedRowStatus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigateTableRows(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateTableRows(-1);
+      }
+    });
+
+    // Row Navigation with Arrows
+    function navigateTableRows(direction) {
+      const rows = document.querySelectorAll('.roster-row');
+      if (!rows.length) return;
+      rows[focusedRowIndex]?.classList.remove('bg-slate-100', 'excel-focus-ring');
+      focusedRowIndex = Math.max(0, Math.min(rows.length - 1, focusedRowIndex + direction));
+      const targetRow = rows[focusedRowIndex];
+      targetRow.classList.add('bg-slate-100', 'excel-focus-ring');
+      targetRow.scrollIntoView({ block: 'nearest' });
+    }
+
+    function toggleFocusedRowStatus() {
+      const rows = document.querySelectorAll('.roster-row');
+      const currentRow = rows[focusedRowIndex];
+      if (currentRow) {
+        const btn = currentRow.querySelector('.status-toggle-btn');
+        if (btn) togglePlayerStatus(btn);
+      }
+    }
+
+    // Auto Dispatch Trigger
+    function triggerAutoDispatch() {
+      showToast('⚡ Auto-Dispatch: Bay 1 loaded to Court 2. Algorithm balanced.');
+    }
+
+    // Court 3 Dispatch
+    function dispatchCourt3() {
+      const badge = document.getElementById('court-3-status-badge');
+      const label = document.getElementById('court-3-status-label');
+      const timer = document.getElementById('court-3-timer');
+      const btn = document.getElementById('btn-dispatch-court-3');
+
+      if (!badge || !label) return;
+
+      badge.className = 'flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-mono text-[9px] font-bold uppercase border border-amber-300';
+      label.textContent = 'In Match';
+      timer.className = 'font-mono text-[11px] font-bold text-amber-700 silk-sunken-shallow px-2 py-0.5 rounded-lg border border-amber-200';
+      btn.disabled = true;
+      btn.className = 'h-[28px] flex-1 rounded-lg silk-sunken-shallow text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center gap-1 cursor-not-allowed border border-outline-variant';
+      btn.innerHTML = '<span class="material-symbols-outlined text-[13px]">sync</span><span>Match Active</span>';
+
+      court3Seconds = 0;
+      if (court3TimerInterval) clearInterval(court3TimerInterval);
+      court3TimerInterval = setInterval(() => {
+        court3Seconds++;
+        const m = String(Math.floor(court3Seconds / 60)).padStart(2, '0');
+        const s = String(court3Seconds % 60).padStart(2, '0');
+        timer.textContent = `${m}:${s}`;
+      }, 1000);
+
+      showToast('Court 3 dispatched! Match clock started.');
+    }
+
+    function shuffleCourt3() {
+      showToast('Court 3 rebalanced with bench reserves (Lowest RS delta).');
+    }
+
+    function triggerSub(courtNum) {
+      showToast(`Sub player request sent to Court ${courtNum} organizer.`);
+    }
+
+    // Toast Banner
+    function showToast(message) {
+      const toast = document.getElementById('toast-banner');
+      const text = document.getElementById('toast-text');
+      if (!toast || !text) return;
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    // Search focus
+    function focusSearchInput() {
+      const search = document.getElementById('roster-search-input');
+      if (search) {
+        search.focus();
+        search.select();
+      }
+    }
+
+    // Score Modal System
+    function openScoreModal(courtName, teamA, ratingA, teamB, ratingB) {
+      document.getElementById('modal-court-title').textContent = `${courtName} — Score Entry`;
+      document.getElementById('modal-team-a-names').textContent = teamA;
+      document.getElementById('modal-team-b-names').textContent = teamB;
+      selectWinner('A');
+      setScorePreset(30, 25);
+      document.getElementById('score-modal').classList.remove('hidden');
+    }
+
+    function closeScoreModal() {
+      document.getElementById('score-modal').classList.add('hidden');
+    }
+
+    function selectWinner(team) {
+      activeWinner = team;
+      const btnA = document.getElementById('modal-winner-a');
+      const btnB = document.getElementById('modal-winner-b');
+      const badgeA = document.getElementById('badge-winner-a');
+      const badgeB = document.getElementById('badge-winner-b');
+      const impact = document.getElementById('rating-impact-text');
+
+      if (team === 'A') {
+        btnA.className = 'p-2.5 rounded-xl bg-indigo-600 border-2 border-indigo-700 text-left flex flex-col justify-between active:scale-98 transition-all shadow-sm';
+        badgeA.classList.remove('hidden');
+        btnB.className = 'p-2.5 rounded-xl silk-sunken-shallow border border-outline-variant text-left flex flex-col justify-between active:scale-98 transition-all hover:bg-slate-100';
+        badgeB.classList.add('hidden');
+        impact.textContent = 'Team A +14 RD (1709) • Team B -14 RD (1663)';
+      } else {
+        btnB.className = 'p-2.5 rounded-xl bg-indigo-600 border-2 border-indigo-700 text-left flex flex-col justify-between active:scale-98 transition-all shadow-sm';
+        badgeB.classList.remove('hidden');
+        btnA.className = 'p-2.5 rounded-xl silk-sunken-shallow border border-outline-variant text-left flex flex-col justify-between active:scale-98 transition-all hover:bg-slate-100';
+        badgeA.classList.add('hidden');
+        impact.textContent = 'Team B +17 RD (1694) • Team A -17 RD (1678)';
+      }
+    }
+
+    function setScorePreset(win, lose) {
+      winnerScore = win;
+      loserScore = lose;
+      document.getElementById('display-winner-score').textContent = winnerScore;
+      document.getElementById('display-loser-score').textContent = loserScore;
+    }
+
+    function adjustLoserScore(delta) {
+      loserScore = Math.max(0, Math.min(winnerScore - 1, loserScore + delta));
+      document.getElementById('display-loser-score').textContent = loserScore;
+    }
+
+    function submitScoreMatch() {
+      closeScoreModal();
+      showToast(`Score Recorded (${winnerScore}-${loserScore})! Rating updated. Court cleared.`);
+    }
+
+    // Check-In Modal
+    function openCheckInModal() {
+      document.getElementById('checkin-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('input-new-player-name')?.focus(), 50);
+    }
+
+    function closeCheckInModal() {
+      document.getElementById('checkin-modal').classList.add('hidden');
+    }
+
+    function toggleHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function selectTier(rating, clickedBtn) {
+      selectedRatingTier = rating;
+      document.querySelectorAll('.tier-btn').forEach(b => {
+        b.className = 'tier-btn h-9 rounded-xl silk-extruded-sm text-slate-800 text-center font-mono text-[10px] p-1 border border-outline-variant';
+      });
+      clickedBtn.className = 'tier-btn h-9 rounded-xl bg-indigo-600 border-2 border-indigo-700 text-white text-center font-mono text-[10px] font-extrabold p-1 shadow-sm';
+    }
+
+    function submitNewPlayer() {
+      const input = document.getElementById('input-new-player-name');
+      const name = input.value.trim() || 'Guest Player';
+      const tbody = document.getElementById('roster-table-body');
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'GP';
+      const rowCount = tbody.querySelectorAll('.roster-row').length + 1;
+
+      const tr = document.createElement('tr');
+      tr.className = 'roster-row hover:bg-slate-50 transition-colors cursor-pointer group';
+      tr.innerHTML = `
+        <td class="py-1 px-2 text-center text-on-surface-variant font-mono text-[9px]">${rowCount}</td>
+        <td class="py-1 px-2">
+          <div class="flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 text-[9px] font-extrabold flex items-center justify-center border border-emerald-300">${initials}</span>
+            <span class="player-name font-bold text-slate-900 font-body-base text-[11px]">${name}</span>
+            <span class="text-on-surface-variant text-[9px]">#${Math.floor(4000 + Math.random() * 999)}</span>
+          </div>
+        </td>
+        <td class="py-1 px-2 text-primary font-bold">Rd ${selectedRatingTier} <span class="text-on-surface-variant font-normal">/ Rs ${selectedRatingTier}</span></td>
+        <td class="py-1 px-1.5 text-center text-slate-900 font-bold">0</td>
+        <td class="py-1 px-2 text-emerald-600 font-semibold">Just In</td>
+        <td class="py-1 px-2 text-right">
+          <button onclick="togglePlayerStatus(this)" class="status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all">
+            Queued
+          </button>
+        </td>
+      `;
+      tbody.prepend(tr);
+      input.value = '';
+      closeCheckInModal();
+      showToast(`${name} added to bench (Initial Rating: ${selectedRatingTier}).`);
+    }
+
+    // Toggle Queued / Resting
+    function togglePlayerStatus(button) {
+      const isQueued = button.textContent.trim().toLowerCase() === 'queued';
+      if (isQueued) {
+        button.textContent = 'Resting';
+        button.className = 'status-toggle-btn px-2 py-0.5 rounded-md silk-sunken-shallow text-slate-600 text-[9px] font-bold uppercase active:scale-95 transition-all border border-outline-variant';
+        showToast('Player status changed to RESTING.');
+      } else {
+        button.textContent = 'Queued';
+        button.className = 'status-toggle-btn px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[9px] uppercase active:scale-95 shadow-sm transition-all';
+        showToast('Player status changed to QUEUED.');
+      }
+    }
+
+    // Search filter
+    function filterRoster() {
+      const input = document.getElementById('roster-search-input');
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll('.roster-row');
+      rows.forEach(row => {
+        const nameEl = row.querySelector('.player-name');
+        if (nameEl) {
+          const match = nameEl.textContent.toLowerCase().includes(filter);
+          row.style.display = match ? '' : 'none';
+        }
+      });
+    }
+
+    // Initialize first row focus visual
+    document.addEventListener('DOMContentLoaded', () => {
+      selectCourt(2);
+      const rows = document.querySelectorAll('.roster-row');
+      if (rows[0]) rows[0].classList.add('bg-slate-100');
+    });
+</script>
+</body>
+</html>

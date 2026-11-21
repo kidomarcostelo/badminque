@@ -14,6 +14,12 @@ Badminque provides the badminton equivalent of the DUPR/RecClub model: an offlin
 
 ## 🌟 Key Features
 
+### 🎨 Google Stitch Courtside Design System
+- **Silk Light Soft Depth**: Glare-resistant slate surface containers (`surface-container-lowest` through `surface-container-highest`) with subtle extruded cards and sunken wells engineered for gym lighting.
+- **Dense Telemetry App Bar**: Compact 46px (`h-11`) header preserving vertical tablet real estate for 3-court live tracking.
+- **Tabular Precision Typography**: Tabular monospace numbers (**JetBrains Mono**) for elapsed clocks, scores, and DUBR ratings, paired with geometric sans-serif (**Plus Jakarta Sans**).
+- **Interactive Reference**: Full interactive station reference in [`prototypes/courtside-station-stitch.html`](prototypes/courtside-station-stitch.html) governed by [ADR 0003](docs/adr/0003-google-stitch-design-system.md).
+
 ### ⏱️ Courtside Station Board
 - **3-Court Rolling Dispatch**: Independent court state tracking (`IDLE` &rarr; `PROPOSED` &rarr; `IN_MATCH` &rarr; `SCORE_ENTRY`) designed specifically for tablet use courtside.
 - **30-Point Quick Scoring**: 1-tap preset score buttons (`30-28`, `30-25`, `30-22`, etc.) and a custom score entry keypad.

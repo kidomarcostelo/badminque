@@ -41,6 +41,18 @@ describe('CourtsideStationPage', () => {
     expect(await screen.findByText(/1 Players/i)).toBeInTheDocument();
   });
 
+  it('allows organizer to seed sample roster with 1-tap in offline demo mode', async () => {
+    render(<CourtsideStationPage />);
+
+    const seedButton = screen.getByRole('button', { name: /Seed Demo Roster/i });
+    expect(seedButton).toBeInTheDocument();
+
+    fireEvent.click(seedButton);
+
+    expect(await screen.findByText(/12 Players/i)).toBeInTheDocument();
+    expect(await screen.findByText('Viktor Axelsen')).toBeInTheDocument();
+  });
+
   it('completes full match cycle: active play, 30-point preset scoring, Badminton Stamina Invariant step-off, and court rotation', async () => {
     render(<CourtsideStationPage />);
 

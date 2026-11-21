@@ -198,19 +198,19 @@ export function QuickScoreModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="quick-score-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-md"
     >
-      <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col">
-        <div className="px-5 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+      <div className="silk-extruded bg-white dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col transition-colors">
+        <div className="px-5 py-4 bg-surface dark:bg-slate-950 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-300 font-mono font-extrabold text-sm">
+            <span className="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-400/40 text-indigo-700 dark:text-indigo-300 font-mono-badge font-extrabold text-sm shadow-xs">
               COURT {court.courtId}
             </span>
             <div>
-              <h3 id="quick-score-title" className="text-lg font-extrabold text-slate-100 leading-tight">
+              <h3 id="quick-score-title" className="text-lg font-headline-md font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
                 30-Point Match Score Entry
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-body-base">
                 Select Winning Pair &amp; tap a 30-pt preset or adjust deuce score
               </p>
             </div>
@@ -219,7 +219,7 @@ export function QuickScoreModal({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer transition-colors"
+            className="tactile-btn w-10 h-10 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center cursor-pointer transition-colors shadow-xs"
           >
             ✕
           </button>
@@ -227,9 +227,9 @@ export function QuickScoreModal({
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5 max-h-[85vh] overflow-y-auto">
           <div>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            <div className="flex items-center justify-between text-xs font-headline-md font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               <span>1. Tap Winning Doubles Pair</span>
-              <span className="font-mono text-emerald-400">
+              <span className="font-mono-data text-indigo-600 dark:text-emerald-400">
                 Projected Rating Impact: ±{ratingImpact.projectedWinnerDelta} RS
               </span>
             </div>
@@ -243,20 +243,20 @@ export function QuickScoreModal({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[11px] font-extrabold uppercase px-2 py-0.5 rounded ${
-                        isWinnerA ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                      className={`text-[11px] font-mono-badge font-extrabold uppercase px-2 py-0.5 rounded ${
+                        isWinnerA ? 'bg-indigo-600 text-white shadow-xs' : 'bg-surface-container-high dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}
                     >
                       {isWinnerA ? '★ WINNER • PAIR A' : 'PAIR A'}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">Avg {avgA}</span>
+                    <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">Avg {avgA}</span>
                   </div>
-                  <div className="text-base font-extrabold text-slate-100 truncate mt-1">
+                  <div className="text-base font-body-base font-extrabold text-slate-900 dark:text-slate-100 truncate mt-1">
                     {playerA1.name} &amp; {playerA2.name}
                   </div>
                   <div
-                    className={`text-xs font-mono font-bold mt-0.5 ${
-                      isWinnerA ? 'text-emerald-400' : 'text-rose-400'
+                    className={`text-xs font-mono-data font-bold mt-0.5 ${
+                      isWinnerA ? 'text-indigo-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'
                     }`}
                   >
                     {ratingImpact.deltaA >= 0
@@ -264,7 +264,7 @@ export function QuickScoreModal({
                       : `${ratingImpact.deltaA} RS each`}
                   </div>
                 </div>
-                <div className="text-4xl font-mono font-extrabold px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
+                <div className="text-4xl font-mono-data font-extrabold px-3 py-1.5 rounded-xl bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 shrink-0 shadow-inner">
                   {displayScoreA}
                 </div>
               </button>
@@ -277,20 +277,20 @@ export function QuickScoreModal({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[11px] font-extrabold uppercase px-2 py-0.5 rounded ${
-                        isWinnerB ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                      className={`text-[11px] font-mono-badge font-extrabold uppercase px-2 py-0.5 rounded ${
+                        isWinnerB ? 'bg-indigo-600 text-white shadow-xs' : 'bg-surface-container-high dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}
                     >
                       {isWinnerB ? '★ WINNER • PAIR B' : 'PAIR B'}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">Avg {avgB}</span>
+                    <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">Avg {avgB}</span>
                   </div>
-                  <div className="text-base font-extrabold text-slate-100 truncate mt-1">
+                  <div className="text-base font-body-base font-extrabold text-slate-900 dark:text-slate-100 truncate mt-1">
                     {playerB1.name} &amp; {playerB2.name}
                   </div>
                   <div
-                    className={`text-xs font-mono font-bold mt-0.5 ${
-                      isWinnerB ? 'text-emerald-400' : 'text-rose-400'
+                    className={`text-xs font-mono-data font-bold mt-0.5 ${
+                      isWinnerB ? 'text-indigo-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'
                     }`}
                   >
                     {ratingImpact.deltaB >= 0
@@ -298,7 +298,7 @@ export function QuickScoreModal({
                       : `${ratingImpact.deltaB} RS each`}
                   </div>
                 </div>
-                <div className="text-4xl font-mono font-extrabold px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
+                <div className="text-4xl font-mono-data font-extrabold px-3 py-1.5 rounded-xl bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 shrink-0 shadow-inner">
                   {displayScoreB}
                 </div>
               </button>
@@ -306,7 +306,7 @@ export function QuickScoreModal({
           </div>
 
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            <div className="text-xs font-headline-md font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               2. Instant 1-Tap 30-Point Presets
             </div>
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
@@ -317,9 +317,9 @@ export function QuickScoreModal({
                     key={labelText}
                     type="button"
                     onClick={() => handleApplyPreset(preset.winningScore, preset.losingScore)}
-                    className="min-h-[54px] sm:min-h-[60px] rounded-xl bg-slate-800 hover:bg-emerald-500/20 border-2 border-slate-700 flex flex-col items-center justify-center cursor-pointer transition-colors"
+                    className="silk-extruded-sm tactile-btn min-h-[54px] sm:min-h-[60px] rounded-xl bg-surface-container dark:bg-slate-800 hover:border-indigo-400 border-2 border-outline-variant dark:border-slate-700 flex flex-col items-center justify-center cursor-pointer transition-colors shadow-xs"
                   >
-                    <span className="font-mono text-xs sm:text-base font-extrabold text-slate-100">
+                    <span className="font-mono-data text-xs sm:text-base font-extrabold text-slate-900 dark:text-slate-100">
                       {labelText}
                     </span>
                     <span className={`text-[9px] sm:text-[10px] font-semibold uppercase ${preset.accent}`}>
@@ -331,9 +331,9 @@ export function QuickScoreModal({
             </div>
           </div>
 
-          <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-3.5">
+          <div className="silk-sunken bg-surface-container dark:bg-slate-950/90 border border-outline-variant dark:border-slate-800 rounded-xl p-4 space-y-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span className="text-xs font-headline-md font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                 <span>🔥</span>
                 <span>Overtime Deuce Stepper &amp; Exact Score Adjuster</span>
               </span>
@@ -345,7 +345,7 @@ export function QuickScoreModal({
                       key={deuceLabel}
                       type="button"
                       onClick={() => handleApplyPreset(wPts, lPts)}
-                      className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold cursor-pointer transition-colors"
+                      className="tactile-btn px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 border border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 font-mono-data text-xs font-bold cursor-pointer transition-colors shadow-xs"
                     >
                       {deuceLabel}
                     </button>
@@ -355,23 +355,23 @@ export function QuickScoreModal({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-2.5">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-2.5 shadow-xs">
                 <div>
-                  <div className="text-[11px] font-bold uppercase text-emerald-400">Winning Score</div>
-                  <div className="text-xs text-slate-400">Deuce / Cap</div>
+                  <div className="text-[11px] font-headline-md font-bold uppercase text-indigo-600 dark:text-emerald-400">Winning Score</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-body-base">Deuce / Cap</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     aria-label="Decrement Winner Score"
                     onClick={() => handleStepWinnerScore(-1)}
-                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xl font-mono font-bold text-slate-200 cursor-pointer flex items-center justify-center transition-colors"
+                    className="tactile-btn w-11 h-11 rounded-xl bg-surface-container dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-xl font-mono-data font-bold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-center transition-colors shadow-xs"
                   >
                     -
                   </button>
                   <span
                     data-testid="stepper-winner-val"
-                    className="w-10 text-center font-mono text-xl font-extrabold text-emerald-400"
+                    className="w-10 text-center font-mono-data text-xl font-extrabold text-indigo-600 dark:text-emerald-400"
                   >
                     {winnerScore}
                   </span>
@@ -379,30 +379,30 @@ export function QuickScoreModal({
                     type="button"
                     aria-label="Increment Winner Score"
                     onClick={() => handleStepWinnerScore(1)}
-                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xl font-mono font-bold text-slate-200 cursor-pointer flex items-center justify-center transition-colors"
+                    className="tactile-btn w-11 h-11 rounded-xl bg-surface-container dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-xl font-mono-data font-bold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-center transition-colors shadow-xs"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-2.5">
+              <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-2.5 shadow-xs">
                 <div>
-                  <div className="text-[11px] font-bold uppercase text-slate-300">Runner-Up Score</div>
-                  <div className="text-xs text-slate-400">Points Scored</div>
+                  <div className="text-[11px] font-headline-md font-bold uppercase text-slate-700 dark:text-slate-300">Runner-Up Score</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-body-base">Points Scored</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     aria-label="Decrement Runner-Up Score"
                     onClick={() => handleStepLoserScore(-1)}
-                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xl font-mono font-bold text-slate-200 cursor-pointer flex items-center justify-center transition-colors"
+                    className="tactile-btn w-11 h-11 rounded-xl bg-surface-container dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-xl font-mono-data font-bold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-center transition-colors shadow-xs"
                   >
                     -
                   </button>
                   <span
                     data-testid="stepper-loser-val"
-                    className="w-10 text-center font-mono text-xl font-extrabold text-slate-100"
+                    className="w-10 text-center font-mono-data text-xl font-extrabold text-slate-900 dark:text-slate-100"
                   >
                     {loserScore}
                   </span>
@@ -410,7 +410,7 @@ export function QuickScoreModal({
                     type="button"
                     aria-label="Increment Runner-Up Score"
                     onClick={() => handleStepLoserScore(1)}
-                    className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xl font-mono font-bold text-slate-200 cursor-pointer flex items-center justify-center transition-colors"
+                    className="tactile-btn w-11 h-11 rounded-xl bg-surface-container dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-xl font-mono-data font-bold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-center transition-colors shadow-xs"
                   >
                     +
                   </button>
@@ -419,12 +419,12 @@ export function QuickScoreModal({
             </div>
 
             <div className="pt-1">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1.5">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                 <span>Direct Runner-Up Keypad (Tap digits to type exact losing score):</span>
                 <button
                   type="button"
                   onClick={handleClearLoserDigits}
-                  className="text-amber-400 hover:underline font-mono cursor-pointer"
+                  className="text-amber-600 dark:text-amber-400 hover:underline font-mono-data font-bold cursor-pointer"
                 >
                   Reset (25)
                 </button>
@@ -436,7 +436,7 @@ export function QuickScoreModal({
                     type="button"
                     aria-label={`digit-${digit}`}
                     onClick={() => handleTapLoserDigit(digit)}
-                    className="min-h-[42px] rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 font-mono font-bold text-sm text-slate-200 cursor-pointer transition-colors"
+                    className="tactile-btn min-h-[42px] rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-outline-variant dark:border-slate-800 font-mono-data font-bold text-sm text-slate-800 dark:text-slate-200 cursor-pointer transition-colors shadow-xs"
                   >
                     {digit}
                   </button>
@@ -449,14 +449,14 @@ export function QuickScoreModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto min-h-[52px] px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm cursor-pointer transition-colors"
+              className="tactile-btn w-full sm:w-auto min-h-[50px] px-5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-300 font-headline-md font-bold text-sm cursor-pointer transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || winnerScore <= loserScore}
-              className="flex-1 w-full min-h-[52px] px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer transition-colors"
+              className="silk-btn-primary flex-1 w-full min-h-[50px] px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed text-white font-headline-md font-extrabold text-base flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
             >
               <span>Record Match Score &amp; Rotate Court</span>
             </button>
