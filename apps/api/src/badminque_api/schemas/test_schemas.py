@@ -325,6 +325,8 @@ def test_roster_player_response_computed_dubr_and_provisional() -> None:
     assert response.singles_dubr == 3.500
     assert response.doubles_dubr == 3.500
     assert response.is_provisional is True
+    assert response.singles_is_provisional is True
+    assert response.doubles_is_provisional is True
     assert response.initial_tier == SkillTierEnum.INTERMEDIATE
 
     # After 8 matches, is_provisional becomes False
@@ -335,12 +337,14 @@ def test_roster_player_response_computed_dubr_and_provisional() -> None:
         singles_rating=1800.0,
         doubles_rating=1800.0,
         matches_played=8,
+        doubles_matches_played=8,
         initial_tier=SkillTierEnum.ADVANCED,
         created_at=datetime.now(timezone.utc),
     )
     assert graduated_response.singles_dubr == 4.500
     assert graduated_response.doubles_dubr == 4.500
     assert graduated_response.is_provisional is False
+    assert graduated_response.doubles_is_provisional is False
 
 
 def test_roster_player_create_dubr_precision_rounding() -> None:

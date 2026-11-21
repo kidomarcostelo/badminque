@@ -141,6 +141,8 @@ class RosterPlayerResponse(RosterPlayerBase):
     club_id: UUID
     auth_user_id: UUID | None = None
     matches_played: int = Field(default=0, ge=0)
+    singles_matches_played: int = Field(default=0, ge=0)
+    doubles_matches_played: int = Field(default=0, ge=0)
     status: PlayerStateEnum = Field(default=PlayerStateEnum.QUEUED)
     created_at: datetime
 
@@ -158,6 +160,16 @@ class RosterPlayerResponse(RosterPlayerBase):
     @property
     def doubles_dubr(self) -> float:
         return round(rating_to_dubr(self.doubles_rating), 3)
+
+    @computed_field
+    @property
+    def singles_is_provisional(self) -> bool:
+        return is_provisional(self.singles_matches_played)
+
+    @computed_field
+    @property
+    def doubles_is_provisional(self) -> bool:
+        return is_provisional(self.doubles_matches_played)
 
     @computed_field
     @property

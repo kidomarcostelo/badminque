@@ -377,10 +377,12 @@ def test_get_club_leaderboard_tied_window_ranking(
     assert len(data) == 3
     assert not any(p["name"] == "High Rating Rookie" for p in data)
 
-    # First two players tie for rank 1
+    # First two players tie for rank 1 and sort deterministically alphabetically
     assert data[0]["rank"] == 1
+    assert data[0]["name"] == "Tied Alpha"
     assert data[0]["rating"] == 1700.0
     assert data[1]["rank"] == 1
+    assert data[1]["name"] == "Tied Beta"
     assert data[1]["rating"] == 1700.0
 
     # Third player receives rank 3 (skips 2)

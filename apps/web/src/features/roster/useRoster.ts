@@ -96,6 +96,11 @@ export function useRoster(initialClubId?: string): UseRosterResult {
             doubles_rating: doublesRating,
             singles_dubr: remotePlayer.singles_dubr ?? ratingToDubr(singlesRating),
             doubles_dubr: remotePlayer.doubles_dubr ?? ratingToDubr(doublesRating),
+            singles_matches_played: remotePlayer.singles_matches_played ?? 0,
+            doubles_matches_played:
+              remotePlayer.doubles_matches_played ?? remotePlayer.matches_played ?? 0,
+            singles_is_provisional: remotePlayer.singles_is_provisional,
+            doubles_is_provisional: remotePlayer.doubles_is_provisional,
             matches_played: remotePlayer.matches_played ?? 0,
             status: localRecord?.status ?? remotePlayer.status ?? 'QUEUED',
             checked_in_at:

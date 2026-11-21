@@ -104,6 +104,80 @@ describe('syncService', () => {
     expect(updatedP1?.doubles_rating).toBe(1532);
     expect(updatedP1?.doubles_dubr).toBe(3.58);
     expect(updatedP1?.matches_played).toBe(1);
+    expect(updatedP1?.doubles_matches_played).toBe(1);
+    expect(updatedP1?.doubles_is_provisional).toBe(true);
+  });
+
+  it('reconciles 8th match graduation from authoritative server during batch sync', async () => {
+    const graduatingPlayer: RosterPlayer = {
+      id: 'p-grad-sync',
+      name: 'Graduating Syncer',
+      auth_user_id: null,
+      singles_rating: 1500,
+      doubles_rating: 1680,
+      matches_played: 7,
+      doubles_matches_played: 7,
+      doubles_is_provisional: true,
+      status: 'RESTING',
+      checked_in_at: '2026-11-21T09:00:00Z',
+    };
+    await storageService.savePlayer(graduatingPlayer);
+
+    const match8: MatchRecord = {
+      id: 'match-grad-uuid',
+      club_night_id: clubNightId,
+      recorded_at: '2026-11-21T10:30:00Z',
+      sequence_num: 8,
+      court_id: 1,
+      discipline: 'DOUBLES',
+      format: 'SINGLE_21',
+      team_a_player_ids: ['p-grad-sync', 'p2'],
+      team_b_player_ids: ['p3', 'p4'],
+      team_a_scores: [21],
+      team_b_scores: [18],
+      status: 'PENDING',
+    };
+    await storageService.saveMatch(match8);
+
+    const mockResponse = {
+      synced_count: 1,
+      ignored_duplicates_count: 0,
+      status: 'success',
+      deltas: {
+        'match-grad-uuid': [
+          {
+            player_id: 'p-grad-sync',
+            player_name: 'Graduating Syncer',
+            pre_rating: 1680,
+            post_rating: 1705,
+            rating_delta: 25,
+            pre_dubr: 4.2,
+            post_dubr: 4.263,
+            dubr_delta: 0.063,
+            k_factor: 28.5,
+            rd_after: 310,
+            is_provisional: false,
+            matches_played_after: 8,
+          },
+        ],
+      },
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockResponse,
+    } as Response);
+
+    const result = await syncService.syncPendingMatches(clubNightId);
+    expect(result.status).toBe('success');
+
+    const roster = await storageService.getRoster();
+    const reconciled = roster.find((p) => p.id === 'p-grad-sync');
+    expect(reconciled?.doubles_rating).toBe(1705);
+    expect(reconciled?.matches_played).toBe(8);
+    expect(reconciled?.doubles_matches_played).toBe(8);
+    expect(reconciled?.doubles_is_provisional).toBe(false);
   });
 
   it('leaves matches PENDING when network drops during sync transmission', async () => {

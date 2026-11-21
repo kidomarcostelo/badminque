@@ -176,7 +176,11 @@ class ClaimService:
         if not include_provisional:
             stmt = stmt.where(matches_col >= 8)
 
-        stmt = stmt.order_by(rating_col.desc()).limit(limit).offset(offset)
+        stmt = (
+            stmt.order_by(rating_col.desc(), RosterPlayer.name.asc())
+            .limit(limit)
+            .offset(offset)
+        )
         rows = (await self.session.execute(stmt)).all()
 
         entries: list[LeaderboardEntryResponse] = []

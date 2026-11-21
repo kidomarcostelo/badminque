@@ -132,10 +132,14 @@ export function useMatchRecording(): UseMatchRecordingReturn {
             ? {
                 doubles_rating: delta.post_rating,
                 doubles_dubr: delta.post_dubr,
+                doubles_matches_played: delta.matches_played_after,
+                doubles_is_provisional: delta.is_provisional,
               }
             : {
                 singles_rating: delta.post_rating,
                 singles_dubr: delta.post_dubr,
+                singles_matches_played: delta.matches_played_after,
+                singles_is_provisional: delta.is_provisional,
               }),
           matches_played: delta.matches_played_after,
           status: 'RESTING',

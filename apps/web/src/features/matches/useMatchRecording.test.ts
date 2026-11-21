@@ -147,5 +147,49 @@ describe('useMatchRecording', () => {
     // singles_rating updated, doubles_rating untouched
     expect(storedS1?.singles_rating).toBe(deltaS1?.post_rating);
     expect(storedS1?.doubles_rating).toBe(1500.0);
+    expect(storedS1?.singles_matches_played).toBe(1);
+    expect(storedS1?.singles_is_provisional).toBe(true);
+  });
+
+  it('graduates player on their 8th match, setting matches played to 8 and is_provisional to false', async () => {
+    const p1: RosterPlayer = {
+      ...createPlayer('grad-1', 'Graduating Player'),
+      doubles_matches_played: 7,
+      matches_played: 7,
+      doubles_is_provisional: true,
+    };
+    const p2 = createPlayer('p2', 'Partner');
+    const p3 = createPlayer('p3', 'Opponent A');
+    const p4 = createPlayer('p4', 'Opponent B');
+
+    await storageService.savePlayer(p1);
+    await storageService.savePlayer(p2);
+    await storageService.savePlayer(p3);
+    await storageService.savePlayer(p4);
+
+    const { result } = renderHook(() => useMatchRecording());
+
+    let outcome: MatchRecordingResult | undefined;
+    await act(async () => {
+      outcome = await result.current.recordMatchScore({
+        courtId: 1,
+        clubNightId: 'club-night-1',
+        discipline: 'DOUBLES',
+        format: 'SINGLE_21',
+        teamAPlayers: [p1, p2],
+        teamBPlayers: [p3, p4],
+        teamAScores: [21],
+        teamBScores: [15],
+      });
+    });
+
+    const deltaGrad = outcome?.deltas.find((d) => d.player_id === 'grad-1');
+    expect(deltaGrad?.matches_played_after).toBe(8);
+    expect(deltaGrad?.is_provisional).toBe(false);
+
+    const storedRoster = await storageService.getRoster();
+    const storedGrad = storedRoster.find((p) => p.id === 'grad-1');
+    expect(storedGrad?.doubles_matches_played).toBe(8);
+    expect(storedGrad?.doubles_is_provisional).toBe(false);
   });
 });

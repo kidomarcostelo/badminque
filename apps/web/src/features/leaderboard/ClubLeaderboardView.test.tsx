@@ -198,4 +198,104 @@ describe('ClubLeaderboardView', () => {
     fireEvent.click(screen.getByText('Rookie Guest'));
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'p3' }));
   });
+
+  it('strictly adheres to domain vocabulary and does not use prohibited "Elo Rating" in table headers', () => {
+    render(<ClubLeaderboardView roster={sampleRoster} />);
+
+    // Prohibited vocabulary check
+    expect(screen.queryByText(/Elo Rating/i)).not.toBeInTheDocument();
+
+    // Canonical "Rating" should be present
+    const ratingHeaders = screen.getAllByRole('columnheader', { name: /Rating/i });
+    expect(ratingHeaders.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('switches discipline to Singles and ranks established singles players while calibrating cross-discipline players', () => {
+    const multiDisciplineRoster: RosterPlayer[] = [
+      {
+        id: 'p-singles-star',
+        name: 'Singles Specialist',
+        auth_user_id: null,
+        singles_rating: 1850,
+        singles_matches_played: 12,
+        singles_is_provisional: false,
+        doubles_rating: 1400,
+        doubles_matches_played: 2,
+        doubles_is_provisional: true,
+        matches_played: 14,
+        status: 'QUEUED',
+        checked_in_at: new Date().toISOString(),
+      },
+      {
+        id: 'p-doubles-star',
+        name: 'Doubles Specialist',
+        auth_user_id: null,
+        singles_rating: 1500,
+        singles_matches_played: 0,
+        doubles_rating: 1900,
+        doubles_matches_played: 20,
+        doubles_is_provisional: false,
+        matches_played: 20,
+        status: 'RESTING',
+        checked_in_at: new Date().toISOString(),
+      },
+    ];
+
+    render(<ClubLeaderboardView roster={multiDisciplineRoster} />);
+
+    // On default Doubles tab: Doubles Specialist is #1 established; Singles Specialist is excluded (<8 doubles matches)
+    expect(screen.getByText('Doubles Specialist')).toBeInTheDocument();
+    expect(screen.queryByText('Singles Specialist')).not.toBeInTheDocument();
+
+    // Switch to Singles tab
+    const singlesTab = screen.getByRole('button', { name: /Singles/i });
+    fireEvent.click(singlesTab);
+
+    // Now Singles Specialist is #1 established in Singles
+    expect(screen.getByText('Singles Specialist')).toBeInTheDocument();
+    expect(screen.getByText(/#1/)).toBeInTheDocument();
+    // Singles rating: 1850 => DUBR: 2.0 + (1850-800)/400 = 4.625
+    expect(screen.getByText('4.625')).toBeInTheDocument();
+
+    // Doubles Specialist has 0 singles matches, so excluded from Singles official table
+    expect(screen.queryByText('Doubles Specialist')).not.toBeInTheDocument();
+
+    // Open calibrating section
+    const expandButton = screen.getByRole('button', { name: /Show Calibrating/i });
+    fireEvent.click(expandButton);
+
+    // Doubles Specialist appears in Singles Calibrating with seeded prior rating from doubles (1900)
+    expect(screen.getByText('Doubles Specialist')).toBeInTheDocument();
+    expect(screen.getByText(/0\/8 matches/i)).toBeInTheDocument();
+    // Seeded DUBR: 2.0 + (1900-800)/400 = 4.750
+    expect(screen.getByText('4.750')).toBeInTheDocument();
+    expect(screen.getByText(/Seeded/i)).toBeInTheDocument();
+  });
+
+  it('renders clean empty state messages when roster has no players or only calibrating players', () => {
+    const { rerender } = render(<ClubLeaderboardView roster={[]} />);
+
+    expect(
+      screen.getByText(/No players in the club roster/i)
+    ).toBeInTheDocument();
+
+    const calibratingOnlyRoster: RosterPlayer[] = [
+      {
+        id: 'p-rookie',
+        name: 'Rookie One',
+        auth_user_id: null,
+        singles_rating: 1500,
+        doubles_rating: 1500,
+        matches_played: 3,
+        doubles_matches_played: 3,
+        status: 'QUEUED',
+        checked_in_at: new Date().toISOString(),
+      },
+    ];
+
+    rerender(<ClubLeaderboardView roster={calibratingOnlyRoster} />);
+    expect(
+      screen.getByText(/No established players yet in this discipline/i)
+    ).toBeInTheDocument();
+  });
 });

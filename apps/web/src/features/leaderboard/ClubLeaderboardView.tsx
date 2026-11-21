@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import {
   formatDubr,
+  getEffectiveDisciplineRating,
   ratingToDubr,
   type RosterPlayer,
 } from '@badminque/core';
@@ -28,8 +29,14 @@ export function ClubLeaderboardView({
       : (player.singles_matches_played ?? 0);
   };
 
+  const isPlayerEstablished = (player: RosterPlayer): boolean => {
+    return isDoubles
+      ? player.doubles_is_provisional === false || getPlayerMatches(player) >= 8
+      : player.singles_is_provisional === false || getPlayerMatches(player) >= 8;
+  };
+
   const getPlayerRating = (player: RosterPlayer): number => {
-    return isDoubles ? player.doubles_rating : player.singles_rating;
+    return getEffectiveDisciplineRating(player, discipline).rating;
   };
 
   const getPlayerDubr = (player: RosterPlayer): string => {
@@ -37,17 +44,25 @@ export function ClubLeaderboardView({
     const dubr = isDoubles
       ? (player.doubles_dubr ?? ratingToDubr(rating))
       : (player.singles_dubr ?? ratingToDubr(rating));
+    const isSeeded = getEffectiveDisciplineRating(player, discipline).isSeeded;
+    if (isSeeded) {
+      return formatDubr(ratingToDubr(rating));
+    }
     return formatDubr(dubr);
   };
 
-  // 1. Separate established (>=8 matches) from calibrating (<8 matches) players
-  const establishedPlayers = roster.filter((p) => getPlayerMatches(p) >= 8);
-  const calibratingPlayers = roster.filter((p) => getPlayerMatches(p) < 8);
+  const formatRating = (val: number): string => {
+    return Number.isInteger(val) ? val.toString() : val.toFixed(1);
+  };
+
+  // 1. Separate established (>=8 matches or is_provisional === false) from calibrating (<8 matches) players
+  const establishedPlayers = roster.filter(isPlayerEstablished);
+  const calibratingPlayers = roster.filter((p) => !isPlayerEstablished(p));
 
   // 2. Sort established descending by discipline rating (tie breaker by name)
   const sortedEstablished = [...establishedPlayers].sort((a, b) => {
     const ratingDiff = getPlayerRating(b) - getPlayerRating(a);
-    if (ratingDiff !== 0) return ratingDiff;
+    if (Math.abs(ratingDiff) > 1e-4) return ratingDiff;
     return a.name.localeCompare(b.name);
   });
 
@@ -58,7 +73,7 @@ export function ClubLeaderboardView({
     if (idx > 0) {
       const prev = sortedEstablished[idx - 1];
       const prevRating = prev ? getPlayerRating(prev) : 0;
-      if (rating < prevRating) {
+      if (prevRating - rating > 1e-4) {
         currentRank = idx + 1;
       }
     }
@@ -137,7 +152,11 @@ export function ClubLeaderboardView({
       </div>
 
       {/* Official Leaderboard Table (Established Players) */}
-      {rankedEstablished.length === 0 ? (
+      {roster.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 text-sm">
+          No players in the club roster. Check in players to see rankings.
+        </div>
+      ) : rankedEstablished.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 text-sm">
           No established players yet in this discipline. Players graduate into official club rankings upon completing 8 matches.
         </div>
@@ -150,7 +169,7 @@ export function ClubLeaderboardView({
                   <th className="py-3 px-4">Rank</th>
                   <th className="py-3 px-4">Player</th>
                   <th className="py-3 px-4 text-right">DUBR</th>
-                  <th className="py-3 px-4 text-right">Elo Rating</th>
+                  <th className="py-3 px-4 text-right">Rating</th>
                   <th className="py-3 px-4 text-right">Matches</th>
                   <th className="py-3 px-4 text-center">Status</th>
                 </tr>
@@ -179,7 +198,7 @@ export function ClubLeaderboardView({
                       {dubr}
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-slate-200">
-                      {rating}
+                      {formatRating(rating)}
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-slate-400">
                       {matches}
@@ -240,7 +259,7 @@ export function ClubLeaderboardView({
                     <th className="py-3 px-4">Progress</th>
                     <th className="py-3 px-4">Player</th>
                     <th className="py-3 px-4 text-right">DUBR</th>
-                    <th className="py-3 px-4 text-right">Elo Rating</th>
+                    <th className="py-3 px-4 text-right">Rating</th>
                     <th className="py-3 px-4 text-right">Matches</th>
                     <th className="py-3 px-4 text-center">Status</th>
                   </tr>
@@ -250,6 +269,7 @@ export function ClubLeaderboardView({
                     const matches = getPlayerMatches(player);
                     const rating = getPlayerRating(player);
                     const dubr = getPlayerDubr(player);
+                    const isSeeded = getEffectiveDisciplineRating(player, discipline).isSeeded;
 
                     return (
                       <tr
@@ -275,6 +295,11 @@ export function ClubLeaderboardView({
                             <span className="font-semibold text-slate-200 group-hover:text-amber-300 transition-colors">
                               {player.name}
                             </span>
+                            {isSeeded && (
+                              <span className="text-[10px] bg-purple-500/15 border border-purple-500/30 text-purple-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                                Seeded
+                              </span>
+                            )}
                             {player.auth_user_id && (
                               <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono">
                                 Claimed
@@ -286,7 +311,7 @@ export function ClubLeaderboardView({
                           {dubr}
                         </td>
                         <td className="py-3 px-4 text-right font-mono text-slate-300">
-                          {rating}
+                          {formatRating(rating)}
                         </td>
                         <td className="py-3 px-4 text-right font-mono text-slate-400">
                           {matches}
