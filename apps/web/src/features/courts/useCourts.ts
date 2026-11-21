@@ -66,6 +66,7 @@ export interface UseCourtsResult {
     winningScore: number,
     losingScore: number
   ) => Promise<MatchRecordingResult>;
+  seedDemoCourts: (seededRoster?: RosterPlayer[]) => Promise<void>;
 }
 
 const DEFAULT_INITIAL_COURTS: CourtStationData[] = [
@@ -908,6 +909,71 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
     [roster, refreshMatches, onRosterChange]
   );
 
+  const seedDemoCourts = useCallback(
+    async (seededRoster?: RosterPlayer[]): Promise<void> => {
+      let pool = seededRoster && seededRoster.length >= 8 ? seededRoster : roster;
+      if (pool.length < 8) {
+        try {
+          const loaded = await storageService.getRoster();
+          if (loaded.length >= 8) {
+            pool = loaded;
+          }
+        } catch {
+          // Fallback to existing pool
+        }
+      }
+      if (pool.length < 8) {
+        return;
+      }
+
+      const [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12] = pool;
+
+      const court1: CourtStationData = {
+        courtId: 1,
+        name: 'Court 1 • Show Court',
+        state: 'IN_MATCH',
+        elapsedSeconds: 840,
+        teamA: [p1, p2],
+        teamB: [p3, p4],
+      };
+
+      const court2: CourtStationData = {
+        courtId: 2,
+        name: 'Court 2 • Center',
+        state: 'IN_MATCH',
+        elapsedSeconds: 480,
+        teamA: [p5, p6],
+        teamB: [p7, p8],
+      };
+
+      const court3: CourtStationData = {
+        courtId: 3,
+        name: 'Court 3 • Far Side',
+        state: 'SCORE_ENTRY',
+        elapsedSeconds: 1260,
+        teamA: p9 && p10 ? [p9, p10] : [p1, p3],
+        teamB: p11 && p12 ? [p11, p12] : [p2, p4],
+      };
+
+      const nextCourts = [court1, court2, court3];
+      courtsRef.current = nextCourts;
+      setCourts(nextCourts);
+
+      const playingPlayers = [p1, p2, p3, p4, p5, p6, p7, p8].filter(Boolean);
+      for (const p of playingPlayers) {
+        try {
+          await storageService.savePlayer({ ...p, status: 'PLAYING' });
+        } catch {
+          // Ignore
+        }
+      }
+
+      void refreshMatches();
+      await onRosterChange?.();
+    },
+    [roster, refreshMatches, onRosterChange]
+  );
+
   const activeScoreCourt =
     activeScoreCourtId !== null
       ? courts.find((court) => court.courtId === activeScoreCourtId) ?? null
@@ -938,5 +1004,6 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
     stageCustomMatch,
     setCourtIdle,
     submitScore,
+    seedDemoCourts,
   };
 }

@@ -238,5 +238,10 @@ export async function seedMockData(
     await storage.savePlayer(player);
   }
 
+  const mockMatches = createMockCompletedMatches(mockRoster);
+  for (const match of mockMatches) {
+    await storage.saveMatch(match);
+  }
+
   return mockRoster.length;
 }

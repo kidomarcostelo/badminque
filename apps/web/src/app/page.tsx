@@ -68,6 +68,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
     assignPlayerToCourt,
     setCourtIdle,
     submitScore,
+    seedDemoCourts,
   } = useCourts({
     roster,
     onRosterChange: refresh,
@@ -100,6 +101,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
       setIsSeeding(true);
       await seedMockData(storageService, true);
       await refresh();
+      await seedDemoCourts();
     } catch (err) {
       console.error('Failed to seed demo data:', err);
     } finally {
@@ -198,7 +200,8 @@ export default function CourtsideStationPage(): React.JSX.Element {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[10px] text-slate-800 font-mono font-medium">3 Courts</span>
               <span className="text-[9px] text-indigo-600 hidden md:inline font-semibold">
-                (2 In Play, 1 Enter Score)
+                ({courts.filter((c) => c.state === 'IN_MATCH').length} In Play,{' '}
+                {courts.filter((c) => c.state === 'SCORE_ENTRY').length} Enter Score)
               </span>
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg silk-extruded-sm border border-outline-variant">
@@ -213,7 +216,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
 
         {/* Center/Right: Shortcuts Pills & Organiser Triggers */}
         <div className="flex items-center gap-1.5">
-          {roster.length === 0 && (
+          {roster.length === 0 ? (
             <button
               type="button"
               disabled={isSeeding}
@@ -225,6 +228,19 @@ export default function CourtsideStationPage(): React.JSX.Element {
                 {isSeeding ? 'hourglass_top' : 'bolt'}
               </span>
               <span>{isSeeding ? 'Seeding...' : 'Seed Demo Roster'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSeeding}
+              onClick={() => void handleSeedDemoData()}
+              className="h-7 px-2 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-outline-variant font-mono text-[10px] font-semibold flex items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-60"
+              title="Re-seed demo session with 12 players and active courts"
+            >
+              <span className="material-symbols-outlined text-[13px] text-indigo-600">
+                {isSeeding ? 'hourglass_top' : 'refresh'}
+              </span>
+              <span>{isSeeding ? 'Seeding...' : 'Re-Seed Demo'}</span>
             </button>
           )}
 

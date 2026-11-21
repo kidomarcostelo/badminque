@@ -50,7 +50,7 @@ describe('CourtsideStationPage', () => {
     fireEvent.click(seedButton);
 
     expect(await screen.findByText(/12 Players/i)).toBeInTheDocument();
-    expect(await screen.findByText('Viktor Axelsen')).toBeInTheDocument();
+    expect((await screen.findAllByText('Viktor Axelsen')).length).toBeGreaterThanOrEqual(1);
   });
 
   it('completes full match cycle: active play, 30-point preset scoring, Badminton Stamina Invariant step-off, and court rotation', async () => {
