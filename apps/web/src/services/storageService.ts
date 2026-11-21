@@ -7,7 +7,7 @@ import type {
 } from '@badminque/core';
 
 export const DATABASE_NAME = 'badminque_offline_db' as const;
-export const DATABASE_VERSION = 1 as const;
+export const DATABASE_VERSION = 2 as const;
 
 interface BadminqueDBSchema extends DBSchema {
   matches: {
@@ -35,7 +35,7 @@ export async function getDatabaseConnection(): Promise<IDBPDatabase<BadminqueDBS
   }
 
   databaseInstance = await openDB<BadminqueDBSchema>(DATABASE_NAME, DATABASE_VERSION, {
-    upgrade(database) {
+    upgrade(database, _oldVersion, _newVersion, transaction) {
       if (!database.objectStoreNames.contains('matches')) {
         const matchStore = database.createObjectStore('matches', { keyPath: 'id' });
         matchStore.createIndex('by_status', 'status');
@@ -45,6 +45,11 @@ export async function getDatabaseConnection(): Promise<IDBPDatabase<BadminqueDBS
       if (!database.objectStoreNames.contains('roster')) {
         const rosterStore = database.createObjectStore('roster', { keyPath: 'id' });
         rosterStore.createIndex('by_status', 'status');
+      } else {
+        const rosterStore = transaction.objectStore('roster');
+        if (!rosterStore.indexNames.contains('by_status')) {
+          rosterStore.createIndex('by_status', 'status');
+        }
       }
     },
   });
@@ -135,17 +140,33 @@ export class IndexedDBStorageService implements StorageAdapter {
 }
 
 export async function isPersistenceSupported(): Promise<boolean> {
-  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) {
+  try {
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.storage ||
+      typeof navigator.storage.persisted !== 'function'
+    ) {
+      return false;
+    }
+    return await navigator.storage.persisted();
+  } catch {
     return false;
   }
-  return navigator.storage.persisted();
 }
 
 export async function requestPersistentStorage(): Promise<boolean> {
-  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) {
+  try {
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.storage ||
+      typeof navigator.storage.persist !== 'function'
+    ) {
+      return false;
+    }
+    return await navigator.storage.persist();
+  } catch {
     return false;
   }
-  return navigator.storage.persist();
 }
 
 export const storageService = new IndexedDBStorageService();

@@ -20,6 +20,7 @@ export interface RosterCheckInListProps {
   onRosterChange?: () => void;
   onSelectPlayer?: (player: RosterPlayer) => void;
   roster?: RosterPlayer[];
+  onSeedDemo?: () => void | Promise<void>;
 }
 
 function getPlayerInitials(name: string): string {
@@ -47,6 +48,7 @@ export function RosterCheckInList({
   onRosterChange,
   onSelectPlayer,
   roster: propRoster,
+  onSeedDemo,
 }: RosterCheckInListProps): React.JSX.Element {
   const {
     roster,
@@ -228,8 +230,21 @@ export function RosterCheckInList({
         </div>
 
         {effectiveFilteredRoster.length === 0 ? (
-          <div className="p-8 text-center text-xs font-body-base text-on-surface-variant">
-            No players checked in yet. Type a name above to check in.
+          <div className="p-8 text-center text-xs font-body-base text-on-surface-variant flex flex-col items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-slate-400 text-[26px]">
+              group_add
+            </span>
+            <span>No players checked in yet. Type a name above to check in.</span>
+            {onSeedDemo && (
+              <button
+                type="button"
+                onClick={() => void onSeedDemo()}
+                className="mt-1 h-7 px-3 rounded-lg silk-btn-primary text-white font-headline-sm font-bold text-[11px] flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+              >
+                <span className="material-symbols-outlined text-[14px]">bolt</span>
+                <span>Populate Demo Roster</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

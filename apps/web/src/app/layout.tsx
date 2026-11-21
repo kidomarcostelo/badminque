@@ -26,11 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): React.JSX.Element {
   return (
-    <html lang="en" className="light h-full overflow-hidden">
+    <html lang="en" className="light">
       <head>
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="bg-surface font-body-base text-on-surface h-screen w-screen overflow-hidden flex flex-col justify-between text-xs antialiased selection:bg-primary selection:text-white">
+      <body className="bg-surface font-body-base text-on-surface min-h-screen w-full flex flex-col justify-between text-xs antialiased selection:bg-primary selection:text-white">
         {children}
       </body>
     </html>

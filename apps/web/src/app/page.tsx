@@ -34,6 +34,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
   const [passportPlayer, setPassportPlayer] = useState<RosterPlayer | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
   const [isQuickCheckInModalOpen, setIsQuickCheckInModalOpen] = useState<boolean>(false);
+  const [isSeeding, setIsSeeding] = useState<boolean>(false);
   const { roster, pendingMatches, refresh } = useStorage();
 
   const clubNightId = 'default-club-night';
@@ -95,8 +96,15 @@ export default function CourtsideStationPage(): React.JSX.Element {
   const queuedPlayersCount = roster.filter((player) => player.status === 'QUEUED').length;
 
   const handleSeedDemoData = async (): Promise<void> => {
-    await seedMockData(storageService);
-    await refresh();
+    try {
+      setIsSeeding(true);
+      await seedMockData(storageService, true);
+      await refresh();
+    } catch (err) {
+      console.error('Failed to seed demo data:', err);
+    } finally {
+      setIsSeeding(false);
+    }
   };
 
   const handleAutoDispatch = (): void => {
@@ -161,7 +169,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-surface font-body-base text-on-surface flex flex-col justify-between antialiased selection:bg-primary selection:text-white">
       {/* 1. Google Stitch Compact Telemetry App Bar (~46px) */}
-      <header className="h-11 flex-shrink-0 bg-white border-b border-outline-variant px-3 flex items-center justify-between gap-2 z-30 shadow-xs">
+      <header className="h-11 flex-shrink-0 bg-white border-b border-outline-variant px-3 flex items-center justify-between gap-2 z-30 shadow-xs sticky top-0">
         <div className="flex items-center gap-3">
           {/* Logo & Mode */}
           <div className="flex items-center gap-2">
@@ -208,12 +216,15 @@ export default function CourtsideStationPage(): React.JSX.Element {
           {roster.length === 0 && (
             <button
               type="button"
+              disabled={isSeeding}
               onClick={() => void handleSeedDemoData()}
-              className="h-7 px-2.5 rounded-lg silk-btn-primary text-white font-headline-sm font-bold text-[11px] flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+              className="h-7 px-2.5 rounded-lg silk-btn-primary text-white font-headline-sm font-bold text-[11px] flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all disabled:opacity-60"
               title="Seed sample players across Beginner, Intermediate, and Advanced tiers"
             >
-              <span className="material-symbols-outlined text-[14px]">bolt</span>
-              <span>Seed Demo Roster</span>
+              <span className="material-symbols-outlined text-[14px]">
+                {isSeeding ? 'hourglass_top' : 'bolt'}
+              </span>
+              <span>{isSeeding ? 'Seeding...' : 'Seed Demo Roster'}</span>
             </button>
           )}
 
@@ -282,7 +293,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
       </header>
 
       {/* 2. Main Operational Cockpit */}
-      <main className="flex-1 w-full max-w-[1720px] mx-auto p-2 gap-2.5 flex flex-col min-h-0 bg-surface">
+      <main className="flex-1 w-full max-w-[1720px] mx-auto p-2 sm:p-3 gap-3 flex flex-col bg-surface">
         {/* Navigation Tabs Sub-Bar */}
         <div className="flex items-center justify-between gap-2 border-b border-outline-variant pb-1.5 flex-shrink-0">
           <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-outline-variant text-xs font-bold shadow-2xs">
@@ -330,7 +341,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
         </div>
 
         {mainView === 'board' ? (
-          <div className="flex-1 flex flex-col gap-2.5 min-h-0">
+          <div className="flex-1 flex flex-col gap-3">
             {/* Top Section: Ultra-Compact 3-Court Active Matrix */}
             <section aria-label="Active Station Board" className="flex-shrink-0">
               <div className="flex items-center justify-between pb-1">
@@ -369,9 +380,9 @@ export default function CourtsideStationPage(): React.JSX.Element {
             </section>
 
             {/* Lower Section: Split 2-Column Dense Operational Pane */}
-            <section aria-label="Staging & Bench Roster" className="flex-1 grid grid-cols-12 gap-2.5 min-h-0">
+            <section aria-label="Staging & Bench Roster" className="grid grid-cols-12 gap-3 items-start">
               {/* Left Column: On-Deck Staging Queue (5 cols) */}
-              <div className="col-span-12 lg:col-span-5 silk-extruded rounded-xl p-2.5 min-h-0 flex flex-col border border-outline-variant shadow-xs">
+              <div className="col-span-12 lg:col-span-5 silk-extruded rounded-xl p-3 flex flex-col border border-outline-variant shadow-xs">
                 <OnDeckStagingPool
                   onDeckGroups={onDeckGroups}
                   onDispatchToCourt={dispatchDeckMatch}
@@ -383,7 +394,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
               </div>
 
               {/* Right Column: Courtside Bench Roster (7 cols) */}
-              <div className="col-span-12 lg:col-span-7 silk-extruded rounded-xl p-2.5 min-h-0 flex flex-col border border-outline-variant shadow-xs">
+              <div className="col-span-12 lg:col-span-7 silk-extruded rounded-xl p-3 flex flex-col border border-outline-variant shadow-xs">
                 <h2 className="text-xs font-headline-sm font-extrabold uppercase tracking-tight text-slate-900 mb-2 flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-primary text-[15px]">groups</span>
                   <span>Courtside Check-In &amp; Bench Roster</span>
@@ -392,6 +403,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
                   roster={roster}
                   onRosterChange={refresh}
                   onSelectPlayer={(player) => setSelectedActionSheetPlayer(player)}
+                  onSeedDemo={handleSeedDemoData}
                 />
               </div>
             </section>

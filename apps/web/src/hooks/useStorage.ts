@@ -35,6 +35,14 @@ export function useStorage(): UseStorageResult {
       setRoster(fetchedRoster);
       setPendingMatches(fetchedMatches);
       setIsPersistent(persisted);
+    } catch (err) {
+      console.error('Failed to refresh storage:', err);
+      try {
+        const fallbackRoster = await storageService.getRoster();
+        setRoster(fallbackRoster);
+      } catch (innerErr) {
+        console.error('Fallback roster query failed:', innerErr);
+      }
     } finally {
       setIsLoading(false);
     }

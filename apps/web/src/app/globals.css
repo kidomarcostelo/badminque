@@ -5,8 +5,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Refined unobtrusive scrollbars */
 ::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
 }
 
 :root {
@@ -28,9 +43,6 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
 }
 
 /* Google Stitch Design System: Silk Light Soft Depth & Neomorphic Depth System */

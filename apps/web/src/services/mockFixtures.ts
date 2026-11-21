@@ -221,14 +221,15 @@ export function createMockCompletedMatches(roster: RosterPlayer[]): MatchRecord[
 }
 
 /**
- * Seeds local IndexedDB storage with mock data if currently empty.
- * Returns the count of seeded players (or 0 if already populated).
+ * Seeds local IndexedDB storage with mock data if currently empty (or forcibly if requested).
+ * Returns the count of seeded players (or 0 if already populated and not forced).
  */
 export async function seedMockData(
-  storage: StorageAdapter | typeof storageService
+  storage: StorageAdapter | typeof storageService,
+  force = false
 ): Promise<number> {
   const existingRoster = await storage.getRoster();
-  if (existingRoster.length > 0) {
+  if (existingRoster.length > 0 && !force) {
     return 0;
   }
 
