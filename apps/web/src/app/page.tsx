@@ -7,6 +7,7 @@ import {
   type RosterPlayer,
   type RotationPolicy,
 } from '@badminque/core';
+import { ClaimTokenModal } from '../features/claims';
 import {
   CourtStationCard,
   CustomMatchModal,
@@ -15,14 +16,18 @@ import {
   QuickScoreModal,
   useCourts,
 } from '../features/courts';
+import { ClubLeaderboardView } from '../features/leaderboard';
+import { PlayerPassportModal } from '../features/passport';
 import { PlayerTouchActionSheet, RosterCheckInList } from '../features/roster';
 import { SyncStatusIndicator, useSync } from '../features/sync';
 import { useStorage } from '../hooks/useStorage';
 
 export default function CourtsideStationPage(): React.JSX.Element {
-  const [mainView, setMainView] = useState<'board' | 'history'>('board');
+  const [mainView, setMainView] = useState<'board' | 'history' | 'leaderboard'>('board');
   const [customMatchTargetSlot, setCustomMatchTargetSlot] = useState<number | null>(null);
   const [selectedActionSheetPlayer, setSelectedActionSheetPlayer] = useState<RosterPlayer | null>(null);
+  const [claimTokenPlayer, setClaimTokenPlayer] = useState<RosterPlayer | null>(null);
+  const [passportPlayer, setPassportPlayer] = useState<RosterPlayer | null>(null);
   const { roster, pendingMatches, isPersistent, refresh } = useStorage();
 
   const clubNightId = 'default-club-night';
@@ -192,6 +197,17 @@ export default function CourtsideStationPage(): React.JSX.Element {
             >
               <span>Match History ({pendingMatches.length})</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setMainView('leaderboard')}
+              className={
+                mainView === 'leaderboard'
+                  ? 'px-4 py-2.5 rounded-xl bg-indigo-600 text-white flex items-center gap-2 font-extrabold shadow-md shadow-indigo-600/20 cursor-pointer transition-colors'
+                  : 'px-4 py-2.5 rounded-xl text-slate-400 hover:text-slate-100 flex items-center gap-2 font-bold cursor-pointer transition-colors'
+              }
+            >
+              <span>Club Leaderboard</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
@@ -274,11 +290,16 @@ export default function CourtsideStationPage(): React.JSX.Element {
               />
             </section>
           </div>
-        ) : (
+        ) : mainView === 'history' ? (
           <MatchHistoryView
             matches={pendingMatches}
             roster={roster}
             onReturnToBoard={() => setMainView('board')}
+          />
+        ) : (
+          <ClubLeaderboardView
+            roster={roster}
+            onSelectPlayer={(player) => setPassportPlayer(player)}
           />
         )}
       </div>
@@ -344,6 +365,27 @@ export default function CourtsideStationPage(): React.JSX.Element {
           await unpinPlayerPair(playerId);
           setSelectedActionSheetPlayer(null);
         }}
+        onOpenClaimToken={(player) => {
+          setSelectedActionSheetPlayer(null);
+          setClaimTokenPlayer(player);
+        }}
+        onOpenPassport={(player) => {
+          setSelectedActionSheetPlayer(null);
+          setPassportPlayer(player);
+        }}
+      />
+
+      {/* Tricount Claim Token & Passport Modals */}
+      <ClaimTokenModal
+        isOpen={claimTokenPlayer !== null}
+        player={claimTokenPlayer}
+        onClose={() => setClaimTokenPlayer(null)}
+      />
+
+      <PlayerPassportModal
+        isOpen={passportPlayer !== null}
+        player={passportPlayer}
+        onClose={() => setPassportPlayer(null)}
       />
 
       <footer className="mt-auto py-4 border-t border-slate-800 text-center text-xs text-slate-400">

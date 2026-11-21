@@ -20,6 +20,8 @@ export interface PlayerTouchActionSheetProps {
   onToggleRest: (playerId: string) => void;
   onPinPair: (playerAId: string, playerBId: string) => void;
   onUnpinPair: (playerId: string) => void;
+  onOpenClaimToken?: (player: RosterPlayer) => void;
+  onOpenPassport?: (player: RosterPlayer) => void;
 }
 
 export function PlayerTouchActionSheet({
@@ -33,6 +35,8 @@ export function PlayerTouchActionSheet({
   onToggleRest,
   onPinPair,
   onUnpinPair,
+  onOpenClaimToken,
+  onOpenPassport,
 }: PlayerTouchActionSheetProps): React.JSX.Element | null {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>('');
 
@@ -213,6 +217,30 @@ export function PlayerTouchActionSheet({
                 </button>
               </div>
             )}
+          </div>
+
+          {/* 4. Tricount Identity & Account Claiming */}
+          <div className="space-y-2 pt-2 border-t border-slate-800">
+            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-300">
+              Player Identity &amp; Passport
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenClaimToken?.(player)}
+                className="min-h-[44px] px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <span>🎫 Claim Token QR</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenPassport?.(player)}
+                className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <span>📖 Player Passport</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

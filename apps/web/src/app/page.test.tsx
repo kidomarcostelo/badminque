@@ -299,5 +299,43 @@ describe('CourtsideStationPage', () => {
     expect(await screen.findByText('Online (1 Pending)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sync Now/i })).toBeInTheDocument();
   });
+
+  it('switches to Club Leaderboard view and opens Claim Token modal from player touch action sheet', async () => {
+    render(<CourtsideStationPage />);
+
+    // 1. Switch to Club Leaderboard view
+    const leaderboardTab = screen.getByRole('button', { name: /Club Leaderboard/i });
+    fireEvent.click(leaderboardTab);
+
+    expect(screen.getByText(/Official Club Leaderboard/i)).toBeInTheDocument();
+
+    // 2. Return to Courtside Board
+    const boardTab = screen.getByRole('button', { name: /Courtside Board/i });
+    fireEvent.click(boardTab);
+
+    // 3. Add player and open their action sheet
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+    fireEvent.change(input, { target: { value: 'Lee Chong Wei' } });
+    fireEvent.click(addButton);
+
+    const playerRow = await screen.findByText('Lee Chong Wei');
+    fireEvent.click(playerRow);
+
+    // 4. Action sheet shows Claim Token button
+    const claimBtn = await screen.findByRole('button', { name: /Claim Token QR/i });
+    fireEvent.click(claimBtn);
+
+    // Claim modal is open
+    expect(await screen.findByText(/Claim Player Passport/i)).toBeInTheDocument();
+    expect(screen.getByText(/48-hour expiration/i)).toBeInTheDocument();
+
+    const closeClaimBtn = screen.getByRole('button', { name: /Close claim modal/i });
+    fireEvent.click(closeClaimBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Claim Player Passport/i)).not.toBeInTheDocument();
+    });
+  });
 });
 

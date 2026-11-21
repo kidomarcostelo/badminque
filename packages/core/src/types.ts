@@ -35,6 +35,8 @@ export interface RosterPlayer {
   doubles_rating: number;
   singles_dubr?: number;
   doubles_dubr?: number;
+  singles_matches_played?: number;
+  doubles_matches_played?: number;
   initial_tier?: SkillTier | null;
   matches_played: number;
   status: PlayerState;

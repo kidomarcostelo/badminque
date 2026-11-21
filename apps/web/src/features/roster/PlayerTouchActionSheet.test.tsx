@@ -184,4 +184,35 @@ describe('PlayerTouchActionSheet', () => {
     fireEvent.click(unpinButton);
     expect(handleUnpin).toHaveBeenCalledWith('p1');
   });
+
+  it('triggers claim token and player passport callbacks from action sheet', () => {
+    const handleClaimToken = vi.fn();
+    const handlePassport = vi.fn();
+    const player = createMockPlayer('p1', 'Marcus Gideon');
+
+    render(
+      <PlayerTouchActionSheet
+        isOpen={true}
+        player={player}
+        roster={roster}
+        courts={mockCourts}
+        onClose={vi.fn()}
+        onAssignToCourt={vi.fn()}
+        onToggleSkip={vi.fn()}
+        onToggleRest={vi.fn()}
+        onPinPair={vi.fn()}
+        onUnpinPair={vi.fn()}
+        onOpenClaimToken={handleClaimToken}
+        onOpenPassport={handlePassport}
+      />
+    );
+
+    const claimBtn = screen.getByRole('button', { name: /Claim Token QR/i });
+    fireEvent.click(claimBtn);
+    expect(handleClaimToken).toHaveBeenCalledWith(player);
+
+    const passportBtn = screen.getByRole('button', { name: /Player Passport/i });
+    fireEvent.click(passportBtn);
+    expect(handlePassport).toHaveBeenCalledWith(player);
+  });
 });
