@@ -29,7 +29,7 @@ async def sync_batch(
     """Synchronize an offline batch of matches chronologically."""
     night = await session.get(ClubNight, payload.club_night_id)
     if night is None:
-        raise EntityNotFoundError(f"Club night {payload.club_night_id} not found")
+        raise EntityNotFoundError("ClubNight", str(payload.club_night_id))
 
     service = MatchService(session)
     return await service.sync_batch(night.club_id, payload)

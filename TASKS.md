@@ -21,8 +21,8 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[#16](https://github.com/kidomarcostelo/badminque/issues/16)** | 3-Court Courtside Station Board with 30-Point Quick Scoring | ✅ **Done** | None | Completed | 3-court live grid, rolling independent match dispatch, 30-pt quick scoring presets, 4-player stamina step-off. |
 | **[#17](https://github.com/kidomarcostelo/badminque/issues/17)** | Automated Queue Dispatch & Multi-Policy Matchmaking Engine | ✅ **Done** | None | Completed | Priority score $Q(i)$, Fair Play, Split & Mix, Ladder, Flighted Tiers, On-Deck staging pool, Co-Pilot dispatch. |
 | **[#18](https://github.com/kidomarcostelo/badminque/issues/18)** | Touch-First Organizer Overrides, Pair Pinning & Edge Cases | ✅ **Done** | None | Completed | On-Deck Slot 3 custom staging, Custom Match Builder modal, player touch action sheet, locked pair $\max(t_a, t_b)$ anchoring, 1-match skip, and bypassed player wait preservation. |
-| **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | 🟡 **Ready for Agent** | #14 | 🚀 **Frontier** | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold. |
-| **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | 🟡 **Ready for Agent** | #19 | Blocked | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
+| **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | ✅ **Done** | None | Completed | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold on `feat/issue-19-offline-sync`. |
+| **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
 
 ### Implementation Tickets: DUBR Algorithm & System (Spec #23)
 | Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
@@ -37,6 +37,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | :--- | :--- | :--- | :--- |
 | **[#6 Research: Frontend and Backend Architectural Methodology](https://github.com/kidomarcostelo/badminque/issues/6)** | Research (AFK) | ✅ **Done** | Ratified Feature-Driven Vertical Slices (`apps/web/src/features/`) and Pragmatic Clean Domain Core (`apps/api/src/badminque_api/domain/`). Deliverable: [`docs/research/architecture-methodology.md`](file:///docs/research/architecture-methodology.md). |
 | **[#22 Prototype: Revisit Frontend Courtside Design using Google AI Studio](https://github.com/kidomarcostelo/badminque/issues/22)** | Prototype (HITL) | ✅ **Done** | High-contrast courtside UI prototype with 3-court live grid, 30-pt score keypad, on-deck queue cards, bench roster, and Match History tab. Deliverable: [`prototypes/courtside-station-v2.html`](prototypes/courtside-station-v2.html). |
+| **[ADR 0003: Google Stitch Courtside Design System](docs/adr/0003-google-stitch-design-system.md)** | Architecture / Design | ✅ **Done** | Canonical design system adoption: Silk Light Soft Depth, MD3 surface containers, Plus Jakarta Sans + JetBrains Mono, dense 46px telemetry app bar, and tactile indigo action palette. Deliverables: [`prototypes/courtside-station-stitch.html`](prototypes/courtside-station-stitch.html) & [`docs/research/stitch-design-system-spec.md`](docs/research/stitch-design-system-spec.md). |
 
 ---
 

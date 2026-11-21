@@ -16,6 +16,7 @@ import {
   useCourts,
 } from '../features/courts';
 import { PlayerTouchActionSheet, RosterCheckInList } from '../features/roster';
+import { SyncStatusIndicator, useSync } from '../features/sync';
 import { useStorage } from '../hooks/useStorage';
 
 export default function CourtsideStationPage(): React.JSX.Element {
@@ -23,6 +24,15 @@ export default function CourtsideStationPage(): React.JSX.Element {
   const [customMatchTargetSlot, setCustomMatchTargetSlot] = useState<number | null>(null);
   const [selectedActionSheetPlayer, setSelectedActionSheetPlayer] = useState<RosterPlayer | null>(null);
   const { roster, pendingMatches, isPersistent, refresh } = useStorage();
+
+  const clubNightId = 'default-club-night';
+  const {
+    isOnline,
+    isSyncing,
+    syncError,
+    syncNow,
+    refreshPendingCount,
+  } = useSync({ clubNightId });
 
   const {
     courts,
@@ -59,6 +69,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
   ): Promise<void> => {
     await submitScore(courtId, winner, winningScore, losingScore);
     await refresh();
+    await refreshPendingCount();
   };
 
   const handleCloseCustomMatchModal = (): void => {
@@ -133,14 +144,16 @@ export default function CourtsideStationPage(): React.JSX.Element {
               </span>
             </div>
 
-            <div className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 leading-none">
-                Pending Sync:
-              </span>
-              <span className="text-xs sm:text-sm font-mono font-bold text-amber-400">
-                {pendingMatches.length} Pending
-              </span>
-            </div>
+            <SyncStatusIndicator
+              isOnline={isOnline}
+              isSyncing={isSyncing}
+              pendingCount={pendingMatches.length}
+              syncError={syncError}
+              onSyncNow={async () => {
+                await syncNow();
+                await refresh();
+              }}
+            />
 
             <div className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2 text-xs">
               <span className="text-slate-400">Storage:</span>

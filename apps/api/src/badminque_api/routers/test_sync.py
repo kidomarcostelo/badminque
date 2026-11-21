@@ -147,3 +147,120 @@ def test_batch_sync_success(
     assert data["ignored_duplicates_count"] == 0
     assert data["status"] == "success"
     assert match_id in data["deltas"]
+
+
+def test_batch_sync_idempotency_retry(
+    client_with_db: TestClient,
+    sample_club_and_night: tuple[Club, ClubNight],
+    sample_players: list[RosterPlayer],
+) -> None:
+    """Verifies that re-sending an already synced batch triggers
+    ON CONFLICT (id) DO NOTHING.
+    """
+    _, club_night = sample_club_and_night
+    p1, p2, p3, p4 = sample_players
+
+    match_id = str(uuid.uuid4())
+    payload = {
+        "club_night_id": str(club_night.id),
+        "matches": [
+            {
+                "id": match_id,
+                "club_night_id": str(club_night.id),
+                "court_id": 1,
+                "discipline": DisciplineEnum.DOUBLES.value,
+                "format": MatchFormatEnum.SINGLE_21.value,
+                "team_a_player_ids": [str(p1.id), str(p2.id)],
+                "team_b_player_ids": [str(p3.id), str(p4.id)],
+                "team_a_scores": [21],
+                "team_b_scores": [17],
+                "recorded_at": datetime.now(timezone.utc).isoformat(),
+                "sequence_num": 1,
+            }
+        ],
+    }
+
+    # Initial sync
+    res1 = client_with_db.post("/api/v1/sync/batch", json=payload)
+    assert res1.status_code == 200
+    data1 = res1.json()
+    assert data1["synced_count"] == 1
+    assert data1["ignored_duplicates_count"] == 0
+
+    # Retry sync (identical payload simulate network drop retry)
+    res2 = client_with_db.post("/api/v1/sync/batch", json=payload)
+    assert res2.status_code == 200
+    data2 = res2.json()
+    assert data2["synced_count"] == 0
+    assert data2["ignored_duplicates_count"] == 1
+    assert data2["status"] == "success"
+    assert match_id not in data2["deltas"]
+
+
+def test_batch_sync_chronological_fold(
+    client_with_db: TestClient,
+    sample_club_and_night: tuple[Club, ClubNight],
+    sample_players: list[RosterPlayer],
+) -> None:
+    """Verifies that out-of-order matches are sorted by
+    (recorded_at, sequence_num) before rating fold.
+    """
+    _, club_night = sample_club_and_night
+    p1, p2, p3, p4 = sample_players
+
+    match_1_id = str(uuid.uuid4())
+    match_2_id = str(uuid.uuid4())
+
+    # Send match 2 first in the array, but with later sequence and time
+    payload = {
+        "club_night_id": str(club_night.id),
+        "matches": [
+            {
+                "id": match_2_id,
+                "club_night_id": str(club_night.id),
+                "court_id": 1,
+                "discipline": DisciplineEnum.DOUBLES.value,
+                "format": MatchFormatEnum.SINGLE_21.value,
+                "team_a_player_ids": [str(p1.id), str(p2.id)],
+                "team_b_player_ids": [str(p3.id), str(p4.id)],
+                "team_a_scores": [21],
+                "team_b_scores": [19],
+                "recorded_at": "2026-11-21T10:30:00Z",
+                "sequence_num": 2,
+            },
+            {
+                "id": match_1_id,
+                "club_night_id": str(club_night.id),
+                "court_id": 2,
+                "discipline": DisciplineEnum.DOUBLES.value,
+                "format": MatchFormatEnum.SINGLE_21.value,
+                "team_a_player_ids": [str(p1.id), str(p2.id)],
+                "team_b_player_ids": [str(p3.id), str(p4.id)],
+                "team_a_scores": [21],
+                "team_b_scores": [12],
+                "recorded_at": "2026-11-21T10:00:00Z",
+                "sequence_num": 1,
+            },
+        ],
+    }
+
+    res = client_with_db.post("/api/v1/sync/batch", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["synced_count"] == 2
+    assert data["ignored_duplicates_count"] == 0
+    assert match_1_id in data["deltas"]
+    assert match_2_id in data["deltas"]
+
+
+def test_batch_sync_nonexistent_club_night_returns_404(
+    client_with_db: TestClient,
+) -> None:
+    """Verifies that syncing against a nonexistent club night returns 404."""
+    payload = {
+        "club_night_id": str(uuid.uuid4()),
+        "matches": [],
+    }
+    res = client_with_db.post("/api/v1/sync/batch", json=payload)
+    assert res.status_code == 404
+

@@ -254,5 +254,50 @@ describe('CourtsideStationPage', () => {
     expect(screen.getByRole('button', { name: /Edit Pairs/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Send C1/i })).toBeInTheDocument();
   });
+
+  it('renders online/offline sync status indicator and reflects pending matches', async () => {
+    render(<CourtsideStationPage />);
+
+    // Initially online with 0 pending matches
+    expect(await screen.findByText('Online (Synced)')).toBeInTheDocument();
+
+    // Check in 4 players and dispatch + complete match
+    const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+    const addButton = screen.getByRole('button', { name: /Add Player/i });
+    for (const name of ['Sync P1', 'Sync P2', 'Sync P3', 'Sync P4']) {
+      fireEvent.change(input, { target: { value: name } });
+      fireEvent.click(addButton);
+      expect((await screen.findAllByText(name, {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+    }
+
+    const dispatchButtons = screen.getAllByRole('button', { name: /⚡ Dispatch/i });
+    const firstDispatch = dispatchButtons[0];
+    if (!firstDispatch) {
+      throw new Error('Expected dispatch button');
+    }
+
+    await act(async () => {
+      fireEvent.click(firstDispatch);
+    });
+
+    const enterScoreBtn = await screen.findByRole('button', {
+      name: /Enter Score \(30 pts\)/i,
+    });
+    fireEvent.click(enterScoreBtn);
+
+    const presetBtn = await screen.findByRole('button', { name: /30-25/i });
+    fireEvent.click(presetBtn);
+
+    const submitBtn = screen.getByRole('button', {
+      name: /Record Match Score & Rotate Court/i,
+    });
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
+
+    // Match is now completed and buffered offline in IndexedDB
+    expect(await screen.findByText('Online (1 Pending)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sync Now/i })).toBeInTheDocument();
+  });
 });
 
