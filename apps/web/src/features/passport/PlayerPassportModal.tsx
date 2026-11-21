@@ -23,8 +23,26 @@ export function PlayerPassportModal({
   }
 
   const isClaimed = Boolean(player.auth_user_id);
-  const totalMatches = player.matches_played ?? 0;
+  const singlesMatches = player.singles_matches_played ?? 0;
+  const doublesMatches =
+    player.doubles_matches_played ?? player.matches_played ?? 0;
+  const totalMatches =
+    player.matches_played ?? (singlesMatches + doublesMatches);
   const isEstablished = totalMatches >= 8;
+
+  const singlesIsEstablished =
+    player.singles_is_provisional === false || singlesMatches >= 8;
+  const doublesIsEstablished =
+    player.doubles_is_provisional === false || doublesMatches >= 8;
+
+  const singlesIsSeeded = Boolean(
+    player.singles_is_seeded ||
+      (singlesMatches === 0 && doublesIsEstablished)
+  );
+  const doublesIsSeeded = Boolean(
+    player.doubles_is_seeded ||
+      (doublesMatches === 0 && singlesIsEstablished)
+  );
 
   const singlesDubr = formatDubr(
     player.singles_dubr ?? ratingToDubr(player.singles_rating ?? 1500)
@@ -105,8 +123,26 @@ export function PlayerPassportModal({
           <div className="grid grid-cols-2 gap-3">
             {/* Doubles Card */}
             <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="text-[10px] uppercase font-mono font-bold text-slate-400">
-                Doubles Rating ($R_D$)
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-mono font-bold text-slate-400">
+                  Doubles Rating ($R_D$)
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {doublesIsSeeded && (
+                    <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300">
+                      Seeded from Singles
+                    </span>
+                  )}
+                  <span
+                    className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full border ${
+                      doublesIsEstablished
+                        ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
+                        : 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                    }`}
+                  >
+                    {doublesIsEstablished ? 'Established' : `Provisional (${doublesMatches}/8)`}
+                  </span>
+                </div>
               </div>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-mono font-extrabold text-slate-100">
@@ -117,14 +153,32 @@ export function PlayerPassportModal({
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 font-mono">
-                {player.doubles_matches_played ?? player.matches_played} matches
+                {doublesMatches} matches
               </div>
             </div>
 
             {/* Singles Card */}
             <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="text-[10px] uppercase font-mono font-bold text-slate-400">
-                Singles Rating ($R_S$)
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-mono font-bold text-slate-400">
+                  Singles Rating ($R_S$)
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {singlesIsSeeded && (
+                    <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300">
+                      Seeded from Doubles
+                    </span>
+                  )}
+                  <span
+                    className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full border ${
+                      singlesIsEstablished
+                        ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
+                        : 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                    }`}
+                  >
+                    {singlesIsEstablished ? 'Established' : `Provisional (${singlesMatches}/8)`}
+                  </span>
+                </div>
               </div>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-mono font-extrabold text-slate-100">
@@ -135,7 +189,7 @@ export function PlayerPassportModal({
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 font-mono">
-                {player.singles_matches_played ?? 0} matches
+                {singlesMatches} matches
               </div>
             </div>
           </div>

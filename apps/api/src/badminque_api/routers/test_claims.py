@@ -191,6 +191,47 @@ def test_get_player_passport(
     assert "doubles_dubr" in data
     assert data["is_provisional"] is True
     assert data["total_matches_played"] == 5
+    assert "singles_is_provisional" in data
+    assert "doubles_is_provisional" in data
+
+
+def test_get_player_passport_cross_discipline_seeding(
+    client_with_db: TestClient,
+    router_db_session: AsyncSession,
+) -> None:
+    """Passport for established doubles player indicates seeded singles baseline."""
+    club = Club(id=uuid.uuid4(), name="Seeding Club")
+    router_db_session.add(club)
+
+    player = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Established Doubles Star",
+        doubles_rating=1800.0,
+        doubles_matches_played=12,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    router_db_session.add(player)
+
+    import asyncio
+
+    asyncio.run(router_db_session.commit())
+
+    response = client_with_db.get(f"/api/v1/players/{player.id}/passport")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["doubles_matches_played"] == 12
+    assert data["doubles_is_provisional"] is False
+    assert data["doubles_is_seeded"] is False
+
+    # Singles has 0 matches, but baseline is seeded from doubles prior
+    assert data["singles_matches_played"] == 0
+    assert data["singles_is_provisional"] is True
+    assert data["singles_is_seeded"] is True
+    assert data["singles_rating"] == 1800.0
+    assert data["singles_dubr"] == 4.500
 
 
 @pytest.fixture

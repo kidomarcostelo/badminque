@@ -90,28 +90,28 @@ class MatchService:
             state_a1 = PlayerRatingState(
                 player_id=str(p_a1.id),
                 name=p_a1.name,
-                rating=p_a1.doubles_rating,
+                rating=p_a1.effective_doubles_rating,
                 rd=calculate_rd(p_a1.doubles_matches_played),
                 matches_played=p_a1.doubles_matches_played,
             )
             state_a2 = PlayerRatingState(
                 player_id=str(p_a2.id),
                 name=p_a2.name,
-                rating=p_a2.doubles_rating,
+                rating=p_a2.effective_doubles_rating,
                 rd=calculate_rd(p_a2.doubles_matches_played),
                 matches_played=p_a2.doubles_matches_played,
             )
             state_b1 = PlayerRatingState(
                 player_id=str(p_b1.id),
                 name=p_b1.name,
-                rating=p_b1.doubles_rating,
+                rating=p_b1.effective_doubles_rating,
                 rd=calculate_rd(p_b1.doubles_matches_played),
                 matches_played=p_b1.doubles_matches_played,
             )
             state_b2 = PlayerRatingState(
                 player_id=str(p_b2.id),
                 name=p_b2.name,
-                rating=p_b2.doubles_rating,
+                rating=p_b2.effective_doubles_rating,
                 rd=calculate_rd(p_b2.doubles_matches_played),
                 matches_played=p_b2.doubles_matches_played,
             )
@@ -132,14 +132,14 @@ class MatchService:
             state_a = PlayerRatingState(
                 player_id=str(p_a.id),
                 name=p_a.name,
-                rating=p_a.singles_rating,
+                rating=p_a.effective_singles_rating,
                 rd=calculate_rd(p_a.singles_matches_played),
                 matches_played=p_a.singles_matches_played,
             )
             state_b = PlayerRatingState(
                 player_id=str(p_b.id),
                 name=p_b.name,
-                rating=p_b.singles_rating,
+                rating=p_b.effective_singles_rating,
                 rd=calculate_rd(p_b.singles_matches_played),
                 matches_played=p_b.singles_matches_played,
             )

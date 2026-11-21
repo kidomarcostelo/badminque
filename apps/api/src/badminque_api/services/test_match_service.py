@@ -420,3 +420,69 @@ async def test_batch_sync_in_batch_duplicates(
     assert batch_resp.ignored_duplicates_count == 1
     assert str(dup_id) in batch_resp.deltas
     assert len(batch_resp.deltas[str(dup_id)]) == 4
+
+
+async def test_record_singles_match_seeds_from_established_doubles_prior(
+    test_session: AsyncSession,
+    sample_club_and_night: tuple[Club, ClubNight],
+) -> None:
+    """Established doubles player playing first singles match seeds starting rating."""
+    club, club_night = sample_club_and_night
+    service = MatchService(test_session)
+
+    # Player 1 has established doubles (10 matches, 1750.0) but 0 singles matches
+    p1 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Established Doubles Player",
+        singles_rating=1500.0,
+        doubles_rating=1750.0,
+        singles_matches_played=0,
+        doubles_matches_played=10,
+        status="QUEUED",
+    )
+    # Player 2 has established singles
+    p2 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Opponent Singles Player",
+        singles_rating=1750.0,
+        doubles_rating=1500.0,
+        singles_matches_played=8,
+        doubles_matches_played=0,
+        status="QUEUED",
+    )
+    test_session.add_all([p1, p2])
+    await test_session.commit()
+
+    match_id = uuid.uuid4()
+    match_data = MatchRecordCreate(
+        id=match_id,
+        club_night_id=club_night.id,
+        court_id=1,
+        discipline=DisciplineEnum.SINGLES,
+        format=MatchFormatEnum.SINGLE_21,
+        team_a_player_ids=[p1.id],
+        team_b_player_ids=[p2.id],
+        team_a_scores=[21],
+        team_b_scores=[19],
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+    )
+
+    _, deltas = await service.record_match(club.id, match_data)
+
+    p1_delta = next(d for d in deltas if d.player_id == p1.id)
+    # P1's pre_rating in singles must be seeded from 1750.0, NOT 1500.0
+    assert p1_delta.pre_rating == 1750.0
+    assert p1_delta.pre_dubr == 4.375
+
+    # Refresh players from DB
+    await test_session.refresh(p1)
+    # Singles rating is updated and singles_matches_played is incremented to 1
+    assert p1.singles_matches_played == 1
+    assert p1.singles_rating == p1_delta.post_rating
+    # Strict discipline isolation: doubles rating and matches played are 100% untouched
+    assert p1.doubles_rating == 1750.0
+    assert p1.doubles_matches_played == 10
+

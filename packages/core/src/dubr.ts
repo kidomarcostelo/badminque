@@ -70,6 +70,38 @@ export function isProvisional(matchesPlayed: number): boolean {
   return matchesPlayed < ESTABLISHED_MATCH_THRESHOLD;
 }
 
+/**
+ * Resolves the effective rating for a discipline, applying cross-discipline prior seeding
+ * when an established player in one discipline (>= 8 matches) plays an unrated discipline (0 matches).
+ * Conforms to ADR 0002 Section 9 and Ticket #26.
+ */
+export function getEffectiveDisciplineRating(
+  player: {
+    singles_rating?: number;
+    doubles_rating?: number;
+    singles_matches_played?: number;
+    doubles_matches_played?: number;
+  },
+  discipline: 'SINGLES' | 'DOUBLES'
+): { rating: number; isSeeded: boolean } {
+  const singlesRating = player.singles_rating ?? 1500;
+  const doublesRating = player.doubles_rating ?? 1500;
+  const singlesMatches = player.singles_matches_played ?? 0;
+  const doublesMatches = player.doubles_matches_played ?? 0;
+
+  if (discipline === 'SINGLES') {
+    if (singlesMatches === 0 && doublesMatches >= ESTABLISHED_MATCH_THRESHOLD) {
+      return { rating: doublesRating, isSeeded: true };
+    }
+    return { rating: singlesRating, isSeeded: false };
+  } else {
+    if (doublesMatches === 0 && singlesMatches >= ESTABLISHED_MATCH_THRESHOLD) {
+      return { rating: singlesRating, isSeeded: true };
+    }
+    return { rating: doublesRating, isSeeded: false };
+  }
+}
+
 export interface MatchParticipant {
   id: string;
   name?: string;

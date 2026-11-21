@@ -847,3 +847,199 @@ def test_inactivity_timezone_handling_and_past_timestamps() -> None:
         {"naive_p": profile_naive}, m_aware
     )
     assert profiles_aware["naive_p"].singles.matches_played == 11
+
+
+# -----------------------------------------------------------------------------
+# Cross-Discipline Prior Seeding Tests (Ticket #26 / ADR 0002 Section 9)
+# -----------------------------------------------------------------------------
+
+
+def test_cross_discipline_seeding_established_doubles_to_singles() -> None:
+    """Established doubles player (>=8 matches) seeds singles baseline from doubles."""
+    alice_profile = PlayerProfileState(
+        player_id="alice",
+        name="Alice",
+        singles=PlayerRatingState(
+            player_id="alice",
+            name="Alice",
+            rating=1500.0,
+            matches_played=0,
+        ),
+        doubles=PlayerRatingState(
+            player_id="alice",
+            name="Alice",
+            rating=1800.0,
+            matches_played=10,
+        ),
+    )
+    bob_profile = PlayerProfileState(
+        player_id="bob",
+        name="Bob",
+        singles=PlayerRatingState(
+            player_id="bob",
+            name="Bob",
+            rating=1800.0,
+            matches_played=10,
+        ),
+    )
+
+    singles_match = RatingMatchInput(
+        match_id="cross_match_1",
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+        discipline=Discipline.SINGLES,
+        format=MatchFormat.SINGLE_21,
+        team_a_player_ids=("alice",),
+        team_b_player_ids=("bob",),
+        team_a_scores=(21,),
+        team_b_scores=(19,),
+    )
+
+    profiles, deltas = BadminqueRatingEngine.fold_match(
+        {"alice": alice_profile, "bob": bob_profile}, singles_match
+    )
+
+    # Alice pre_rating must be seeded from 1800.0 (doubles prior), not 1500.0
+    alice_delta = next(d for d in deltas if d.player_id == "alice")
+    assert alice_delta.pre_rating == 1800.0
+    # Because pre_rating is 1800 vs 1800 (close match, K=64), delta is ~16.91
+    # If unseeded (1500 vs 1800), delta would have been ~39.55 (underdog upset)
+    assert alice_delta.rating_delta == pytest.approx(16.91, abs=0.1)
+
+    # Post-match verification
+    updated_alice = profiles["alice"]
+    assert updated_alice.singles.matches_played == 1
+    assert updated_alice.singles.rating == alice_delta.post_rating
+    # Strict discipline isolation: doubles rating/matches MUST NOT leak
+    assert updated_alice.doubles.rating == 1800.0
+    assert updated_alice.doubles.matches_played == 10
+
+
+def test_cross_discipline_seeding_established_singles_to_doubles() -> None:
+    """Established singles player (>=8 matches) seeds doubles baseline from singles."""
+    charlie_profile = PlayerProfileState(
+        player_id="charlie",
+        name="Charlie",
+        singles=PlayerRatingState(
+            player_id="charlie",
+            name="Charlie",
+            rating=1900.0,
+            matches_played=9,
+        ),
+        doubles=PlayerRatingState(
+            player_id="charlie",
+            name="Charlie",
+            rating=1500.0,
+            matches_played=0,
+        ),
+    )
+    p2 = PlayerProfileState.create_default("p2")
+    p3 = PlayerProfileState.create_default("p3")
+    p4 = PlayerProfileState.create_default("p4")
+
+    doubles_match = RatingMatchInput(
+        match_id="cross_doubles_1",
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+        discipline=Discipline.DOUBLES,
+        format=MatchFormat.SINGLE_21,
+        team_a_player_ids=("charlie", "p2"),
+        team_b_player_ids=("p3", "p4"),
+        team_a_scores=(21,),
+        team_b_scores=(15,),
+    )
+
+    profiles, deltas = BadminqueRatingEngine.fold_match(
+        {"charlie": charlie_profile, "p2": p2, "p3": p3, "p4": p4}, doubles_match
+    )
+
+    charlie_delta = next(d for d in deltas if d.player_id == "charlie")
+    assert charlie_delta.pre_rating == 1900.0
+    updated_charlie = profiles["charlie"]
+    assert updated_charlie.doubles.matches_played == 1
+    # Strict discipline isolation: singles rating & matches played untouched
+    assert updated_charlie.singles.rating == 1900.0
+    assert updated_charlie.singles.matches_played == 9
+
+
+def test_cross_discipline_no_seeding_when_counterpart_is_provisional() -> None:
+    """Provisional counterpart (<8 matches) does NOT seed unrated discipline."""
+    dave_profile = PlayerProfileState(
+        player_id="dave",
+        name="Dave",
+        singles=PlayerRatingState(
+            player_id="dave",
+            name="Dave",
+            rating=1500.0,
+            matches_played=0,
+        ),
+        doubles=PlayerRatingState(
+            player_id="dave",
+            name="Dave",
+            rating=1700.0,
+            matches_played=4,  # Provisional (<8)
+        ),
+    )
+    opp_profile = PlayerProfileState.create_default("opp")
+
+    match = RatingMatchInput(
+        match_id="prov_match_1",
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+        discipline=Discipline.SINGLES,
+        format=MatchFormat.SINGLE_21,
+        team_a_player_ids=("dave",),
+        team_b_player_ids=("opp",),
+        team_a_scores=(21,),
+        team_b_scores=(18,),
+    )
+
+    profiles, deltas = BadminqueRatingEngine.fold_match(
+        {"dave": dave_profile, "opp": opp_profile}, match
+    )
+
+    dave_delta = next(d for d in deltas if d.player_id == "dave")
+    # Pre-rating should stay at default 1500.0, NOT 1700.0
+    assert dave_delta.pre_rating == 1500.0
+
+
+def test_cross_discipline_no_re_seeding_after_first_match() -> None:
+    """Discipline with matches_played >= 1 does not re-seed on subsequent matches."""
+    eve_profile = PlayerProfileState(
+        player_id="eve",
+        name="Eve",
+        singles=PlayerRatingState(
+            player_id="eve",
+            name="Eve",
+            rating=1650.0,
+            matches_played=1,  # Already played 1 singles match
+        ),
+        doubles=PlayerRatingState(
+            player_id="eve",
+            name="Eve",
+            rating=1850.0,
+            matches_played=12,
+        ),
+    )
+    opp_profile = PlayerProfileState.create_default("opp2")
+
+    match = RatingMatchInput(
+        match_id="eve_singles_2",
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=2,
+        discipline=Discipline.SINGLES,
+        format=MatchFormat.SINGLE_21,
+        team_a_player_ids=("eve",),
+        team_b_player_ids=("opp2",),
+        team_a_scores=(21,),
+        team_b_scores=(15,),
+    )
+
+    profiles, deltas = BadminqueRatingEngine.fold_match(
+        {"eve": eve_profile, "opp2": opp_profile}, match
+    )
+
+    eve_delta = next(d for d in deltas if d.player_id == "eve")
+    # Must use 1650.0, NOT re-seed from 1850.0
+    assert eve_delta.pre_rating == 1650.0
+

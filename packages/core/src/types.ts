@@ -37,6 +37,10 @@ export interface RosterPlayer {
   doubles_dubr?: number;
   singles_matches_played?: number;
   doubles_matches_played?: number;
+  singles_is_provisional?: boolean;
+  doubles_is_provisional?: boolean;
+  singles_is_seeded?: boolean;
+  doubles_is_seeded?: boolean;
   initial_tier?: SkillTier | null;
   matches_played: number;
   status: PlayerState;

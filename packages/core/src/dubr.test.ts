@@ -19,6 +19,7 @@ import {
   TIER_ANCHORS,
   getTierDubr,
   getTierRating,
+  getEffectiveDisciplineRating,
   isProvisional,
 } from './dubr';
 
@@ -299,6 +300,61 @@ describe('DUBR Singles Rating Match Calculation', () => {
       expect(isProvisional(7)).toBe(true);
       expect(isProvisional(8)).toBe(false);
       expect(isProvisional(9)).toBe(false);
+    });
+  });
+
+  describe('Cross-Discipline Prior Seeding (Ticket #26 / ADR 0002 Section 9)', () => {
+    it('seeds unrated singles rating from established doubles counterpart (>= 8 matches)', () => {
+      // Import or use getEffectiveDisciplineRating from './dubr'
+      const player = {
+        singles_rating: 1500,
+        doubles_rating: 1750,
+        singles_matches_played: 0,
+        doubles_matches_played: 10,
+      };
+
+      const res = getEffectiveDisciplineRating(player, 'SINGLES');
+      expect(res.rating).toBe(1750);
+      expect(res.isSeeded).toBe(true);
+    });
+
+    it('seeds unrated doubles rating from established singles counterpart (>= 8 matches)', () => {
+      const player = {
+        singles_rating: 1850,
+        doubles_rating: 1500,
+        singles_matches_played: 9,
+        doubles_matches_played: 0,
+      };
+
+      const res = getEffectiveDisciplineRating(player, 'DOUBLES');
+      expect(res.rating).toBe(1850);
+      expect(res.isSeeded).toBe(true);
+    });
+
+    it('does not seed when counterpart discipline is provisional (< 8 matches)', () => {
+      const player = {
+        singles_rating: 1500,
+        doubles_rating: 1700,
+        singles_matches_played: 0,
+        doubles_matches_played: 4, // provisional
+      };
+
+      const res = getEffectiveDisciplineRating(player, 'SINGLES');
+      expect(res.rating).toBe(1500);
+      expect(res.isSeeded).toBe(false);
+    });
+
+    it('does not re-seed when target discipline already has matches played (>= 1 match)', () => {
+      const player = {
+        singles_rating: 1650,
+        doubles_rating: 1850,
+        singles_matches_played: 2, // already active
+        doubles_matches_played: 12,
+      };
+
+      const res = getEffectiveDisciplineRating(player, 'SINGLES');
+      expect(res.rating).toBe(1650);
+      expect(res.isSeeded).toBe(false);
     });
   });
 });

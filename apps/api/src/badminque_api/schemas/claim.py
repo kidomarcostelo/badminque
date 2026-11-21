@@ -58,6 +58,20 @@ class PlayerPassportResponse(BaseModel):
     doubles_matches_played: int = Field(ge=0, description="Doubles matches played")
     total_matches_played: int = Field(ge=0, description="Total matches played")
     is_provisional: bool = Field(description="True if player has played < 8 matches")
+    singles_is_provisional: bool = Field(
+        default=True, description="True if player has played < 8 singles matches"
+    )
+    doubles_is_provisional: bool = Field(
+        default=True, description="True if player has played < 8 doubles matches"
+    )
+    singles_is_seeded: bool = Field(
+        default=False,
+        description="True if singles starting rating seeds from doubles prior",
+    )
+    doubles_is_seeded: bool = Field(
+        default=False,
+        description="True if doubles starting rating seeds from singles prior",
+    )
     status: str = Field(description="Current player state")
     created_at: datetime = Field(
         description="Timestamp when player profile was created"

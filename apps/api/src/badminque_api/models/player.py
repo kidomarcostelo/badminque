@@ -61,12 +61,46 @@ class RosterPlayer(Base):
         return self.name
 
     @property
+    def effective_singles_rating(self) -> float:
+        """Effective singles rating with cross-discipline prior seeding if unrated."""
+        if self.singles_matches_played == 0 and self.doubles_matches_played >= 8:
+            return self.doubles_rating
+        return self.singles_rating
+
+    @property
+    def effective_doubles_rating(self) -> float:
+        """Effective doubles rating with cross-discipline prior seeding if unrated."""
+        if self.doubles_matches_played == 0 and self.singles_matches_played >= 8:
+            return self.singles_rating
+        return self.doubles_rating
+
+    @property
+    def singles_is_seeded(self) -> bool:
+        """True if unrated singles starting baseline seeds from established doubles."""
+        return self.singles_matches_played == 0 and self.doubles_matches_played >= 8
+
+    @property
+    def doubles_is_seeded(self) -> bool:
+        """True if unrated doubles starting baseline seeds from established singles."""
+        return self.doubles_matches_played == 0 and self.singles_matches_played >= 8
+
+    @property
+    def singles_is_provisional(self) -> bool:
+        """True if player has completed fewer than 8 singles matches."""
+        return is_provisional(self.singles_matches_played)
+
+    @property
+    def doubles_is_provisional(self) -> bool:
+        """True if player has completed fewer than 8 doubles matches."""
+        return is_provisional(self.doubles_matches_played)
+
+    @property
     def singles_dubr(self) -> float:
-        return round(rating_to_dubr(self.singles_rating), 3)
+        return round(rating_to_dubr(self.effective_singles_rating), 3)
 
     @property
     def doubles_dubr(self) -> float:
-        return round(rating_to_dubr(self.doubles_rating), 3)
+        return round(rating_to_dubr(self.effective_doubles_rating), 3)
 
     @property
     def is_provisional(self) -> bool:

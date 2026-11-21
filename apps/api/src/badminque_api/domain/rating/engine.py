@@ -149,6 +149,34 @@ class PlayerProfileState:
             return self.singles
         return self.doubles
 
+    def get_effective_state_for_discipline(
+        self, discipline: Discipline
+    ) -> PlayerRatingState:
+        """Return the rating state, applying cross-discipline prior seeding.
+
+        Per ADR 0002 Section 9 and Ticket #26: When an established player in one
+        discipline (>= 8 matches) plays an unrated discipline (0 matches), their
+        initial starting rating seeds from their established counterpart prior rather
+        than resetting to the default baseline (1500.0 / 3.500 DUBR).
+        """
+        target = self.get_state_for_discipline(discipline)
+        if target.matches_played > 0:
+            return target
+
+        counterpart = (
+            self.doubles if discipline == Discipline.SINGLES else self.singles
+        )
+        if not counterpart.is_provisional:
+            return PlayerRatingState(
+                player_id=self.player_id,
+                name=self.name,
+                rating=counterpart.rating,
+                rd=target.rd,
+                matches_played=0,
+                last_played_at=target.last_played_at,
+            )
+        return target
+
     def with_updated_discipline(
         self,
         discipline: Discipline,
@@ -692,8 +720,12 @@ class BadminqueRatingEngine:
         results_list: list[RatingDeltaResult] = []
 
         if match.discipline == Discipline.SINGLES:
-            p_a_initial = updated_profiles[match.team_a_player_ids[0]].singles
-            p_b_initial = updated_profiles[match.team_b_player_ids[0]].singles
+            p_a_initial = updated_profiles[
+                match.team_a_player_ids[0]
+            ].get_effective_state_for_discipline(Discipline.SINGLES)
+            p_b_initial = updated_profiles[
+                match.team_b_player_ids[0]
+            ].get_effective_state_for_discipline(Discipline.SINGLES)
 
             p_a = _apply_inactivity_if_applicable(p_a_initial, match.recorded_at)
             p_b = _apply_inactivity_if_applicable(p_b_initial, match.recorded_at)
@@ -735,10 +767,18 @@ class BadminqueRatingEngine:
             ].with_updated_discipline(Discipline.SINGLES, new_state_b)
 
         elif match.discipline == Discipline.DOUBLES:
-            a1_initial = updated_profiles[match.team_a_player_ids[0]].doubles
-            a2_initial = updated_profiles[match.team_a_player_ids[1]].doubles
-            b1_initial = updated_profiles[match.team_b_player_ids[0]].doubles
-            b2_initial = updated_profiles[match.team_b_player_ids[1]].doubles
+            a1_initial = updated_profiles[
+                match.team_a_player_ids[0]
+            ].get_effective_state_for_discipline(Discipline.DOUBLES)
+            a2_initial = updated_profiles[
+                match.team_a_player_ids[1]
+            ].get_effective_state_for_discipline(Discipline.DOUBLES)
+            b1_initial = updated_profiles[
+                match.team_b_player_ids[0]
+            ].get_effective_state_for_discipline(Discipline.DOUBLES)
+            b2_initial = updated_profiles[
+                match.team_b_player_ids[1]
+            ].get_effective_state_for_discipline(Discipline.DOUBLES)
 
             a1 = _apply_inactivity_if_applicable(a1_initial, match.recorded_at)
             a2 = _apply_inactivity_if_applicable(a2_initial, match.recorded_at)

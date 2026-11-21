@@ -2,12 +2,10 @@ import {
   type MatchRecord,
   type RosterPlayer,
   type SkillTier,
+  type StorageAdapter,
   ratingToDubr,
-  ESTABLISHED_MATCH_THRESHOLD,
-  INITIAL_ELO,
-  INITIAL_TIER_ANCHORS,
 } from '@badminque/core';
-import type { StorageService } from './storageService';
+import type { storageService } from './storageService';
 
 export interface MockClubNight {
   id: string;
@@ -226,7 +224,9 @@ export function createMockCompletedMatches(roster: RosterPlayer[]): MatchRecord[
  * Seeds local IndexedDB storage with mock data if currently empty.
  * Returns the count of seeded players (or 0 if already populated).
  */
-export async function seedMockData(storage: StorageService): Promise<number> {
+export async function seedMockData(
+  storage: StorageAdapter | typeof storageService
+): Promise<number> {
   const existingRoster = await storage.getRoster();
   if (existingRoster.length > 0) {
     return 0;

@@ -55,4 +55,38 @@ describe('PlayerPassportModal', () => {
     fireEvent.click(closeBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  it('renders separate provisional badges and match counts for Singles and Doubles cards', () => {
+    const seededPlayer: RosterPlayer = {
+      id: 'player-passport-2',
+      name: 'Viktor Axelsen',
+      auth_user_id: null,
+      singles_rating: 1800,
+      doubles_rating: 1800,
+      singles_matches_played: 0,
+      doubles_matches_played: 12,
+      matches_played: 12,
+      singles_is_seeded: true,
+      singles_is_provisional: true,
+      doubles_is_provisional: false,
+      status: 'QUEUED',
+      checked_in_at: new Date().toISOString(),
+    };
+
+    render(
+      <PlayerPassportModal
+        isOpen={true}
+        player={seededPlayer}
+        onClose={vi.fn()}
+      />
+    );
+
+    // Doubles card: 12 matches, Established badge
+    expect(screen.getByText('12 matches')).toBeInTheDocument();
+
+    // Singles card: 0 matches, Provisional (0/8) badge, and Seeded from Doubles indicator
+    expect(screen.getByText('0 matches')).toBeInTheDocument();
+    expect(screen.getByText(/Provisional \(0\/8\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Seeded from Doubles/i)).toBeInTheDocument();
+  });
 });
