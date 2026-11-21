@@ -263,4 +263,3 @@ def test_batch_sync_nonexistent_club_night_returns_404(
     }
     res = client_with_db.post("/api/v1/sync/batch", json=payload)
     assert res.status_code == 404
-

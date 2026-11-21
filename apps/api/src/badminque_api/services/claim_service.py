@@ -181,9 +181,7 @@ class ClaimService:
 
         entries: list[LeaderboardEntryResponse] = []
         for player, rank in rows:
-            rating = (
-                player.doubles_rating if is_doubles else player.singles_rating
-            )
+            rating = player.doubles_rating if is_doubles else player.singles_rating
             matches = (
                 player.doubles_matches_played
                 if is_doubles
@@ -203,4 +201,3 @@ class ClaimService:
                 )
             )
         return entries
-

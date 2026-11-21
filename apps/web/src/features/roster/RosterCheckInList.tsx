@@ -129,31 +129,37 @@ export function RosterCheckInList({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       {/* Search & Fast 1-Tap Check-In */}
-      <div className="relative space-y-2.5">
+      <div className="relative space-y-2">
         <form onSubmit={handleCheckInSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={inputName}
-            onChange={handleInputChange}
-            placeholder="Search roster or enter name to check in..."
-            className="flex-1 bg-surface-container dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-body-base shadow-xs"
-          />
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[16px]">
+              search
+            </span>
+            <input
+              type="text"
+              value={inputName}
+              onChange={handleInputChange}
+              placeholder="Search roster or enter name to check in..."
+              className="w-full h-8 pl-8 pr-3 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant shadow-2xs"
+            />
+          </div>
           <button
             type="submit"
             disabled={inputName.trim().length === 0}
-            className="silk-btn-primary px-4 py-2.5 text-white font-headline-md font-bold text-sm rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+            className="h-8 silk-btn-primary px-3 text-white font-headline-sm font-bold text-xs rounded-lg transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs active:scale-95"
           >
-            Add Player
+            <span>+</span>
+            <span>Add Player</span>
           </button>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
             aria-label="Open detailed check-in modal"
-            className="tactile-btn px-3 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-headline-md font-medium text-sm rounded-lg transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap border border-outline-variant dark:border-slate-700 shadow-xs"
+            className="h-8 px-2.5 silk-extruded-sm hover:bg-slate-100 text-slate-800 font-headline-sm font-semibold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap border border-outline-variant shadow-2xs active:scale-95"
           >
-            + Modal
+            <span>+ Modal</span>
           </button>
         </form>
 
@@ -167,8 +173,8 @@ export function RosterCheckInList({
 
         {/* Typeahead Suggestions Dropdown */}
         {suggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 top-12 mt-1 bg-white dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
-            <div className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 bg-surface-container dark:bg-slate-950/60 border-b border-outline-variant dark:border-slate-800">
+          <div className="absolute z-20 left-0 right-0 top-10 mt-1 bg-white border border-outline-variant rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+            <div className="px-3 py-1.5 text-[10px] font-mono font-bold text-slate-500 bg-slate-50 border-b border-outline-variant uppercase">
               Existing Roster Suggestions (Click to select)
             </div>
             {suggestions.map((player) => (
@@ -177,17 +183,17 @@ export function RosterCheckInList({
                 type="button"
                 onClick={() => handleSelectSuggestion(player)}
                 aria-label={`Select existing player ${player.name}`}
-                className="w-full text-left px-4 py-2.5 hover:bg-surface-container dark:hover:bg-slate-800 flex items-center justify-between transition-colors border-b border-outline-variant/50 dark:border-slate-800/50 last:border-b-0 cursor-pointer"
+                className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition-colors border-b border-outline-variant/60 last:border-b-0 cursor-pointer"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono-badge font-bold text-indigo-700 dark:text-indigo-400">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[10px] font-mono font-bold text-indigo-700">
                     {getPlayerInitials(player.name)}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-body-base font-medium text-slate-900 dark:text-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-body-base font-bold text-slate-900">
                       {player.name}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono-data">
+                    <span className="text-[10px] text-slate-500 font-mono">
                       DUBR: {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
                     </span>
                     {isProvisional(player.matches_played) && <ProvisionalBadge />}
@@ -201,102 +207,105 @@ export function RosterCheckInList({
       </div>
 
       {/* Active Bench Roster Table */}
-      <div className="silk-extruded bg-white dark:bg-slate-900/60 border border-outline-variant dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
-        <div className="px-5 py-3.5 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between bg-surface-container-low dark:bg-slate-900">
+      <div className="silk-extruded rounded-xl border border-outline-variant overflow-hidden shadow-xs">
+        <div className="px-3.5 py-2 border-b border-outline-variant flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-2">
-            <h3 className="font-headline-md font-semibold text-slate-900 dark:text-slate-200 text-sm md:text-base">
+            <span className="material-symbols-outlined text-primary text-[16px]">
+              table_chart
+            </span>
+            <h3 className="font-headline-sm font-extrabold text-slate-900 text-xs uppercase tracking-tight">
               Active Bench Roster
             </h3>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono-badge bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-emerald-400 font-bold border border-indigo-200 dark:border-slate-700">
+            <span className="px-1.5 py-0.2 rounded-md text-[9px] font-mono font-bold bg-indigo-600 text-white">
               {effectiveRoster.length}
             </span>
           </div>
           {searchQuery.trim().length > 0 && (
-            <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">
+            <span className="text-[10px] font-mono text-slate-500">
               Filtered: {effectiveFilteredRoster.length} of {effectiveRoster.length}
             </span>
           )}
         </div>
 
         {effectiveFilteredRoster.length === 0 ? (
-          <div className="p-8 text-center text-sm font-body-base text-slate-500 dark:text-slate-400">
+          <div className="p-8 text-center text-xs font-body-base text-on-surface-variant">
             No players checked in yet. Type a name above to check in.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-surface-container dark:bg-slate-950/40 text-xs font-mono-badge text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-outline-variant dark:border-slate-800">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="bg-slate-50 text-slate-600 font-mono text-[9px] uppercase border-b border-outline-variant">
                 <tr>
-                  <th scope="col" className="px-5 py-3 font-medium">
-                    Player
+                  <th scope="col" className="py-1.5 px-3 font-bold">
+                    Player Name &amp; ID
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    DUBR
+                  <th scope="col" className="py-1.5 px-2 font-bold">
+                    DUBR (Rating)
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="py-1.5 px-2 text-center font-bold">
                     Matches
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="py-1.5 px-2 font-bold">
                     Status
                   </th>
-                  <th scope="col" className="px-5 py-3 font-medium text-right">
+                  <th scope="col" className="py-1.5 px-3 text-right font-bold">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/60 dark:divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100 font-mono text-[10px]">
                 {effectiveFilteredRoster.map((player) => (
                   <tr
                     key={player.id}
-                    className="hover:bg-surface-container-low dark:hover:bg-slate-800/40 transition-colors"
+                    className="hover:bg-slate-50/80 transition-colors group"
                   >
-                    <td className="px-5 py-3.5 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono-badge font-bold text-indigo-700 dark:text-emerald-400 shadow-xs">
+                    <td className="py-1.5 px-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-200 flex items-center justify-center text-[10px] font-bold text-indigo-700">
                           {getPlayerInitials(player.name)}
                         </div>
                         <div>
                           <button
                             type="button"
                             onClick={() => onSelectPlayer?.(player)}
-                            className="font-body-base font-semibold text-slate-900 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-emerald-400 transition-colors text-left"
+                            className="font-body-base font-bold text-slate-900 text-[11px] hover:text-primary transition-colors text-left block"
                           >
                             {player.name}
                           </button>
                           {player.locked_partner_name && (
-                            <div className="text-[10px] text-amber-600 dark:text-amber-400 font-mono-data flex items-center gap-1 mt-0.5">
-                              <span>🔗</span>
+                            <div className="text-[9px] text-amber-700 font-mono flex items-center gap-1">
+                              <span>🔒</span>
                               <span>Pinned to {player.locked_partner_name}</span>
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5 font-mono-data text-xs font-bold text-slate-900 dark:text-slate-200">
-                          <span>{formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}</span>
-                          {isProvisional(player.matches_played) && <ProvisionalBadge />}
-                        </div>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono-data">
+                    <td className="py-1.5 px-2 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-primary font-mono text-[11px]">
+                          {formatDubr(player.doubles_dubr ?? ratingToDubr(player.doubles_rating))}
+                        </span>
+                        <span className="text-slate-400 font-mono text-[9px]">
                           {player.doubles_rating.toFixed(0)}
                         </span>
+                        {isProvisional(player.matches_played) && <ProvisionalBadge />}
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-xs font-mono-data text-slate-600 dark:text-slate-400">
+                    <td className="py-1.5 px-2 whitespace-nowrap text-center font-bold text-slate-800">
                       {player.matches_played}
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
+                    <td className="py-1.5 px-2 whitespace-nowrap">
                       <PlayerStatusBadge status={player.status} />
                     </td>
-                    <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="py-1.5 px-3 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1">
                         {onSelectPlayer && (
                           <button
                             type="button"
                             onClick={() => onSelectPlayer(player)}
                             aria-label={`Open action sheet for ${player.name}`}
-                            className="tactile-btn px-2.5 py-1 text-xs rounded-md bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-indigo-700 dark:text-emerald-400 border border-outline-variant dark:border-slate-700 font-headline-md font-bold transition-colors cursor-pointer shadow-xs"
+                            className="silk-extruded-sm h-6 px-2 text-[10px] rounded border border-outline-variant text-slate-700 hover:text-primary font-mono font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
                           >
                             Manage
                           </button>
@@ -305,10 +314,10 @@ export function RosterCheckInList({
                           type="button"
                           onClick={() => void handleToggleStatus(player)}
                           aria-label={`Toggle status for ${player.name}`}
-                          className={`tactile-btn px-2.5 py-1 rounded-md text-xs font-headline-md font-bold transition-all cursor-pointer shadow-xs ${
+                          className={`h-6 px-2 rounded text-[10px] font-mono font-bold transition-all cursor-pointer shadow-2xs active:scale-95 ${
                             player.status === 'QUEUED'
-                              ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100'
-                              : 'bg-indigo-50 dark:bg-emerald-500/15 text-indigo-700 dark:text-emerald-300 border border-indigo-200 dark:border-emerald-500/30 hover:bg-indigo-100'
+                              ? 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
+                              : 'bg-emerald-500 text-white hover:bg-emerald-600'
                           }`}
                         >
                           {player.status === 'QUEUED' ? 'Rest' : 'Queue'}

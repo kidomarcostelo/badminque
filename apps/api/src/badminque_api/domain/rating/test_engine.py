@@ -1042,4 +1042,3 @@ def test_cross_discipline_no_re_seeding_after_first_match() -> None:
     eve_delta = next(d for d in deltas if d.player_id == "eve")
     # Must use 1650.0, NOT re-seed from 1850.0
     assert eve_delta.pre_rating == 1650.0
-

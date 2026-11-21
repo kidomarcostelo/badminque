@@ -163,9 +163,7 @@ class PlayerProfileState:
         if target.matches_played > 0:
             return target
 
-        counterpart = (
-            self.doubles if discipline == Discipline.SINGLES else self.singles
-        )
+        counterpart = self.doubles if discipline == Discipline.SINGLES else self.singles
         if not counterpart.is_provisional:
             return PlayerRatingState(
                 player_id=self.player_id,

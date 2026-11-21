@@ -26,23 +26,23 @@ interface StateBadgeStyle {
 
 const STATE_STYLE_MAP: Record<CourtState, StateBadgeStyle> = {
   IN_MATCH: {
-    border: 'court-active',
-    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-    dot: 'bg-emerald-500 animate-pulse',
+    border: 'border-amber-300',
+    badge: 'bg-amber-50 text-amber-700 border-amber-300',
+    dot: 'bg-amber-500 animate-pulse',
   },
   PROPOSED: {
-    border: 'border-amber-500/70',
-    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
-    dot: 'bg-amber-500',
+    border: 'border-outline-variant',
+    badge: 'bg-slate-100 text-slate-700 border-outline-variant',
+    dot: 'bg-slate-500',
   },
   SCORE_ENTRY: {
-    border: 'border-indigo-500/70',
-    badge: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
-    dot: 'bg-indigo-500 animate-ping',
+    border: 'court-active',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-300',
+    dot: 'bg-emerald-500',
   },
   IDLE: {
-    border: 'border-outline-variant dark:border-slate-800',
-    badge: 'bg-surface-container-high dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-outline-variant dark:border-slate-700',
+    border: 'border-outline-variant',
+    badge: 'bg-slate-100 text-slate-500 border-outline-variant',
     dot: 'bg-slate-400',
   },
 };
@@ -60,40 +60,47 @@ export function CourtStationCard({
   if (state === 'IDLE' || !teamA || !teamB) {
     return (
       <div
-        className={`silk-extruded bg-white dark:bg-slate-900 border ${stateStyle.border} rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm min-h-[330px] transition-all`}
+        className={`silk-extruded rounded-xl border ${stateStyle.border} p-3 sm:p-4 flex flex-col justify-between shadow-xs min-h-[220px] transition-all`}
       >
-        <div className="flex items-center justify-between border-b border-outline-variant dark:border-slate-800 pb-3">
-          <span className="font-headline-md font-extrabold text-base text-slate-900 dark:text-slate-200">{name}</span>
+        <div className="flex items-center justify-between border-b border-outline-variant pb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-outline-variant">
+              KEY [{courtId}]
+            </span>
+            <span className="font-headline-sm text-sm font-extrabold uppercase text-slate-900 tracking-wide">
+              {name}
+            </span>
+          </div>
           <span
-            className={`px-2.5 py-1 rounded-full text-xs font-mono-badge font-bold border flex items-center gap-1.5 ${stateStyle.badge}`}
+            className={`px-2 py-0.5 rounded-full text-[10px] font-mono-badge font-bold border flex items-center gap-1.5 ${stateStyle.badge}`}
           >
-            <span className={`w-2 h-2 rounded-full ${stateStyle.dot}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${stateStyle.dot}`} />
             IDLE
           </span>
         </div>
 
-        <div className="silk-sunken-shallow bg-surface-container dark:bg-slate-950/60 rounded-xl my-auto py-7 px-4 text-center space-y-2 border border-outline-variant/60 dark:border-slate-800/80">
-          <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 mx-auto flex items-center justify-center text-slate-400 font-mono text-xl shadow-xs">
+        <div className="silk-sunken-shallow rounded-lg my-auto py-5 px-3 text-center space-y-1.5 border border-outline-variant">
+          <div className="w-8 h-8 rounded-lg silk-extruded-sm border border-outline-variant mx-auto flex items-center justify-center text-slate-400 font-mono text-sm shadow-2xs">
             ⏱
           </div>
-          <div className="text-base font-headline-md font-bold text-slate-900 dark:text-slate-200">Court Open for Next Match</div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+          <div className="text-sm font-headline-sm font-bold text-slate-900">Court Open for Next Match</div>
+          <p className="text-[11px] text-on-surface-variant max-w-xs mx-auto">
             Dispatch the Next Up pairing from the On-Deck Queue Pool or assemble a Custom Match.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-outline-variant dark:border-slate-800">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant">
           <button
             type="button"
             onClick={() => onDispatch?.(courtId)}
-            className="silk-btn-primary min-h-[46px] px-3 py-2.5 rounded-xl text-white font-headline-md font-extrabold text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            className="silk-btn-primary min-h-[34px] px-3 py-1.5 rounded-lg text-white font-headline-sm font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95 transition-all"
           >
             <span>⚡ Dispatch</span>
           </button>
           <button
             type="button"
             onClick={() => onCustomMatch?.(courtId)}
-            className="tactile-btn min-h-[46px] px-3 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-200 font-headline-md font-bold text-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+            className="silk-extruded-sm min-h-[34px] px-3 py-1.5 rounded-lg border border-outline-variant text-slate-800 font-mono font-bold text-xs flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all shadow-2xs"
           >
             <span>Custom Match</span>
           </button>
@@ -112,106 +119,133 @@ export function CourtStationCard({
 
   return (
     <div
-      className={`silk-extruded bg-white dark:bg-slate-900 border-2 ${stateStyle.border} rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm transition-all`}
+      className={`silk-extruded rounded-xl border p-3 sm:p-3.5 flex flex-col justify-between shadow-xs transition-all relative ${
+        state === 'SCORE_ENTRY' ? 'court-active' : stateStyle.border
+      }`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant dark:border-slate-800 pb-3">
-        <div>
-          <h3 className="font-headline-md font-extrabold text-base text-slate-900 dark:text-slate-100">{name}</h3>
-          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
-            <span>
-              Spread: <strong className="text-slate-800 dark:text-slate-200 font-mono-data">{spread} RS</strong>
-            </span>
-            <span>•</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{balanceLabel}</span>
-          </div>
+      {state === 'SCORE_ENTRY' && (
+        <div className="absolute -top-2 right-2 px-2 py-0.5 bg-primary text-white font-mono text-[8px] font-extrabold uppercase rounded-full shadow-md">
+          URGENT ACTION
+        </div>
+      )}
+
+      {/* Court Header */}
+      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-outline-variant pb-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`font-mono text-[9px] px-1.5 py-0.5 rounded-md font-bold ${
+              state === 'SCORE_ENTRY'
+                ? 'bg-primary text-white'
+                : 'bg-slate-100 text-slate-700 border border-outline-variant'
+            }`}
+          >
+            KEY [{courtId}]
+          </span>
+          <h3 className="font-headline-sm text-sm font-extrabold uppercase text-slate-900 tracking-wide">
+            {name}
+          </h3>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {showTimer && (
-            <div className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 font-mono-data text-sm font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 shadow-xs">
-              <span>⏱</span>
-              <span>{formatTimer(elapsedSeconds)}</span>
-            </div>
+            <span
+              className={`font-mono text-xs font-bold px-2 py-0.5 rounded-lg border ${
+                state === 'SCORE_ENTRY'
+                  ? 'text-primary silk-sunken-shallow border-primary/20'
+                  : 'text-amber-700 silk-sunken-shallow border-amber-200'
+              }`}
+            >
+              {formatTimer(elapsedSeconds)}
+            </span>
           )}
           <span
-            className={`px-2.5 py-1 rounded-full text-xs font-mono-badge font-extrabold border flex items-center gap-1.5 ${stateStyle.badge}`}
+            className={`px-2 py-0.5 rounded-full text-[10px] font-mono-badge font-bold border flex items-center gap-1 ${stateStyle.badge}`}
           >
-            <span className={`w-2 h-2 rounded-full ${stateStyle.dot}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${stateStyle.dot}`} />
             {state}
           </span>
         </div>
       </div>
 
-      <div className="my-4 space-y-2.5">
-        <div className="silk-sunken-shallow p-3 rounded-xl bg-surface-container dark:bg-slate-950/80 border border-outline-variant/80 dark:border-slate-800/90 flex items-center justify-between gap-2">
-          <div className="space-y-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono-badge font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
-                Team A
-              </span>
-              <span className="text-sm font-body-base font-bold text-slate-900 dark:text-slate-100 truncate">{playerA1.name}</span>
-              <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">{playerA1.doubles_rating}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono-badge font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded opacity-0">
-                Team A
-              </span>
-              <span className="text-sm font-body-base font-bold text-slate-900 dark:text-slate-100 truncate">{playerA2.name}</span>
-              <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">{playerA2.doubles_rating}</span>
-            </div>
+      {/* Balance Subtitle */}
+      <div className="text-[10px] font-semibold text-on-surface-variant flex items-center gap-1.5 pt-1">
+        <span>
+          Spread: <strong className="text-slate-800 font-mono-data">{spread} RS</strong>
+        </span>
+        <span>•</span>
+        <span className="text-emerald-600 font-bold">{balanceLabel}</span>
+      </div>
+
+      {/* Pairings Dense 2-Column Grid */}
+      <div className="grid grid-cols-2 gap-2 my-2">
+        {/* Team A */}
+        <div className="silk-sunken-shallow p-2 rounded-lg border border-outline-variant flex flex-col justify-between">
+          <div className="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-1 mb-1 border-b border-outline-variant/60">
+            <span className="text-slate-700 font-bold uppercase">Team A</span>
+            <span className="text-indigo-600 font-bold">Avg {avgA}</span>
           </div>
-          <div className="text-right shrink-0 pl-2 border-l border-outline-variant dark:border-slate-800">
-            <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Pair Avg</div>
-            <div className="text-base font-mono-data font-extrabold text-indigo-600 dark:text-indigo-400">{avgA}</div>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="truncate font-bold text-slate-900 font-body-base max-w-[100px]">
+                {playerA1.name}
+              </span>
+              <span className="font-mono text-[10px] text-slate-500 font-medium">
+                {playerA1.doubles_rating}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="truncate font-bold text-slate-900 font-body-base max-w-[100px]">
+                {playerA2.name}
+              </span>
+              <span className="font-mono text-[10px] text-slate-500 font-medium">
+                {playerA2.doubles_rating}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-outline-variant dark:border-slate-800 w-full" />
-          <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-mono-badge font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-            VS
-          </span>
-          <div className="border-t border-outline-variant dark:border-slate-800 w-full" />
-        </div>
-
-        <div className="silk-sunken-shallow p-3 rounded-xl bg-surface-container dark:bg-slate-950/80 border border-outline-variant/80 dark:border-slate-800/90 flex items-center justify-between gap-2">
-          <div className="space-y-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono-badge font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
-                Team B
-              </span>
-              <span className="text-sm font-body-base font-bold text-slate-900 dark:text-slate-100 truncate">{playerB1.name}</span>
-              <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">{playerB1.doubles_rating}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono-badge font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded opacity-0">
-                Team B
-              </span>
-              <span className="text-sm font-body-base font-bold text-slate-900 dark:text-slate-100 truncate">{playerB2.name}</span>
-              <span className="text-xs font-mono-data text-slate-500 dark:text-slate-400">{playerB2.doubles_rating}</span>
-            </div>
+        {/* Team B */}
+        <div className="silk-sunken-shallow p-2 rounded-lg border border-outline-variant flex flex-col justify-between">
+          <div className="flex justify-between items-center text-[9px] text-on-surface-variant font-mono pb-1 mb-1 border-b border-outline-variant/60">
+            <span className="text-slate-700 font-bold uppercase">Team B</span>
+            <span className="text-amber-600 font-bold">Avg {avgB}</span>
           </div>
-          <div className="text-right shrink-0 pl-2 border-l border-outline-variant dark:border-slate-800">
-            <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Pair Avg</div>
-            <div className="text-base font-mono-data font-extrabold text-amber-600 dark:text-amber-400">{avgB}</div>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="truncate font-bold text-slate-900 font-body-base max-w-[100px]">
+                {playerB1.name}
+              </span>
+              <span className="font-mono text-[10px] text-slate-500 font-medium">
+                {playerB1.doubles_rating}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="truncate font-bold text-slate-900 font-body-base max-w-[100px]">
+                {playerB2.name}
+              </span>
+              <span className="font-mono text-[10px] text-slate-500 font-medium">
+                {playerB2.doubles_rating}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="pt-3 border-t border-outline-variant dark:border-slate-800 flex flex-wrap items-center gap-2">
+      {/* Action Row */}
+      <div className="pt-2 border-t border-outline-variant flex items-center gap-1.5">
         {state === 'PROPOSED' ? (
           <>
             <button
               type="button"
               onClick={() => onDispatch?.(courtId)}
-              className="silk-btn-primary flex-1 min-h-[48px] px-4 py-2.5 rounded-xl text-white font-headline-md font-extrabold text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              className="h-8 flex-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-mono text-[11px] font-bold flex items-center justify-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer"
             >
-              <span>⚡ Dispatch to Court</span>
+              <span>⚡ Dispatch</span>
             </button>
             <button
               type="button"
               onClick={() => onCustomMatch?.(courtId)}
-              className="tactile-btn min-h-[48px] px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-200 font-headline-md font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+              className="h-8 px-2.5 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-800 font-mono text-[11px] font-bold border border-outline-variant active:scale-95 transition-all cursor-pointer"
             >
               <span>Custom Match</span>
             </button>
@@ -221,7 +255,7 @@ export function CourtStationCard({
                 onClick={() => onResetIdle(courtId)}
                 title="Clear to Idle"
                 aria-label="Clear to Idle"
-                className="tactile-btn min-h-[48px] px-3.5 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-outline-variant dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center cursor-pointer transition-colors shadow-xs"
+                className="h-8 w-8 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-600 border border-outline-variant flex items-center justify-center active:scale-95 transition-all cursor-pointer"
               >
                 ↺
               </button>
@@ -232,14 +266,14 @@ export function CourtStationCard({
             <button
               type="button"
               onClick={() => onEnterScore?.(courtId)}
-              className="silk-btn-primary flex-1 min-h-[48px] px-4 py-2.5 rounded-xl text-white font-headline-md font-extrabold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="h-8 flex-1 rounded-lg silk-btn-primary text-white font-headline-sm text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
             >
               <span>Enter Score (30 pts)</span>
             </button>
             <button
               type="button"
               onClick={() => onCustomMatch?.(courtId)}
-              className="tactile-btn min-h-[48px] px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-outline-variant dark:border-slate-700 text-slate-700 dark:text-slate-200 font-headline-md font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+              className="h-8 px-2.5 rounded-lg silk-extruded-sm hover:bg-slate-100 text-slate-800 font-mono text-[11px] font-bold border border-outline-variant active:scale-95 transition-all cursor-pointer"
             >
               <span>Custom Match</span>
             </button>

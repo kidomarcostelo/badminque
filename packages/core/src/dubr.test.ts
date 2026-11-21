@@ -357,5 +357,89 @@ describe('DUBR Singles Rating Match Calculation', () => {
       expect(res.isSeeded).toBe(false);
     });
   });
+
+  describe('Provisional-to-Established Milestone & Graduation (Ticket #27)', () => {
+    it('graduates player on their 8th match, dropping provisional badge and marking established', () => {
+      // Player with 7 completed matches is provisional
+      const calibratingPlayer = {
+        id: 'player-grad',
+        name: 'Graduating Player',
+        rating: 1500,
+        matches_played: 7,
+      };
+      const partner = {
+        id: 'player-partner',
+        name: 'Partner',
+        rating: 1550,
+        matches_played: 10,
+      };
+      const opponentA = {
+        id: 'opp-a',
+        name: 'Opponent A',
+        rating: 1520,
+        matches_played: 15,
+      };
+      const opponentB = {
+        id: 'opp-b',
+        name: 'Opponent B',
+        rating: 1480,
+        matches_played: 12,
+      };
+
+      expect(isProvisional(calibratingPlayer.matches_played)).toBe(true);
+
+      const deltas = calculateDoublesMatchDeltas(
+        [calibratingPlayer, partner],
+        [opponentA, opponentB],
+        [[21, 15]],
+        'SINGLE_21'
+      );
+
+      const gradDelta = deltas.find((d) => d.player_id === calibratingPlayer.id);
+      expect(gradDelta).toBeDefined();
+      expect(gradDelta?.matches_played_after).toBe(8);
+      // Upon completing the 8th match, provisional badge drops
+      expect(gradDelta?.is_provisional).toBe(false);
+      expect(isProvisional(gradDelta!.matches_played_after)).toBe(false);
+    });
+
+    it('retains provisional badge when match count after match remains < 8', () => {
+      const earlyPlayer = {
+        id: 'player-early',
+        name: 'Early Player',
+        rating: 1500,
+        matches_played: 3,
+      };
+      const partner = { id: 'p2', rating: 1500, matches_played: 5 };
+      const oppA = { id: 'o1', rating: 1500, matches_played: 10 };
+      const oppB = { id: 'o2', rating: 1500, matches_played: 10 };
+
+      const deltas = calculateDoublesMatchDeltas(
+        [earlyPlayer, partner],
+        [oppA, oppB],
+        [[21, 18]],
+        'SINGLE_21'
+      );
+
+      const delta = deltas.find((d) => d.player_id === earlyPlayer.id);
+      expect(delta?.matches_played_after).toBe(4);
+      expect(delta?.is_provisional).toBe(true);
+      expect(isProvisional(delta!.matches_played_after)).toBe(true);
+    });
+
+    it('stabilizes K-factor volatility regime for established players (>= 8 matches)', () => {
+      const kAt0 = calculateKFactor(0);
+      const kAt7 = calculateKFactor(7);
+      const kAt8 = calculateKFactor(8);
+      const kAt16 = calculateKFactor(16);
+
+      // Monotonically decaying towards K=16
+      expect(kAt0).toBe(64.0);
+      expect(kAt7).toBeGreaterThan(kAt8);
+      expect(kAt8).toBeLessThan(36.0); // decaying towards established floor 16
+      expect(kAt16).toBeLessThan(25.0);
+      expect(kAt16).toBeGreaterThanOrEqual(16.0);
+    });
+  });
 });
 

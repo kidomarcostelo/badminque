@@ -59,29 +59,36 @@ export function RosterCheckInModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="check-in-modal-title"
     >
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 space-y-5">
-        <div>
-          <h2
-            id="check-in-modal-title"
-            className="text-lg font-extrabold text-slate-100 tracking-tight"
+      <div className="w-full max-w-md silk-extruded bg-white border border-outline-variant rounded-2xl shadow-2xl p-5 space-y-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-[20px]">person_add</span>
+            <h2
+              id="check-in-modal-title"
+              className="text-sm font-headline-sm font-extrabold text-slate-900 uppercase tracking-wide"
+            >
+              Check In Roster Player
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg silk-extruded-sm hover:bg-slate-100 text-on-surface-variant flex items-center justify-center border border-outline-variant cursor-pointer active:scale-95 transition-all"
           >
-            Check In Roster Player
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Assign a 1-tap skill tier anchor to initialize baseline DUBR and accelerate convergence.
-          </p>
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label
               htmlFor="modal-player-name"
-              className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"
+              className="block text-[10px] font-mono font-bold text-on-surface-variant uppercase mb-1"
             >
               Player Name
             </label>
@@ -92,12 +99,12 @@ export function RosterCheckInModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Hendra Setiawan"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full h-8 px-3 rounded-lg bg-slate-50 text-slate-900 font-body-base text-xs focus:ring-1 focus:ring-primary border border-outline-variant focus:outline-none placeholder:text-slate-400"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-[10px] font-mono font-bold text-on-surface-variant uppercase mb-1">
               Skill Tier Anchor
             </label>
             <TierAnchorSelector
@@ -107,21 +114,21 @@ export function RosterCheckInModal({
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+              className="h-8 px-3 rounded-lg silk-extruded-sm hover:bg-slate-100 border border-outline-variant text-slate-700 font-mono font-bold text-xs cursor-pointer active:scale-95 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={name.trim().length === 0 || isSubmitting}
-              className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white transition-colors cursor-pointer disabled:cursor-not-allowed shadow-md shadow-emerald-600/20"
+              className="silk-btn-primary h-8 px-4 rounded-lg text-white font-headline-sm font-bold text-xs flex items-center justify-center gap-1 shadow cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Checking In...' : 'Check In Player'}
+              <span>{isSubmitting ? 'Checking In...' : 'Check In Player'}</span>
             </button>
           </div>
         </form>

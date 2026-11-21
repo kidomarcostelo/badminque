@@ -9,15 +9,15 @@ describe('Courtside PWA Viewport and Metadata Settings', () => {
     expect(viewport.userScalable).toBe(false);
   });
 
-  it('sets theme color matching dark mode venue palette', () => {
-    expect(viewport.themeColor).toBe('#0f172a');
+  it('sets theme color matching Google Stitch Silk Light palette', () => {
+    expect(viewport.themeColor).toBe('#f8fafc');
   });
 
   it('configures standalone manifest and apple web app capabilities', () => {
     expect(metadata.manifest).toBe('/manifest.json');
     expect(metadata.appleWebApp).toEqual({
       capable: true,
-      statusBarStyle: 'black-translucent',
+      statusBarStyle: 'default',
       title: 'Badminque',
     });
   });

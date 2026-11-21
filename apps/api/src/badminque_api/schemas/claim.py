@@ -98,4 +98,3 @@ class LeaderboardEntryResponse(BaseModel):
     is_claimed: bool = Field(
         description="Whether roster player has claimed their passport"
     )
-

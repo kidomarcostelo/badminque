@@ -91,4 +91,3 @@ async def get_club_leaderboard(
         limit=limit,
         offset=offset,
     )
-

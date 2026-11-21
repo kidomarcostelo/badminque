@@ -316,3 +316,74 @@ def test_get_club_leaderboard_includes_provisional(
     assert data[0]["rank"] == 1
     assert data[0]["is_provisional"] is True
 
+
+def test_get_club_leaderboard_tied_window_ranking(
+    client_with_db: TestClient,
+    router_db_session: AsyncSession,
+) -> None:
+    """Verifies that club leaderboard handles tied ratings with SQL RANK()
+    window semantics (e.g. 1, 1, 3).
+    """
+    club = Club(id=uuid.uuid4(), name="Tied Club")
+    router_db_session.add(club)
+
+    p1 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Tied Alpha",
+        doubles_rating=1700.0,
+        doubles_matches_played=10,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    p2 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Tied Beta",
+        doubles_rating=1700.0,
+        doubles_matches_played=12,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    p3 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Third Place",
+        doubles_rating=1600.0,
+        doubles_matches_played=8,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    p_provisional = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="High Rating Rookie",
+        doubles_rating=1900.0,
+        doubles_matches_played=3,  # Excluded
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    router_db_session.add_all([p1, p2, p3, p_provisional])
+
+    import asyncio
+
+    asyncio.run(router_db_session.commit())
+
+    response = client_with_db.get(f"/api/v1/clubs/{club.id}/leaderboard")
+    assert response.status_code == 200
+
+    data = response.json()
+    # High Rating Rookie must be excluded
+    assert len(data) == 3
+    assert not any(p["name"] == "High Rating Rookie" for p in data)
+
+    # First two players tie for rank 1
+    assert data[0]["rank"] == 1
+    assert data[0]["rating"] == 1700.0
+    assert data[1]["rank"] == 1
+    assert data[1]["rating"] == 1700.0
+
+    # Third player receives rank 3 (skips 2)
+    assert data[2]["rank"] == 3
+    assert data[2]["name"] == "Third Place"
+    assert data[2]["rating"] == 1600.0

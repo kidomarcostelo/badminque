@@ -27,6 +27,7 @@ from badminque_api.schemas.match import (
     MatchRecordCreate,
 )
 from badminque_api.schemas.sync import BatchSyncRequest
+from badminque_api.services.claim_service import ClaimService
 from badminque_api.services.match_service import MatchService
 
 
@@ -486,3 +487,101 @@ async def test_record_singles_match_seeds_from_established_doubles_prior(
     assert p1.doubles_rating == 1750.0
     assert p1.doubles_matches_played == 10
 
+
+async def test_graduation_milestone_on_8th_match_and_leaderboard_inclusion(
+    test_session: AsyncSession,
+    sample_club_and_night: tuple[Club, ClubNight],
+) -> None:
+    """Verifies that upon completing the 8th match, a player's provisional status
+    drops to False, their K-factor regime stabilizes, and they graduate directly
+    into the official club leaderboard rankings.
+    """
+    club, club_night = sample_club_and_night
+    match_service = MatchService(test_session)
+    claim_service = ClaimService(test_session)
+
+    # 1. Candidate player with 7 doubles matches (provisional)
+    graduating_player = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Candidate Grad",
+        doubles_rating=1680.0,
+        doubles_matches_played=7,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    partner = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Established Partner",
+        doubles_rating=1650.0,
+        doubles_matches_played=12,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    opp1 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Opponent One",
+        doubles_rating=1600.0,
+        doubles_matches_played=10,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    opp2 = RosterPlayer(
+        id=uuid.uuid4(),
+        club_id=club.id,
+        name="Opponent Two",
+        doubles_rating=1580.0,
+        doubles_matches_played=10,
+        singles_rating=1500.0,
+        singles_matches_played=0,
+    )
+    test_session.add_all([graduating_player, partner, opp1, opp2])
+    await test_session.commit()
+
+    # Prior to 8th match: Candidate Grad is provisional and
+    # excluded from official leaderboard
+    assert graduating_player.doubles_is_provisional is True
+    initial_leaderboard = await claim_service.get_club_leaderboard(
+        club.id, discipline="doubles"
+    )
+    assert not any(entry.name == "Candidate Grad" for entry in initial_leaderboard)
+
+    # 2. Candidate Grad plays their 8th match
+    match_data = MatchRecordCreate(
+        id=uuid.uuid4(),
+        club_night_id=club_night.id,
+        court_id=1,
+        discipline=DisciplineEnum.DOUBLES,
+        format=MatchFormatEnum.SINGLE_21,
+        team_a_player_ids=[graduating_player.id, partner.id],
+        team_b_player_ids=[opp1.id, opp2.id],
+        team_a_scores=[21],
+        team_b_scores=[16],
+        recorded_at=datetime.now(timezone.utc),
+        sequence_num=1,
+    )
+    _, deltas = await match_service.record_match(club.id, match_data)
+
+    grad_delta = next(d for d in deltas if d.player_id == graduating_player.id)
+    # Volatility and provisional status drop on 8th match
+    assert grad_delta.matches_played_after == 8
+    assert grad_delta.is_provisional is False
+
+    # 3. Candidate Grad has graduated in the database
+    await test_session.refresh(graduating_player)
+    assert graduating_player.doubles_matches_played == 8
+    assert graduating_player.doubles_is_provisional is False
+
+    # 4. Candidate Grad now appears in the official club leaderboard with official rank
+    graduated_leaderboard = await claim_service.get_club_leaderboard(
+        club.id, discipline="doubles"
+    )
+    candidate_entry = next(
+        (e for e in graduated_leaderboard if e.name == "Candidate Grad"), None
+    )
+    assert candidate_entry is not None
+    assert candidate_entry.rank >= 1
+    assert candidate_entry.is_provisional is False
+    assert candidate_entry.matches_played == 8

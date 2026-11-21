@@ -829,7 +829,9 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
             ...player,
             doubles_rating: delta.post_rating,
             doubles_dubr: delta.post_dubr,
+            doubles_matches_played: delta.matches_played_after,
             matches_played: delta.matches_played_after,
+            doubles_is_provisional: delta.is_provisional,
             status: 'RESTING',
           };
           await storageService.savePlayer(updatedPlayer);
