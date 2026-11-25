@@ -6,7 +6,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-*Phase 2 initialization underway: **#29 (PWA Offline Shell & App Icons)** is complete. Ready for Zero-Cost Cloud Deployment or Public Spectator / Companion View.*
+*Phase 2 zero-cost deployment infrastructure (**#30**) and PWA offline shell (**#29**) are complete and merged to `main`. Ready to provision Neon/Koyeb/Vercel via `bash scripts/deploy-wizard.sh` or build the Public Spectator / Companion View.*
 
 ---
 
@@ -16,6 +16,7 @@ This document provides a single-source dashboard of all tasks, active decision t
 | Issue | Title | Status | Deliverable / Notes |
 | :--- | :--- | :--- | :--- |
 | **[#29](https://github.com/kidomarcostelo/badminque/issues/29)** | Phase 2: PWA Service Worker Registration, App Icons & Full Offline Shell | ✅ **Done** | Registered `/sw.js`, generated crisp 192x192/512x512/180x180 PNG icons, aligned Silk Light `manifest.json`, upgraded SW caching (network-first navigation, API bypass, SKIP_WAITING updates), added no-cache `/sw.js` headers. |
+| **[#30](https://github.com/kidomarcostelo/badminque/issues/30)** | Phase 2: Zero-Cost Cloud Deployment Setup (Vercel + Koyeb + Neon) | ✅ **Done** | Neon `asyncpg` URL/SSL normalization, Koyeb `Dockerfile` + `start.sh` auto-migrations, flexible `CORS_ORIGINS` + Vercel preview regex, root `vercel.json`, centralized `NEXT_PUBLIC_API_URL` client routing, `.env.example` templates, and interactive `scripts/deploy-wizard.sh`. |
 
 ### Spec: [Badminque MVP Implementation — Courtside Queueing, Offline Synchronization, and Universal Rating System](https://github.com/kidomarcostelo/badminque/issues/12) (#12 - CLOSED)
 *Objective: Complete club-first badminton rating and courtside match-tracking PWA + FastAPI engine operating offline within $0/month infrastructure tiers.*

@@ -5,10 +5,10 @@ from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
-from badminque_api.config import settings
+from badminque_api.config import normalize_database_url, settings
 from badminque_api.models import Base
 
 config = context.config
@@ -19,14 +19,14 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-def get_url() -> str:
-    """Retrieve async database connection URL from settings."""
-    return settings.database_url
+def get_url_and_connect_args() -> tuple[str, dict[str, object]]:
+    """Retrieve normalized async database URL and SSL connect args from settings."""
+    return normalize_database_url(settings.database_url)
 
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = get_url()
+    url, _ = get_url_and_connect_args()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -48,12 +48,10 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode using AsyncEngine."""
-    configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = get_url()
-
-    connectable = async_engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
+    url, connect_args = get_url_and_connect_args()
+    connectable = create_async_engine(
+        url,
+        connect_args=connect_args,
         poolclass=pool.NullPool,
     )
 

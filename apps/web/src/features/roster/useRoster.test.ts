@@ -172,5 +172,31 @@ describe('useRoster', () => {
     expect(storedBob?.doubles_dubr).toBe(2.500);
     expect(storedBob?.initial_tier).toBe('BEGINNER');
   });
+
+  it('prefixes remote roster requests with NEXT_PUBLIC_API_URL in cloud deployments', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://badminque-api.koyeb.app/');
+    const clubId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      renderHook(() => useRoster(clubId));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://badminque-api.koyeb.app/api/v1/clubs/${clubId}/players`
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllEnvs();
+    }
+  });
 });
 

@@ -9,6 +9,7 @@ import {
   type RosterPlayer,
   type SkillTier,
 } from '@badminque/core';
+import { buildApiUrl } from '../../services/apiClient';
 import { storageService } from '../../services/storageService';
 
 export interface UseRosterResult {
@@ -68,7 +69,7 @@ export function useRoster(initialClubId?: string): UseRosterResult {
       return;
     }
 
-    void fetch(`/api/v1/clubs/${initialClubId}/players`)
+    void fetch(buildApiUrl(`/api/v1/clubs/${initialClubId}/players`))
       .then((response) => {
         if (!response.ok) {
           return null;
@@ -198,7 +199,7 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
       // 2. Best-effort background sync to API when online (non-blocking)
       if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
-        void fetch(`/api/v1/clubs/${effectiveClubId}/players`, {
+        void fetch(buildApiUrl(`/api/v1/clubs/${effectiveClubId}/players`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -237,7 +238,11 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
       const effectiveClubId = existingPlayer.club_id ?? initialClubId;
       if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
-        void fetch(`/api/v1/clubs/${effectiveClubId}/players/${playerId}/status`, {
+        void fetch(
+          buildApiUrl(
+            `/api/v1/clubs/${effectiveClubId}/players/${playerId}/status`
+          ),
+          {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status }),

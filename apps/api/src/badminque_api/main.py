@@ -27,10 +27,11 @@ app.include_router(matches.router, prefix=settings.api_prefix)
 app.include_router(sync.router, prefix=settings.api_prefix)
 app.include_router(claims.router, prefix=settings.api_prefix)
 
-# CORS middleware for Next.js PWA client
+# CORS middleware for Next.js PWA client (production + Vercel previews)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=settings.cors_origin_regex or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

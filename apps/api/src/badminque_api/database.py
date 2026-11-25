@@ -15,14 +15,17 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from badminque_api.config import settings
+from badminque_api.config import normalize_database_url, settings
 from badminque_api.schemas.health import DatabaseStatus
 
 logger = logging.getLogger(__name__)
 
+_db_url, _db_connect_args = normalize_database_url(settings.database_url)
+
 # Engine configuration - Neon serverless Postgres asyncpg
 engine = create_async_engine(
-    settings.database_url,
+    _db_url,
+    connect_args=_db_connect_args,
     echo=(settings.environment == "development"),
     pool_pre_ping=True,
     pool_size=5,

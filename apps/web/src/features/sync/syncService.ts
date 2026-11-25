@@ -1,4 +1,5 @@
 import type { RosterPlayer } from '@badminque/core';
+import { buildApiUrl } from '../../services/apiClient';
 import { storageService } from '../../services/storageService';
 
 export interface PlayerDeltaResponse {
@@ -30,8 +31,11 @@ export interface SyncOptions {
 
 export class SyncService {
   private getApiUrl(options?: SyncOptions): string {
-    const base = options?.apiUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    return `${base.replace(/\/$/, '')}/api/v1/sync/batch`;
+    return buildApiUrl(
+      '/api/v1/sync/batch',
+      options?.apiUrl,
+      'http://localhost:8000'
+    );
   }
 
   public async syncPendingMatches(
