@@ -6,7 +6,22 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-*Phase 2 zero-cost deployment infrastructure (**#30**) and PWA offline shell (**#29**) are complete and merged to `main`. Ready to provision Neon/Koyeb/Vercel via `bash scripts/deploy-wizard.sh` or build the Public Spectator / Companion View.*
+### Active Specification: Full Frontend-Backend Bridge & Courtside Production Wiring
+| Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **[#31 Spec: Full Frontend-Backend Bridge & Courtside Production Wiring](https://github.com/kidomarcostelo/badminque/issues/31)** | Spec | 🟡 **Ready for Agent** | Unassigned | Parent specification bridging all remaining unimplemented backend REST endpoints, `/claim` flow, DUBR feedback, and Silk Light UI parity on `apps/web`. |
+
+### Implementation Tickets (Frontend-Backend Bridge Tracer-Bullet Slices)
+| Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[#32](https://github.com/kidomarcostelo/badminque/issues/32)** | Club & Club Night Session Initialization (API + Cockpit) | 🟡 **Ready for Agent** | None | 🚀 **Frontier** | Backend `GET/POST /clubs` & `GET/POST /clubs/{id}/nights`; Organizer session picker/creator backed by real UUIDs with offline creation/sync reconciliation. |
+| **[#33](https://github.com/kidomarcostelo/badminque/issues/33)** | Live Roster Check-In & Status Mutation Bridging | 🔒 **Blocked** | #32 | Blocked | Route cockpit check-ins, typeahead hydration, and status changes (`QUEUED`/`RESTING`/`PLAYING`) through `useRoster(clubId)` when online with IndexedDB fallback. |
+| **[#34](https://github.com/kidomarcostelo/badminque/issues/34)** | End-to-End Match Sync & Discipline-Aware DUBR Outcome Flow | 🔒 **Blocked** | #32 | Blocked | Real UUID batch sync (`POST /clubs/{id}/sync/batch`), Singles vs. Doubles delta reconciliation, `PostMatchOutcomeView` surfacing, and synced Match History retention. |
+| **[#35](https://github.com/kidomarcostelo/badminque/issues/35)** | Real Claim Token QR Generation & `/claim` Redemption Page | 🔒 **Blocked** | #33 | Blocked | Call `POST /clubs/{id}/players/{id}/claim-token`, render real scannable SVG QR + `/claim?token=...` link, and add Next.js `/claim` page calling `POST /claim/token`. |
+| **[#36](https://github.com/kidomarcostelo/badminque/issues/36)** | Live Player Passport Hydration & Cross-Club Portability | 🔒 **Blocked** | #33 | Blocked | Hydrate `PlayerPassportModal` from `GET /players/{id}/passport` when online, render portable QR/payload, and allow visitor Passport import during check-in. |
+| **[#37](https://github.com/kidomarcostelo/badminque/issues/37)** | Live SQL-Ranked Club Leaderboard & Silk Light Parity | 🔒 **Blocked** | #32, #34 | Blocked | Hydrate `ClubLeaderboardView` from `GET /clubs/{id}/leaderboard` when online with local fallback; migrate Leaderboard, Claim Modal, & Passport Modal to ADR 0003 Silk Light. |
+
+*Phase 2 deployment infrastructure (**#30**) and PWA offline shell (**#29**) are complete and merged to `main` (`bash scripts/deploy-wizard.sh` ready when provisioning live dashboards).*
 
 ---
 
