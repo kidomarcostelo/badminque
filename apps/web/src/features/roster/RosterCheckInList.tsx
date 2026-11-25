@@ -21,6 +21,12 @@ export interface RosterCheckInListProps {
   onSelectPlayer?: (player: RosterPlayer) => void;
   roster?: RosterPlayer[];
   onSeedDemo?: () => void | Promise<void>;
+  onCheckIn?: (
+    name: string,
+    tier?: SkillTier,
+    clubId?: string
+  ) => Promise<RosterPlayer>;
+  onUpdatePlayerStatus?: (playerId: string, status: PlayerState) => Promise<void>;
 }
 
 function getPlayerInitials(name: string): string {
@@ -49,6 +55,8 @@ export function RosterCheckInList({
   onSelectPlayer,
   roster: propRoster,
   onSeedDemo,
+  onCheckIn,
+  onUpdatePlayerStatus,
 }: RosterCheckInListProps): React.JSX.Element {
   const {
     roster,
@@ -58,7 +66,10 @@ export function RosterCheckInList({
     checkInPlayer,
     updatePlayerStatus,
     refreshRoster,
-  } = useRoster(clubId);
+  } = useRoster(clubId, { skipRemoteHydration: Boolean(propRoster) });
+
+  const effectiveCheckIn = onCheckIn ?? checkInPlayer;
+  const effectiveUpdateStatus = onUpdatePlayerStatus ?? updatePlayerStatus;
 
   const [inputName, setInputName] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<SkillTier>('INTERMEDIATE');
@@ -101,7 +112,7 @@ export function RosterCheckInList({
     );
     if (existing) {
       if (existing.status !== 'QUEUED') {
-        await updatePlayerStatus(existing.id, 'QUEUED');
+        await effectiveUpdateStatus(existing.id, 'QUEUED');
         onRosterChange?.();
       }
       setInputName('');
@@ -109,7 +120,7 @@ export function RosterCheckInList({
       return;
     }
 
-    await checkInPlayer(trimmed, selectedTier, clubId);
+    await effectiveCheckIn(trimmed, selectedTier, clubId);
     onRosterChange?.();
     setInputName('');
     setSearchQuery('');
@@ -117,7 +128,7 @@ export function RosterCheckInList({
 
   const handleSelectSuggestion = async (player: RosterPlayer): Promise<void> => {
     if (player.status !== 'QUEUED') {
-      await updatePlayerStatus(player.id, 'QUEUED');
+      await effectiveUpdateStatus(player.id, 'QUEUED');
       onRosterChange?.();
     }
     setInputName('');
@@ -126,7 +137,7 @@ export function RosterCheckInList({
 
   const handleToggleStatus = async (player: RosterPlayer): Promise<void> => {
     const nextStatus = getNextToggleStatus(player.status);
-    await updatePlayerStatus(player.id, nextStatus);
+    await effectiveUpdateStatus(player.id, nextStatus);
     onRosterChange?.();
   };
 

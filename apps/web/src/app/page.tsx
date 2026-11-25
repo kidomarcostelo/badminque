@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   QUICK_SCORE_TARGET,
   STANDARD_SET_WIN_SCORE,
-  getTierDubr,
-  getTierRating,
   type RosterPlayer,
   type RotationPolicy,
 } from '@badminque/core';
@@ -20,7 +18,12 @@ import {
 } from '../features/courts';
 import { ClubLeaderboardView } from '../features/leaderboard';
 import { PlayerPassportModal } from '../features/passport';
-import { PlayerTouchActionSheet, RosterCheckInList, RosterCheckInModal } from '../features/roster';
+import {
+  PlayerTouchActionSheet,
+  RosterCheckInList,
+  RosterCheckInModal,
+  useRoster,
+} from '../features/roster';
 import { ClubSessionModal, useClubSession } from '../features/sessions';
 import { SyncStatusIndicator, useSync } from '../features/sync';
 import { useStorage } from '../hooks/useStorage';
@@ -37,14 +40,29 @@ export default function CourtsideStationPage(): React.JSX.Element {
   const [isQuickCheckInModalOpen, setIsQuickCheckInModalOpen] = useState<boolean>(false);
   const [isSessionModalOpen, setIsSessionModalOpen] = useState<boolean>(false);
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
-  const { roster, pendingMatches, refresh } = useStorage();
+  const { pendingMatches, refresh: refreshStorage } = useStorage();
   const {
     activeSession,
     sessions,
+    isLoading: isSessionLoading,
     selectSession,
     createSession,
     ensureSessionSynced,
   } = useClubSession();
+  const activeClubId = isSessionLoading ? undefined : activeSession.club_id;
+  const {
+    roster,
+    checkInPlayer,
+    updatePlayerStatus,
+    syncPlayerStatusRemote,
+    refreshRoster,
+  } = useRoster(activeClubId, {
+    onBeforeRemoteMutation: ensureSessionSynced,
+  });
+
+  const refresh = useCallback(async (): Promise<void> => {
+    await Promise.all([refreshRoster(), refreshStorage()]);
+  }, [refreshRoster, refreshStorage]);
 
   const {
     isOnline,
@@ -86,6 +104,8 @@ export default function CourtsideStationPage(): React.JSX.Element {
     roster,
     clubNightId: activeSession.id,
     onRosterChange: refresh,
+    onPlayerStatusChange: (playerId, status) =>
+      syncPlayerStatusRemote(playerId, status, activeClubId),
   });
 
   const handleScoreSubmit = async (
@@ -438,8 +458,11 @@ export default function CourtsideStationPage(): React.JSX.Element {
                   <span>Courtside Check-In &amp; Bench Roster</span>
                 </h2>
                 <RosterCheckInList
+                  clubId={activeClubId}
                   roster={roster}
-                  onRosterChange={refresh}
+                  onRosterChange={() => void refresh()}
+                  onCheckIn={(name, tier) => checkInPlayer(name, tier, activeClubId)}
+                  onUpdatePlayerStatus={updatePlayerStatus}
                   onSelectPlayer={(player) => setSelectedActionSheetPlayer(player)}
                   onSeedDemo={handleSeedDemoData}
                 />
@@ -570,22 +593,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
         isOpen={isQuickCheckInModalOpen}
         onClose={() => setIsQuickCheckInModalOpen(false)}
         onCheckIn={async (name, tier) => {
-          const baselineRating = getTierRating(tier);
-          const baselineDubr = getTierDubr(tier);
-          await storageService.savePlayer({
-            id: crypto.randomUUID(),
-            name,
-            auth_user_id: null,
-            singles_rating: baselineRating,
-            doubles_rating: baselineRating,
-            singles_dubr: baselineDubr,
-            doubles_dubr: baselineDubr,
-            initial_tier: tier,
-            matches_played: 0,
-            status: 'QUEUED',
-            checked_in_at: new Date().toISOString(),
-          });
-          await refresh();
+          await checkInPlayer(name, tier, activeClubId);
         }}
       />
 

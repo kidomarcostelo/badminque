@@ -1,6 +1,6 @@
 import React, { act } from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import CourtsideStationPage from './page';
 import { closeDatabaseConnection, storageService } from '../services/storageService';
 
@@ -384,6 +384,223 @@ describe('CourtsideStationPage', () => {
     const active = await storageService.getActiveSession();
     expect(active?.club_name).toBe('Sunday Shuttle Club');
     expect(active?.id).not.toBe('default-club-night');
+  });
+
+  it('hydrates remote club players into Bench Roster using active session club_id without overwriting offline additions', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://badminque-api.koyeb.app');
+    const clubId = '33333333-3333-4333-8333-333333333331';
+
+    await storageService.saveActiveSession({
+      id: '33333333-3333-4333-8333-333333333332',
+      club_id: clubId,
+      club_name: 'Issue 33 Hydration Club',
+      date: '2026-11-25',
+      status: 'ACTIVE',
+      created_at: '2026-11-25T10:00:00.000Z',
+      sync_status: 'SYNCED',
+    });
+
+    await storageService.savePlayer({
+      id: '33333333-3333-4333-8333-333333333399',
+      club_id: clubId,
+      name: 'Offline Olivia',
+      auth_user_id: null,
+      initial_tier: 'INTERMEDIATE',
+      singles_rating: 1400,
+      doubles_rating: 1400,
+      singles_dubr: 3.5,
+      doubles_dubr: 3.5,
+      matches_played: 0,
+      status: 'QUEUED',
+      checked_in_at: '2026-11-25T10:05:00.000Z',
+    });
+
+    const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.endsWith(`/api/v1/clubs/${clubId}/players`)) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              id: '33333333-3333-4333-8333-333333333388',
+              club_id: clubId,
+              name: 'Remote Ratchanok',
+              auth_user_id: null,
+              initial_tier: 'ADVANCED',
+              singles_rating: 1800,
+              doubles_rating: 1800,
+              singles_dubr: 4.5,
+              doubles_dubr: 4.5,
+              matches_played: 0,
+              status: 'QUEUED',
+              created_at: '2026-11-25T09:00:00.000Z',
+            },
+          ],
+        };
+      }
+      return { ok: true, json: async () => [] };
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      render(<CourtsideStationPage />);
+
+      expect((await screen.findAllByText('Remote Ratchanok', {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Offline Olivia').length).toBeGreaterThanOrEqual(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://badminque-api.koyeb.app/api/v1/clubs/${clubId}/players`
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('syncs Quick Check-In Modal check-in to POST /api/v1/clubs/{club_id}/players via NEXT_PUBLIC_API_URL', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://badminque-api.koyeb.app');
+    const clubId = '44444444-4444-4444-8444-444444444441';
+
+    await storageService.saveActiveSession({
+      id: '44444444-4444-4444-8444-444444444442',
+      club_id: clubId,
+      club_name: 'Issue 33 Check-In Club',
+      date: '2026-11-25',
+      status: 'ACTIVE',
+      created_at: '2026-11-25T10:00:00.000Z',
+      sync_status: 'SYNCED',
+    });
+
+    const postedBodies: Array<{ url: string; body: Record<string, unknown> }> = [];
+    const mockFetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'POST' && typeof init.body === 'string') {
+        postedBodies.push({
+          url,
+          body: JSON.parse(init.body) as Record<string, unknown>,
+        });
+      }
+      return { ok: true, json: async () => [] };
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      render(<CourtsideStationPage />);
+
+      expect(await screen.findByText(/Issue 33 Check-In Club/i)).toBeInTheDocument();
+
+      fireEvent.keyDown(window, { key: 'n' });
+      const modal = await screen.findByRole('dialog');
+
+      fireEvent.change(within(modal).getByLabelText(/Player Name/i), {
+        target: { value: 'Modal Mia' },
+      });
+      fireEvent.click(within(modal).getByRole('radio', { name: /Advanced/i }));
+
+      await act(async () => {
+        fireEvent.click(within(modal).getByRole('button', { name: /Check In Player/i }));
+      });
+
+      expect((await screen.findAllByText('Modal Mia', {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+      await waitFor(() => {
+        expect(
+          postedBodies.some(
+            (call) =>
+              call.url === `https://badminque-api.koyeb.app/api/v1/clubs/${clubId}/players` &&
+              call.body.name === 'Modal Mia' &&
+              call.body.initial_tier === 'ADVANCED' &&
+              call.body.doubles_dubr === 4.5
+          )
+        ).toBe(true);
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('syncs court dispatch player status transitions to PATCH /status when online and stays responsive offline', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://badminque-api.koyeb.app');
+    const clubId = '55555555-5555-4555-8555-555555555551';
+
+    await storageService.saveActiveSession({
+      id: '55555555-5555-4555-8555-555555555552',
+      club_id: clubId,
+      club_name: 'Issue 33 Status Club',
+      date: '2026-11-25',
+      status: 'ACTIVE',
+      created_at: '2026-11-25T10:00:00.000Z',
+      sync_status: 'SYNCED',
+    });
+
+    for (let idx = 1; idx <= 4; idx += 1) {
+      await storageService.savePlayer({
+        id: `55555555-5555-4555-8555-55555555550${idx}`,
+        club_id: clubId,
+        name: `Status Player ${idx}`,
+        auth_user_id: null,
+        initial_tier: 'INTERMEDIATE',
+        singles_rating: 1400,
+        doubles_rating: 1400,
+        singles_dubr: 3.5,
+        doubles_dubr: 3.5,
+        matches_played: 0,
+        status: 'QUEUED',
+        checked_in_at: `2026-11-25T10:0${idx}:00.000Z`,
+      });
+    }
+
+    const patchCalls: Array<{ url: string; body: Record<string, unknown> }> = [];
+    const mockFetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH' && typeof init.body === 'string') {
+        patchCalls.push({
+          url,
+          body: JSON.parse(init.body) as Record<string, unknown>,
+        });
+      }
+      return { ok: true, json: async () => [] };
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      render(<CourtsideStationPage />);
+
+      expect((await screen.findAllByText('Status Player 1', {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+
+      const dispatchButtons = await screen.findAllByRole('button', { name: /⚡ Dispatch/i });
+      await act(async () => {
+        fireEvent.click(dispatchButtons[0] as HTMLElement);
+      });
+
+      await waitFor(() => {
+        expect(
+          patchCalls.some(
+            (call) =>
+              call.url ===
+                `https://badminque-api.koyeb.app/api/v1/clubs/${clubId}/players/55555555-5555-4555-8555-555555555501/status` &&
+              call.body.status === 'PLAYING'
+          )
+        ).toBe(true);
+      });
+
+      // Now switch offline and verify check-in + local persistence stays unblocked
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      const callsBeforeOffline = mockFetch.mock.calls.length;
+
+      const input = screen.getByPlaceholderText(/Search roster or enter name/i);
+      const addButton = screen.getByRole('button', { name: /Add Player/i });
+      fireEvent.change(input, { target: { value: 'Offline Added Dan' } });
+      await act(async () => {
+        fireEvent.click(addButton);
+      });
+
+      expect((await screen.findAllByText('Offline Added Dan', {}, { timeout: 3000 })).length).toBeGreaterThanOrEqual(1);
+      expect(mockFetch.mock.calls.length).toBe(callsBeforeOffline);
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.restoreAllMocks();
+      vi.unstubAllEnvs();
+    }
   });
 });
 

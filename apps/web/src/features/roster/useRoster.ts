@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   INITIAL_RATING_BASELINE,
   TIER_ANCHORS,
@@ -11,6 +11,11 @@ import {
 } from '@badminque/core';
 import { buildApiUrl } from '../../services/apiClient';
 import { storageService } from '../../services/storageService';
+
+export interface UseRosterOptions {
+  onBeforeRemoteMutation?: () => Promise<void>;
+  skipRemoteHydration?: boolean;
+}
 
 export interface UseRosterResult {
   roster: RosterPlayer[];
@@ -25,7 +30,81 @@ export interface UseRosterResult {
     clubId?: string
   ) => Promise<RosterPlayer>;
   updatePlayerStatus: (playerId: string, status: PlayerState) => Promise<void>;
+  syncPlayerStatusRemote: (
+    playerId: string,
+    status: PlayerState,
+    clubIdOverride?: string
+  ) => Promise<void>;
   refreshRoster: () => Promise<void>;
+}
+
+function mergeRemoteAndLocalPlayer(
+  remotePlayer: RosterPlayer,
+  localRecord: RosterPlayer | undefined,
+  fallbackClubId: string
+): RosterPlayer {
+  const localMatches = localRecord?.matches_played ?? 0;
+  const remoteMatches = remotePlayer.matches_played ?? 0;
+  const preferLocalStats = Boolean(localRecord && localMatches > remoteMatches);
+
+  const singlesRating = preferLocalStats
+    ? localRecord!.singles_rating
+    : (remotePlayer.singles_rating ??
+      localRecord?.singles_rating ??
+      INITIAL_RATING_BASELINE);
+  const doublesRating = preferLocalStats
+    ? localRecord!.doubles_rating
+    : (remotePlayer.doubles_rating ??
+      localRecord?.doubles_rating ??
+      INITIAL_RATING_BASELINE);
+
+  const singlesDubr =
+    preferLocalStats && localRecord?.singles_dubr !== undefined
+      ? localRecord.singles_dubr
+      : (remotePlayer.singles_dubr ?? ratingToDubr(singlesRating));
+  const doublesDubr =
+    preferLocalStats && localRecord?.doubles_dubr !== undefined
+      ? localRecord.doubles_dubr
+      : (remotePlayer.doubles_dubr ?? ratingToDubr(doublesRating));
+
+  return {
+    id: remotePlayer.id,
+    club_id: remotePlayer.club_id ?? localRecord?.club_id ?? fallbackClubId,
+    name: remotePlayer.name,
+    auth_user_id: remotePlayer.auth_user_id ?? localRecord?.auth_user_id ?? null,
+    initial_tier: remotePlayer.initial_tier ?? localRecord?.initial_tier ?? null,
+    singles_rating: singlesRating,
+    doubles_rating: doublesRating,
+    singles_dubr: singlesDubr,
+    doubles_dubr: doublesDubr,
+    singles_matches_played: preferLocalStats
+      ? (localRecord?.singles_matches_played ?? 0)
+      : (remotePlayer.singles_matches_played ??
+        localRecord?.singles_matches_played ??
+        0),
+    doubles_matches_played: preferLocalStats
+      ? (localRecord?.doubles_matches_played ?? localMatches)
+      : (remotePlayer.doubles_matches_played ?? remoteMatches),
+    singles_is_provisional: preferLocalStats
+      ? localRecord?.singles_is_provisional
+      : (remotePlayer.singles_is_provisional ??
+        localRecord?.singles_is_provisional),
+    doubles_is_provisional: preferLocalStats
+      ? localRecord?.doubles_is_provisional
+      : (remotePlayer.doubles_is_provisional ??
+        localRecord?.doubles_is_provisional),
+    matches_played: preferLocalStats ? localMatches : remoteMatches,
+    status: localRecord?.status ?? remotePlayer.status ?? 'QUEUED',
+    locked_partner_id:
+      localRecord?.locked_partner_id ?? remotePlayer.locked_partner_id,
+    locked_partner_name:
+      localRecord?.locked_partner_name ?? remotePlayer.locked_partner_name,
+    is_skipped: localRecord?.is_skipped ?? remotePlayer.is_skipped,
+    checked_in_at:
+      localRecord?.checked_in_at ??
+      remotePlayer.checked_in_at ??
+      new Date().toISOString(),
+  };
 }
 
 function generateUuidV4(): string {
@@ -42,10 +121,19 @@ function generateUuidV4(): string {
   });
 }
 
-export function useRoster(initialClubId?: string): UseRosterResult {
+export function useRoster(
+  initialClubId?: string,
+  options?: UseRosterOptions
+): UseRosterResult {
   const [roster, setRoster] = useState<RosterPlayer[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const skipRemoteHydration = options?.skipRemoteHydration ?? false;
+  const onBeforeRemoteMutationRef = useRef<(() => Promise<void>) | undefined>(
+    options?.onBeforeRemoteMutation
+  );
+  onBeforeRemoteMutationRef.current = options?.onBeforeRemoteMutation;
+  const pendingCheckInsRef = useRef<Map<string, Promise<void>>>(new Map());
 
   const refreshRoster = useCallback(async (): Promise<void> => {
     try {
@@ -65,10 +153,16 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
   // Synchronize remote club roster into IndexedDB when online
   useEffect(() => {
-    if (!initialClubId || typeof window === 'undefined' || !navigator.onLine) {
+    if (
+      skipRemoteHydration ||
+      !initialClubId ||
+      typeof window === 'undefined' ||
+      !navigator.onLine
+    ) {
       return;
     }
 
+    let cancelled = false;
     void fetch(buildApiUrl(`/api/v1/clubs/${initialClubId}/players`))
       .then((response) => {
         if (!response.ok) {
@@ -77,7 +171,7 @@ export function useRoster(initialClubId?: string): UseRosterResult {
         return response.json();
       })
       .then(async (remotePlayers: RosterPlayer[] | null) => {
-        if (!remotePlayers || !Array.isArray(remotePlayers)) {
+        if (cancelled || !remotePlayers || !Array.isArray(remotePlayers)) {
           return;
         }
         const existingRoster = await storageService.getRoster();
@@ -85,37 +179,22 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
         for (const remotePlayer of remotePlayers) {
           const localRecord = existingMap.get(remotePlayer.id);
-          const singlesRating = remotePlayer.singles_rating ?? INITIAL_RATING_BASELINE;
-          const doublesRating = remotePlayer.doubles_rating ?? INITIAL_RATING_BASELINE;
-          await storageService.savePlayer({
-            id: remotePlayer.id,
-            club_id: remotePlayer.club_id ?? initialClubId,
-            name: remotePlayer.name,
-            auth_user_id: remotePlayer.auth_user_id ?? null,
-            initial_tier: remotePlayer.initial_tier ?? null,
-            singles_rating: singlesRating,
-            doubles_rating: doublesRating,
-            singles_dubr: remotePlayer.singles_dubr ?? ratingToDubr(singlesRating),
-            doubles_dubr: remotePlayer.doubles_dubr ?? ratingToDubr(doublesRating),
-            singles_matches_played: remotePlayer.singles_matches_played ?? 0,
-            doubles_matches_played:
-              remotePlayer.doubles_matches_played ?? remotePlayer.matches_played ?? 0,
-            singles_is_provisional: remotePlayer.singles_is_provisional,
-            doubles_is_provisional: remotePlayer.doubles_is_provisional,
-            matches_played: remotePlayer.matches_played ?? 0,
-            status: localRecord?.status ?? remotePlayer.status ?? 'QUEUED',
-            checked_in_at:
-              localRecord?.checked_in_at ??
-              remotePlayer.checked_in_at ??
-              new Date().toISOString(),
-          });
+          await storageService.savePlayer(
+            mergeRemoteAndLocalPlayer(remotePlayer, localRecord, initialClubId)
+          );
         }
-        await refreshRoster();
+        if (!cancelled) {
+          await refreshRoster();
+        }
       })
       .catch(() => {
         // Offline or network drop: IndexedDB remains authoritative courtside
       });
-  }, [initialClubId, refreshRoster]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialClubId, refreshRoster, skipRemoteHydration]);
 
   // Derived state: calculate filtered roster and typeahead suggestions per CODING_STANDARDS.md 2.3
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -199,21 +278,30 @@ export function useRoster(initialClubId?: string): UseRosterResult {
 
       // 2. Best-effort background sync to API when online (non-blocking)
       if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
-        void fetch(buildApiUrl(`/api/v1/clubs/${effectiveClubId}/players`), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: newPlayer.id,
-            name: newPlayer.name,
-            initial_tier: newPlayer.initial_tier,
-            singles_rating: newPlayer.singles_rating,
-            doubles_rating: newPlayer.doubles_rating,
-            singles_dubr: newPlayer.singles_dubr,
-            doubles_dubr: newPlayer.doubles_dubr,
-          }),
-        }).catch(() => {
-          // Offline or network drop: IndexedDB remains authoritative courtside
-        });
+        const syncPromise = (async () => {
+          try {
+            await onBeforeRemoteMutationRef.current?.();
+            await fetch(buildApiUrl(`/api/v1/clubs/${effectiveClubId}/players`), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: newPlayer.id,
+                name: newPlayer.name,
+                initial_tier: newPlayer.initial_tier,
+                singles_rating: newPlayer.singles_rating,
+                doubles_rating: newPlayer.doubles_rating,
+                singles_dubr: newPlayer.singles_dubr,
+                doubles_dubr: newPlayer.doubles_dubr,
+              }),
+            });
+          } catch {
+            // Offline or network drop: IndexedDB remains authoritative courtside
+          } finally {
+            pendingCheckInsRef.current.delete(newPlayer.id);
+          }
+        })();
+        pendingCheckInsRef.current.set(newPlayer.id, syncPromise);
+        void syncPromise;
       }
 
       return newPlayer;
@@ -221,9 +309,56 @@ export function useRoster(initialClubId?: string): UseRosterResult {
     [initialClubId, refreshRoster]
   );
 
+  const syncPlayerStatusRemote = useCallback(
+    async (
+      playerId: string,
+      status: PlayerState,
+      clubIdOverride?: string
+    ): Promise<void> => {
+      if (typeof window === 'undefined' || !navigator.onLine) {
+        return;
+      }
+
+      const storedRoster = await storageService.getRoster();
+      const targetPlayer =
+        storedRoster.find((player) => player.id === playerId) ??
+        roster.find((player) => player.id === playerId);
+      const effectiveClubId = clubIdOverride ?? targetPlayer?.club_id ?? initialClubId;
+      if (!effectiveClubId) {
+        return;
+      }
+
+      void (async () => {
+        try {
+          const pendingCheckIn = pendingCheckInsRef.current.get(playerId);
+          if (pendingCheckIn) {
+            await pendingCheckIn;
+          }
+          await onBeforeRemoteMutationRef.current?.();
+          await fetch(
+            buildApiUrl(
+              `/api/v1/clubs/${effectiveClubId}/players/${playerId}/status`
+            ),
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status }),
+            }
+          );
+        } catch {
+          // Offline or network drop: IndexedDB remains authoritative courtside
+        }
+      })();
+    },
+    [roster, initialClubId]
+  );
+
   const updatePlayerStatus = useCallback(
     async (playerId: string, status: PlayerState): Promise<void> => {
-      const existingPlayer = roster.find((player) => player.id === playerId);
+      const storedRoster = await storageService.getRoster();
+      const existingPlayer =
+        storedRoster.find((player) => player.id === playerId) ??
+        roster.find((player) => player.id === playerId);
       if (!existingPlayer) {
         return;
       }
@@ -237,21 +372,9 @@ export function useRoster(initialClubId?: string): UseRosterResult {
       await refreshRoster();
 
       const effectiveClubId = existingPlayer.club_id ?? initialClubId;
-      if (effectiveClubId && typeof window !== 'undefined' && navigator.onLine) {
-        void fetch(
-          buildApiUrl(
-            `/api/v1/clubs/${effectiveClubId}/players/${playerId}/status`
-          ),
-          {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status }),
-        }).catch(() => {
-          // Offline or network drop
-        });
-      }
+      await syncPlayerStatusRemote(playerId, status, effectiveClubId);
     },
-    [roster, initialClubId, refreshRoster]
+    [roster, initialClubId, refreshRoster, syncPlayerStatusRemote]
   );
 
   return {
@@ -263,6 +386,7 @@ export function useRoster(initialClubId?: string): UseRosterResult {
     setSearchQuery,
     checkInPlayer,
     updatePlayerStatus,
+    syncPlayerStatusRemote,
     refreshRoster,
   };
 }

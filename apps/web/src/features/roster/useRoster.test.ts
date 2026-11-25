@@ -198,5 +198,147 @@ describe('useRoster', () => {
       vi.unstubAllEnvs();
     }
   });
+
+  it('hydrates remote club roster without overwriting offline pending additions, locks, or newer local match stats', async () => {
+    const clubId = 'club-merge-33';
+
+    await storageService.savePlayer({
+      id: 'local-offline-only',
+      club_id: clubId,
+      name: 'Offline Olivia',
+      auth_user_id: null,
+      initial_tier: 'INTERMEDIATE',
+      singles_rating: 1400,
+      doubles_rating: 1400,
+      singles_dubr: 3.5,
+      doubles_dubr: 3.5,
+      matches_played: 0,
+      status: 'QUEUED',
+      checked_in_at: '2026-11-25T10:00:00.000Z',
+    });
+
+    await storageService.savePlayer({
+      id: 'shared-player-1',
+      club_id: clubId,
+      name: 'Local Edited Lee',
+      auth_user_id: null,
+      initial_tier: 'INTERMEDIATE',
+      singles_rating: 1400,
+      doubles_rating: 1464,
+      singles_dubr: 3.5,
+      doubles_dubr: 3.66,
+      doubles_matches_played: 3,
+      matches_played: 3,
+      status: 'RESTING',
+      locked_partner_id: 'partner-lock-9',
+      locked_partner_name: 'Partner Nine',
+      is_skipped: true,
+      checked_in_at: '2026-11-25T09:00:00.000Z',
+    });
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: 'shared-player-1',
+          club_id: clubId,
+          name: 'Local Edited Lee',
+          auth_user_id: null,
+          initial_tier: 'INTERMEDIATE',
+          singles_rating: 1400,
+          doubles_rating: 1400,
+          singles_dubr: 3.5,
+          doubles_dubr: 3.5,
+          doubles_matches_played: 1,
+          matches_played: 1,
+          status: 'QUEUED',
+        },
+        {
+          id: 'remote-new-1',
+          club_id: clubId,
+          name: 'Remote Ratchanok',
+          auth_user_id: null,
+          initial_tier: 'ADVANCED',
+          singles_rating: 1800,
+          doubles_rating: 1800,
+          singles_dubr: 4.5,
+          doubles_dubr: 4.5,
+          doubles_matches_played: 0,
+          matches_played: 0,
+          status: 'QUEUED',
+        },
+      ],
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      const { result } = renderHook(() => useRoster(clubId));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(result.current.roster.some((p) => p.name === 'Offline Olivia')).toBe(true);
+      expect(result.current.roster.some((p) => p.name === 'Remote Ratchanok')).toBe(true);
+
+      const merged = result.current.roster.find((p) => p.id === 'shared-player-1');
+      expect(merged?.status).toBe('RESTING');
+      expect(merged?.locked_partner_id).toBe('partner-lock-9');
+      expect(merged?.locked_partner_name).toBe('Partner Nine');
+      expect(merged?.is_skipped).toBe(true);
+      expect(merged?.matches_played).toBe(3);
+      expect(merged?.doubles_rating).toBe(1464);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('awaits onBeforeRemoteMutation before posting checkInPlayer and supports immediate status PATCH', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://badminque-api.koyeb.app');
+    const clubId = 'club-sync-order-33';
+    const callOrder: string[] = [];
+    const onBeforeRemoteMutation = vi.fn().mockImplementation(async () => {
+      callOrder.push('ensure-club');
+    });
+
+    const mockFetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      if (!init?.method || init.method === 'GET') {
+        return { ok: true, json: async () => [] };
+      }
+      callOrder.push(`${init.method}:${url}`);
+      return { ok: true, json: async () => ({}) };
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mockFetch;
+
+    try {
+      const { result } = renderHook(() =>
+        useRoster(clubId, { onBeforeRemoteMutation })
+      );
+
+      await act(async () => {
+        const created = await result.current.checkInPlayer('Lin Dan', 'ADVANCED');
+        await result.current.updatePlayerStatus(created.id, 'RESTING');
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      expect(onBeforeRemoteMutation).toHaveBeenCalled();
+      expect(callOrder[0]).toBe('ensure-club');
+      expect(callOrder).toContain(
+        `POST:https://badminque-api.koyeb.app/api/v1/clubs/${clubId}/players`
+      );
+      expect(callOrder.some((entry) => entry.startsWith('PATCH:') && entry.endsWith('/status'))).toBe(
+        true
+      );
+
+      const stored = await storageService.getRoster();
+      const linDan = stored.find((p) => p.name === 'Lin Dan');
+      expect(linDan?.status).toBe('RESTING');
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllEnvs();
+    }
+  });
 });
 

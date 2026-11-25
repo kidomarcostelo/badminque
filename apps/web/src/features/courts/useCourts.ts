@@ -28,6 +28,7 @@ export interface UseCourtsOptions {
   clubNightId?: string;
   initialPolicy?: RotationPolicy;
   onRosterChange?: () => Promise<void> | void;
+  onPlayerStatusChange?: (playerId: string, status: PlayerState) => Promise<void> | void;
 }
 
 export interface UseCourtsResult {
@@ -118,7 +119,22 @@ function mergeRosterPool(
 }
 
 export function useCourts(options: UseCourtsOptions): UseCourtsResult {
-  const { roster, clubNightId, onRosterChange, initialPolicy } = options;
+  const {
+    roster,
+    clubNightId,
+    onRosterChange,
+    initialPolicy,
+    onPlayerStatusChange,
+  } = options;
+  const onPlayerStatusChangeRef = useRef(onPlayerStatusChange);
+  onPlayerStatusChangeRef.current = onPlayerStatusChange;
+  const savePlayerWithStatusSync = useCallback(
+    async (player: RosterPlayer): Promise<void> => {
+      await storageService.savePlayer(player);
+      await onPlayerStatusChangeRef.current?.(player.id, player.status);
+    },
+    []
+  );
   const clubNightIdRef = useRef<string>(clubNightId ?? 'default-club-night');
   clubNightIdRef.current = clubNightId ?? 'default-club-night';
   const [courts, setCourts] = useState<CourtStationData[]>(DEFAULT_INITIAL_COURTS);
@@ -305,7 +321,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
             const freshPlayer =
               rosterPool.find((rosterPlayer) => rosterPlayer.id === oldPlayer.id) ?? oldPlayer;
             if (freshPlayer.status === 'PLAYING') {
-              await storageService.savePlayer({
+              await savePlayerWithStatusSync({
                 ...freshPlayer,
                 status: 'QUEUED',
               });
@@ -329,7 +345,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       setCourts(nextCourts);
       await onRosterChange?.();
     },
-    [roster, onRosterChange]
+    [roster, onRosterChange, savePlayerWithStatusSync]
   );
 
   const setCourtIdle = useCallback(
@@ -343,7 +359,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
           const freshPlayer =
             rosterPool.find((rosterPlayer) => rosterPlayer.id === player.id) ?? player;
           if (freshPlayer.status === 'PLAYING') {
-            await storageService.savePlayer({
+            await savePlayerWithStatusSync({
               ...freshPlayer,
               status: 'QUEUED',
             });
@@ -366,7 +382,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       setCourts(nextCourts);
       await onRosterChange?.();
     },
-    [roster, onRosterChange]
+    [roster, onRosterChange, savePlayerWithStatusSync]
   );
 
   const clearCourt = useCallback(
@@ -380,7 +396,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
           const freshPlayer =
             rosterPool.find((rosterPlayer) => rosterPlayer.id === player.id) ?? player;
           if (freshPlayer.status === 'PLAYING') {
-            await storageService.savePlayer({
+            await savePlayerWithStatusSync({
               ...freshPlayer,
               status: 'QUEUED',
             });
@@ -440,7 +456,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       setCourts(nextCourts);
       await onRosterChange?.();
     },
-    [roster, pendingMatches, onRosterChange]
+    [roster, pendingMatches, onRosterChange, savePlayerWithStatusSync]
   );
 
   const dispatchCourt = useCallback(
@@ -458,7 +474,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
         for (const player of onCourtPlayers) {
           const freshPlayer =
             rosterPool.find((rosterPlayer) => rosterPlayer.id === player.id) ?? player;
-          await storageService.savePlayer({
+          await savePlayerWithStatusSync({
             ...freshPlayer,
             status: 'PLAYING',
           });
@@ -511,7 +527,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
 
       const playersToDispatch = [...pairing.teamA, ...pairing.teamB];
       for (const player of playersToDispatch) {
-        await storageService.savePlayer({
+        await savePlayerWithStatusSync({
           ...player,
           status: 'PLAYING',
         });
@@ -534,7 +550,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
 
       await onRosterChange?.();
     },
-    [roster, pendingMatches, onRosterChange]
+    [roster, pendingMatches, onRosterChange, savePlayerWithStatusSync]
   );
 
   const dispatchDeckMatch = useCallback(
@@ -560,7 +576,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       for (const player of playersToDispatch) {
         const freshPlayer =
           rosterPool.find((rosterPlayer) => rosterPlayer.id === player.id) ?? player;
-        await storageService.savePlayer({
+        await savePlayerWithStatusSync({
           ...freshPlayer,
           status: 'PLAYING',
         });
@@ -573,7 +589,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
           if (!isPartnerDispatched) {
             const partner = rosterPool.find((p) => p.id === freshPlayer.locked_partner_id);
             if (partner && partner.status !== 'PLAYING') {
-              await storageService.savePlayer({
+              await savePlayerWithStatusSync({
                 ...partner,
                 status: 'WAITING_PARTNER',
               });
@@ -603,7 +619,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       setCourts(nextCourts);
       await onRosterChange?.();
     },
-    [onDeckGroups, roster, onRosterChange]
+    [onDeckGroups, roster, onRosterChange, savePlayerWithStatusSync]
   );
 
   const pinPlayerPairHandler = useCallback(
@@ -652,10 +668,10 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
         return;
       }
       const updated = togglePlayerSkip(player);
-      await storageService.savePlayer(updated);
+      await savePlayerWithStatusSync(updated);
       await onRosterChange?.();
     },
-    [roster, onRosterChange]
+    [roster, onRosterChange, savePlayerWithStatusSync]
   );
 
   const togglePlayerRestHandler = useCallback(
@@ -671,19 +687,19 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
         ...player,
         status: nextStatus,
       };
-      await storageService.savePlayer(updated);
+      await savePlayerWithStatusSync(updated);
 
       if (player.locked_partner_id) {
         const partner = rosterPool.find((p) => p.id === player.locked_partner_id);
         if (partner) {
           const reconciled = reconcileLockedPairStatus(partner, [updated, partner]);
-          await storageService.savePlayer(reconciled);
+          await savePlayerWithStatusSync(reconciled);
         }
       }
 
       await onRosterChange?.();
     },
-    [roster, onRosterChange]
+    [roster, onRosterChange, savePlayerWithStatusSync]
   );
 
   const assignPlayerToCourt = useCallback(
@@ -838,7 +854,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
             doubles_is_provisional: delta.is_provisional,
             status: 'RESTING',
           };
-          await storageService.savePlayer(updatedPlayer);
+          await savePlayerWithStatusSync(updatedPlayer);
         }
       }
 
@@ -909,7 +925,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
         deltas,
       };
     },
-    [roster, refreshMatches, onRosterChange]
+    [roster, refreshMatches, onRosterChange, savePlayerWithStatusSync]
   );
 
   const seedDemoCourts = useCallback(
@@ -965,7 +981,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       const playingPlayers = [p1, p2, p3, p4, p5, p6, p7, p8].filter(Boolean);
       for (const p of playingPlayers) {
         try {
-          await storageService.savePlayer({ ...p, status: 'PLAYING' });
+          await savePlayerWithStatusSync({ ...p, status: 'PLAYING' });
         } catch {
           // Ignore
         }
@@ -974,7 +990,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       void refreshMatches();
       await onRosterChange?.();
     },
-    [roster, refreshMatches, onRosterChange]
+    [roster, refreshMatches, onRosterChange, savePlayerWithStatusSync]
   );
 
   const activeScoreCourt =
