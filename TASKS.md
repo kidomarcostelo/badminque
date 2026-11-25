@@ -6,11 +6,16 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-*All MVP Specification (#12) and DUBR System Specification (#23) implementation tickets are complete, verified, and closed. Ready for Phase 2 planning (PWA installability, zero-cost cloud deployment, or Future Backlog items below).*
+*Phase 2 initialization underway: **#29 (PWA Offline Shell & App Icons)** is complete. Ready for Zero-Cost Cloud Deployment or Public Spectator / Companion View.*
 
 ---
 
 ## ✅ Completed Milestones & Deliverables
+
+### Phase 2 Deliverables
+| Issue | Title | Status | Deliverable / Notes |
+| :--- | :--- | :--- | :--- |
+| **[#29](https://github.com/kidomarcostelo/badminque/issues/29)** | Phase 2: PWA Service Worker Registration, App Icons & Full Offline Shell | ✅ **Done** | Registered `/sw.js`, generated crisp 192x192/512x512/180x180 PNG icons, aligned Silk Light `manifest.json`, upgraded SW caching (network-first navigation, API bypass, SKIP_WAITING updates), added no-cache `/sw.js` headers. |
 
 ### Spec: [Badminque MVP Implementation — Courtside Queueing, Offline Synchronization, and Universal Rating System](https://github.com/kidomarcostelo/badminque/issues/12) (#12 - CLOSED)
 *Objective: Complete club-first badminton rating and courtside match-tracking PWA + FastAPI engine operating offline within $0/month infrastructure tiers.*
