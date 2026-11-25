@@ -21,6 +21,11 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[#36](https://github.com/kidomarcostelo/badminque/issues/36)** | Live Player Passport Hydration & Cross-Club Portability | 🔒 **Blocked** | #33 | Blocked | Hydrate `PlayerPassportModal` from `GET /players/{id}/passport` when online, render portable QR/payload, and allow visitor Passport import during check-in. |
 | **[#37](https://github.com/kidomarcostelo/badminque/issues/37)** | Live SQL-Ranked Club Leaderboard & Silk Light Parity | 🔒 **Blocked** | #32, #34 | Blocked | Hydrate `ClubLeaderboardView` from `GET /clubs/{id}/leaderboard` when online with local fallback; migrate Leaderboard, Claim Modal, & Passport Modal to ADR 0003 Silk Light. |
 
+### Active Feature: Match Stakes & Zero-Sum Session Fee Settlement
+| Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **[#38 feat(stakes): voluntary match stakes & zero-sum session fee settlement](https://github.com/kidomarcostelo/badminque/issues/38)** | Feature | 🟡 **Ready for Agent** | Unassigned | Voluntary per-player doubles match stakes with zero-sum escrow settlement against court fees, unanimous consent, deterministic event-sourced ledger fold, and checkout mode per ADR 0004. |
+
 *Phase 2 deployment infrastructure (**#30**) and PWA offline shell (**#29**) are complete and merged to `main` (`bash scripts/deploy-wizard.sh` ready when provisioning live dashboards).*
 
 ---

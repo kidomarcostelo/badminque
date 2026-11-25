@@ -19,6 +19,8 @@ Always consult and speak the canonical vocabulary defined in `GLOSSARY.md`. Neve
 - **Claimed Player** (*Avoid*: verified user, linked member)
 - **Claim Token** (*Avoid*: invite code, magic link, activation key)
 - **Player Passport** (*Avoid*: member card, global ID, digital badge)
+- **Match Stake** (*Avoid*: bet, gamble, pot, wager)
+- **Session Fee Ledger** (*Avoid*: tab, debt sheet, casino balance)
 
 If a concept is not yet in `GLOSSARY.md`, do not guess—flag it for domain modeling.
 
@@ -26,7 +28,7 @@ If a concept is not yet in `GLOSSARY.md`, do not guess—flag it for domain mode
 
 ## 2. Architecture & Technology Constraints
 
-Respect **ADR 0001** (`docs/adr/0001-tech-stack-decision.md`) and **ADR 0003** (`docs/adr/0003-google-stitch-design-system.md`):
+Respect **ADR 0001** (`docs/adr/0001-tech-stack-decision.md`), **ADR 0003** (`docs/adr/0003-google-stitch-design-system.md`), and **ADR 0004** (`docs/adr/0004-match-stakes-and-session-fee-settlement.md`):
 
 1. **Frontend & PWA Offline Shell**: **Next.js 15 PWA** (React 19 / TypeScript / Tailwind CSS Silk Light theme).
    - Client storage uses IndexedDB (`idb`) via `storageService`; register `/sw.js` via `features/pwa/`.

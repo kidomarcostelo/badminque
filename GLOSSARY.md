@@ -51,3 +51,11 @@ _Avoid_: Invite code, activation key, magic link
 **Player Passport**:
 The portable rating identity and QR code of a claimed player, allowing organizers at other clubs to check them in without resetting their established rating.
 _Avoid_: Member card, global ID, digital badge
+
+**Match Stake**:
+The voluntary, fixed per-player monetary or point amount agreed upon unanimously by all participating players on a court prior to match dispatch.
+_Avoid_: Bet, gamble, pot, wager
+
+**Session Fee Ledger**:
+The running financial balance for a Roster Player during a Club Night session, comprising their base venue court fee plus/minus net Match Stake redistributions.
+_Avoid_: Tab, debt sheet, casino balance, credit score
