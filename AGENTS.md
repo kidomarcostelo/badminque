@@ -26,26 +26,29 @@ If a concept is not yet in `GLOSSARY.md`, do not guess—flag it for domain mode
 
 ## 2. Architecture & Technology Constraints
 
-Respect **ADR 0001** (`docs/adr/0001-tech-stack-decision.md`):
+Respect **ADR 0001** (`docs/adr/0001-tech-stack-decision.md`) and **ADR 0003** (`docs/adr/0003-google-stitch-design-system.md`):
 
-1. **Frontend**: **Next.js PWA** (React / TypeScript / Tailwind CSS). Configured for offline courtside operation using Service Workers and IndexedDB for local roster and match storage.
-2. **Backend**: **Python (FastAPI)**. Houses the mathematical rating calculation engine, validation schemas, and batch sync endpoints.
-3. **Database**: **Neon Serverless PostgreSQL**. Relational data with window functions (`RANK() OVER`) for club leaderboards.
-4. **Cost Ceiling**: **$0.00 / month**. All services must run within free tiers (Vercel, Koyeb, Neon). Never add paid SaaS dependencies without explicit user authorization.
+1. **Frontend & PWA Offline Shell**: **Next.js 15 PWA** (React 19 / TypeScript / Tailwind CSS Silk Light theme).
+   - Client storage uses IndexedDB (`idb`) via `storageService`; register `/sw.js` via `features/pwa/`.
+   - **API Routing Contract**: Route every client HTTP call through `buildApiUrl()` in `apps/web/src/services/apiClient.ts` so `NEXT_PUBLIC_API_URL` directs production traffic cleanly from Vercel to Koyeb.
+   - **Service Worker Contract**: `apps/web/public/sw.js` (`badminque-shell-v2`) serves `navigate` requests Network-First with `/` offline fallback and keeps `/api/*` and non-`GET` traffic strictly uncached; `apps/web/next.config.ts` serves `/sw.js` with `Cache-Control: no-cache, no-store, must-revalidate`.
+2. **Backend & Container Runtime**: **Python 3.12 (FastAPI)** housing the DUBR rating engine, validation schemas, and batch sync endpoints. Packaged via `apps/api/Dockerfile` + `apps/api/start.sh` (runs `alembic upgrade head` before `uvicorn`) with permissive `CORS_ORIGINS` and `CORS_ORIGIN_REGEX` for Vercel production/preview domains.
+3. **Database (Neon Serverless PostgreSQL)**: Relational schema with SQL `RANK() OVER` club leaderboards. Always route connection strings through `normalize_database_url()` (`apps/api/src/badminque_api/config.py`) in `database.py` and `alembic/env.py` so Neon `postgresql://...?sslmode=require&channel_binding=require` URIs normalize cleanly to `postgresql+asyncpg://` + `connect_args={'ssl': 'require'}`.
+4. **Cost Ceiling**: **$0.00 / month**. All services must run within free tiers (Vercel Hobby, Koyeb Eco, Neon Free). Never add paid SaaS dependencies without explicit user authorization.
 
 ---
 
 ## 3. Mathematical Rating Engine Invariants
 
-All rating calculations must strictly conform to `docs/research/rating-algorithm-spec.md`:
+All rating calculations must strictly conform to **ADR 0002** (`docs/adr/0002-dubr-rating-algorithm.md`):
 
-1. **Independent Disciplines**: Singles ($R_S$) and Doubles ($R_D$) ratings are maintained separately and never bleed into each other.
+1. **Independent Disciplines & Cross-Discipline Prior Seeding**: Singles ($R_S$) and Doubles ($R_D$) ratings never bleed on match updates. When an established player ($\ge 8$ matches in one discipline) plays an unrated discipline ($0$ matches), only their initial baseline seeds from the established counterpart prior; subsequent updates remain 100% isolated.
 2. **Weak-Link Soft Mean**: In doubles, team rating is calculated using:
    $$R_{team} = \frac{R_1 + R_2}{2} - 0.08 \cdot |R_1 - R_2|$$
    giving 58% weight to the lower-rated partner and 42% to the higher-rated partner.
 3. **Non-Inversion Invariant**: A match winner must **never** lose rating points ($\Delta R \ge 0$), and a loser must **never** gain rating points ($\Delta R \le 0$).
 4. **Logarithmic MOV Multiplier**: Victory margins scale logarithmically between $0.50$ (close 21-19) and $1.75$ (crushing 21-5 blowout) with favorite-damping.
-5. **Continuous $K$-Factor Decay**: Dynamic $K$-factor scaling from $K=64$ (provisional) to $K=16$ (established at $\ge 8$ matches).
+5. **Continuous $K$-Factor Decay**: Dynamic $K$-factor scaling from $K=64$ (provisional, $< 8$ matches) down to $K=16$ (established, $\ge 8$ matches) with automatic leaderboard graduation at match 8.
 
 ---
 
@@ -76,6 +79,11 @@ Strictly adhere to the conventions defined in [`CODING_STANDARDS.md`](CODING_STA
    - Preserve comments and architectural rationale.
 4. **Conventional Commits**:
    - Format git commits as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`.
+5. **Mandatory Documentation Parity**:
+   - Document everything delivered or changed before closing a task:
+     - **Tasks & Issues**: Maintain bidirectional sync between GitHub Issues (`gh`) and root `TASKS.md`.
+     - **Architecture & Operations**: Record new architectural choices in `docs/adr/`, operational/cloud setup in `docs/deployment.md`, and user-facing features in `README.md`.
+     - **Agent Context Pointers**: Update `AGENTS.md` with any new architectural invariants, environment contracts, or disclosed `docs/` pointers introduced by your work (keep tutorials in `docs/` to minimize context bloat).
 
 ---
 
@@ -92,6 +100,14 @@ Canonical five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`,
 ### Domain docs
 
 Single-context (`GLOSSARY.md` + `docs/adr/` at repo root). See `docs/agents/domain.md`.
+
+### Cloud deployment & provisioning
+
+Read `docs/deployment.md` (and `scripts/deploy-wizard.sh`) whenever modifying environment variables, CORS, database URLs, Dockerfiles, or Vercel/Koyeb/Neon configurations.
+
+### Design system & PWA assets
+
+Read `docs/adr/0003-google-stitch-design-system.md` (and `docs/research/stitch-design-system-spec.md`) when building UI components or modifying `manifest.json` / PWA shell behavior.
 
 ### Handoffs
 
