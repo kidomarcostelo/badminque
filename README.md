@@ -78,6 +78,7 @@ Badminque provides the badminton equivalent of the DUPR/RecClub model: an offlin
 - **Frontend / PWA**: Vercel Hobby Tier ($0/mo) + Android APK/AAB via GitHub Actions ($0/mo).
 - **Backend API**: Koyeb Eco Tier container ($0/mo).
 - **Database**: Neon Serverless PostgreSQL ($0/mo).
+- **Deployment Guide**: Step-by-step setup in [`docs/deployment.md`](docs/deployment.md) and interactive wizard [`scripts/deploy-wizard.sh`](scripts/deploy-wizard.sh).
 
 ---
 
@@ -263,6 +264,8 @@ For technical deep-dives and design specifications, refer to:
 - [`TASKS.md`](TASKS.md) — Project Roadmap & Task Synchronization
 - [`docs/adr/0001-tech-stack-decision.md`](docs/adr/0001-tech-stack-decision.md) — Architecture & Tech Stack Selection
 - [`docs/adr/0002-dubr-rating-algorithm.md`](docs/adr/0002-dubr-rating-algorithm.md) — DUBR Algorithm Adoption
+- [`docs/adr/0003-google-stitch-design-system.md`](docs/adr/0003-google-stitch-design-system.md) — Google Stitch Courtside Design System
+- [`docs/deployment.md`](docs/deployment.md) — Zero-Cost Cloud Deployment Guide (Neon + Koyeb + Vercel)
 - [`docs/research/architecture-methodology.md`](docs/research/architecture-methodology.md) — Vertical Slices & Clean Architecture Methodology
 
 ---
