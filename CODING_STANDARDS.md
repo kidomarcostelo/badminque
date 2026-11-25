@@ -45,6 +45,8 @@ These are the canonical coding conventions, style rules, and linting guidelines 
 
 ## 2. TypeScript & Frontend Standards (Next.js / React)
 
+> **Extended spec**: [`docs/frontend-coding-conventions.md`](docs/frontend-coding-conventions.md) covers the full directory layout law, file naming rules, 3-layer component model, Tailwind Stitch token conventions, import discipline, and forbidden patterns list. The subsections below are the top-level summary; the linked doc is authoritative for all frontend work.
+
 ### 2.1 Function & Component Style
 - **Named Function Declarations**: Use explicit function declarations for top-level React components rather than anonymous arrow functions:
   ```tsx
