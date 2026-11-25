@@ -51,6 +51,9 @@ describe('CourtsideStationPage', () => {
 
     expect(await screen.findByText(/12 Players/i)).toBeInTheDocument();
     expect((await screen.findAllByText('Viktor Axelsen')).length).toBeGreaterThanOrEqual(1);
+    expect(
+      await screen.findByRole('button', { name: /Re-Seed Demo/i }, { timeout: 3000 })
+    ).toBeInTheDocument();
   });
 
   it('completes full match cycle: active play, 30-point preset scoring, Badminton Stamina Invariant step-off, and court rotation', async () => {
@@ -348,6 +351,39 @@ describe('CourtsideStationPage', () => {
     await waitFor(() => {
       expect(screen.queryByText(/Claim Player Passport/i)).not.toBeInTheDocument();
     });
+  });
+
+  it('allows organizer to create and switch to a real UUID Club Night session in cockpit header', async () => {
+    render(<CourtsideStationPage />);
+
+    const sessionBtn = await screen.findByRole('button', {
+      name: /Club Night:/i,
+    });
+    fireEvent.click(sessionBtn);
+
+    expect(await screen.findByText(/Switch or Start Club Night/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Club Name/i), {
+      target: { value: 'Sunday Shuttle Club' },
+    });
+    fireEvent.change(screen.getByLabelText(/Session Date/i), {
+      target: { value: '2026-11-29' },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Start Club Night/i }));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/Switch or Start Club Night/i)
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.getByText(/Sunday Shuttle Club/i)).toBeInTheDocument();
+
+    const active = await storageService.getActiveSession();
+    expect(active?.club_name).toBe('Sunday Shuttle Club');
+    expect(active?.id).not.toBe('default-club-night');
   });
 });
 

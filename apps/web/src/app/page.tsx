@@ -21,6 +21,7 @@ import {
 import { ClubLeaderboardView } from '../features/leaderboard';
 import { PlayerPassportModal } from '../features/passport';
 import { PlayerTouchActionSheet, RosterCheckInList, RosterCheckInModal } from '../features/roster';
+import { ClubSessionModal, useClubSession } from '../features/sessions';
 import { SyncStatusIndicator, useSync } from '../features/sync';
 import { useStorage } from '../hooks/useStorage';
 import { seedMockData } from '../services/mockFixtures';
@@ -34,17 +35,29 @@ export default function CourtsideStationPage(): React.JSX.Element {
   const [passportPlayer, setPassportPlayer] = useState<RosterPlayer | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
   const [isQuickCheckInModalOpen, setIsQuickCheckInModalOpen] = useState<boolean>(false);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState<boolean>(false);
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
   const { roster, pendingMatches, refresh } = useStorage();
+  const {
+    activeSession,
+    sessions,
+    selectSession,
+    createSession,
+    ensureSessionSynced,
+  } = useClubSession();
 
-  const clubNightId = 'default-club-night';
   const {
     isOnline,
     isSyncing,
     syncError,
     syncNow,
     refreshPendingCount,
-  } = useSync({ clubNightId });
+  } = useSync({
+    clubNightId: activeSession.id,
+    clubId: activeSession.club_id,
+    options: { clubId: activeSession.club_id },
+    onBeforeSync: ensureSessionSynced,
+  });
 
   const {
     courts,
@@ -71,6 +84,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
     seedDemoCourts,
   } = useCourts({
     roster,
+    clubNightId: activeSession.id,
     onRosterChange: refresh,
   });
 
@@ -127,6 +141,7 @@ export default function CourtsideStationPage(): React.JSX.Element {
         handleCloseCustomMatchModal();
         setIsHelpModalOpen(false);
         setIsQuickCheckInModalOpen(false);
+        setIsSessionModalOpen(false);
         setSelectedActionSheetPlayer(null);
         setClaimTokenPlayer(null);
         setPassportPlayer(null);
@@ -187,12 +202,19 @@ export default function CourtsideStationPage(): React.JSX.Element {
             <span className="sr-only">Badminque Courtside Station</span>
           </div>
 
-          {/* Session Title Chip */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg silk-sunken-shallow text-[11px] border border-outline-variant">
+          {/* Session Switcher Chip */}
+          <button
+            type="button"
+            onClick={() => setIsSessionModalOpen(true)}
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg silk-sunken-shallow hover:bg-indigo-50 text-[11px] border border-outline-variant cursor-pointer transition-colors"
+            title="Switch or start a Club Night session"
+          >
             <span className="material-symbols-outlined text-indigo-600 text-[14px]">event_note</span>
             <span className="text-on-surface-variant font-medium">Club Night:</span>
-            <span className="font-mono text-slate-900 font-semibold">Friday Night Smashers #42</span>
-          </div>
+            <span className="font-mono text-slate-900 font-semibold">
+              {activeSession.club_name} · {activeSession.date}
+            </span>
+          </button>
 
           {/* Quick Operational Metrics */}
           <div className="hidden sm:flex items-center gap-1.5">
@@ -565,6 +587,16 @@ export default function CourtsideStationPage(): React.JSX.Element {
           });
           await refresh();
         }}
+      />
+
+      {/* Club & Club Night Switcher Modal */}
+      <ClubSessionModal
+        isOpen={isSessionModalOpen}
+        activeSession={activeSession}
+        sessions={sessions}
+        onSelectSession={selectSession}
+        onCreateSession={createSession}
+        onClose={() => setIsSessionModalOpen(false)}
       />
 
       {/* Shortcuts Help Modal [?] */}

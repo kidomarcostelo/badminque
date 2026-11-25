@@ -28,7 +28,9 @@ class ClubNightBase(BaseModel):
 
 class ClubNightCreate(ClubNightBase):
     id: UUID = Field(description="Club Night session UUID")
-    club_id: UUID = Field(description="Parent Club UUID")
+    club_id: UUID | None = Field(
+        default=None, description="Optional parent Club UUID (defaults to path club_id)"
+    )
 
 
 class ClubNightResponse(ClubNightBase):

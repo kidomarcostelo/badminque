@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type {
+  ClubNightSession,
   MatchRecord,
   RosterPlayer,
   StorageAdapter,
@@ -8,6 +9,7 @@ import type {
 
 export const DATABASE_NAME = 'badminque_offline_db' as const;
 export const DATABASE_VERSION = 2 as const;
+const ACTIVE_SESSION_META_KEY = 'active_club_night_session_id';
 
 interface BadminqueDBSchema extends DBSchema {
   matches: {
@@ -24,6 +26,14 @@ interface BadminqueDBSchema extends DBSchema {
     indexes: {
       by_status: string;
     };
+  };
+  sessions: {
+    key: string;
+    value: ClubNightSession;
+  };
+  meta: {
+    key: string;
+    value: { key: string; value: string };
   };
 }
 
@@ -61,6 +71,14 @@ export async function getDatabaseConnection(): Promise<IDBPDatabase<BadminqueDBS
           } catch {
             // Ignore index creation if upgrade transaction is locked
           }
+        }
+
+        if (!database.objectStoreNames.contains('sessions')) {
+          database.createObjectStore('sessions', { keyPath: 'id' });
+        }
+
+        if (!database.objectStoreNames.contains('meta')) {
+          database.createObjectStore('meta', { keyPath: 'key' });
         }
       },
       blocked() {
@@ -103,10 +121,14 @@ export function closeDatabaseConnection(): void {
 export class IndexedDBStorageService implements StorageAdapter {
   private inMemoryRoster = new Map<string, RosterPlayer>();
   private inMemoryMatches = new Map<string, MatchRecord>();
+  private inMemorySessions = new Map<string, ClubNightSession>();
+  private inMemoryActiveSessionId: string | null = null;
 
   public clearMemoryCache(): void {
     this.inMemoryRoster.clear();
     this.inMemoryMatches.clear();
+    this.inMemorySessions.clear();
+    this.inMemoryActiveSessionId = null;
   }
 
   public async saveMatch(match: MatchRecord): Promise<void> {
@@ -160,16 +182,14 @@ export class IndexedDBStorageService implements StorageAdapter {
       const database = await getDatabaseConnection();
       if (database) {
         const transaction = database.transaction('matches', 'readwrite');
-        const store = transaction.objectStore('matches');
-
         for (const matchId of matchIds) {
-          const match = await store.get(matchId);
+          const match = await transaction.store.get(matchId);
           if (match) {
             match.status = 'SYNCED';
-            await store.put(match);
+            this.inMemoryMatches.set(matchId, match);
+            await transaction.store.put(match);
           }
         }
-
         await transaction.done;
       }
     } catch {
@@ -181,20 +201,15 @@ export class IndexedDBStorageService implements StorageAdapter {
     try {
       const database = await getDatabaseConnection();
       if (database) {
-        const players = await database.getAll('roster');
+        const roster = await database.getAll('roster');
         this.inMemoryRoster.clear();
-        for (const p of players) this.inMemoryRoster.set(p.id, p);
-        return players.sort((firstPlayer, secondPlayer) =>
-          firstPlayer.name.localeCompare(secondPlayer.name)
-        );
+        for (const p of roster) this.inMemoryRoster.set(p.id, p);
+        return roster;
       }
     } catch {
       // In-memory fallback
     }
-    const players = Array.from(this.inMemoryRoster.values());
-    return players.sort((firstPlayer, secondPlayer) =>
-      firstPlayer.name.localeCompare(secondPlayer.name)
-    );
+    return Array.from(this.inMemoryRoster.values());
   }
 
   public async savePlayer(player: RosterPlayer): Promise<void> {
@@ -210,67 +225,115 @@ export class IndexedDBStorageService implements StorageAdapter {
   }
 
   public async searchRoster(query: string): Promise<RosterPlayer[]> {
-    const allPlayers = await this.getRoster();
     const trimmed = query.trim().toLowerCase();
-    if (trimmed.length === 0) {
-      return allPlayers;
+    const roster = await this.getRoster();
+    if (!trimmed) {
+      return roster;
     }
-    return allPlayers.filter((player) => {
-      return player.name.toLowerCase().includes(trimmed);
-    });
+    return roster.filter((player) =>
+      player.name.toLowerCase().includes(trimmed)
+    );
   }
 
   public async upsertRosterPlayer(player: RosterPlayer): Promise<void> {
     await this.savePlayer(player);
   }
 
-  public async clearAll(): Promise<void> {
-    this.inMemoryRoster.clear();
-    this.inMemoryMatches.clear();
+  public async getActiveSession(): Promise<ClubNightSession | null> {
     try {
       const database = await getDatabaseConnection();
       if (database) {
-        const transaction = database.transaction(['matches', 'roster'], 'readwrite');
-        await Promise.all([
-          transaction.objectStore('matches').clear(),
-          transaction.objectStore('roster').clear(),
-          transaction.done,
-        ]);
+        const metaRow = await database.get('meta', ACTIVE_SESSION_META_KEY);
+        if (metaRow?.value) {
+          const session = await database.get('sessions', metaRow.value);
+          if (session) {
+            this.inMemoryActiveSessionId = session.id;
+            this.inMemorySessions.set(session.id, session);
+            return session;
+          }
+        }
+      }
+    } catch {
+      // In-memory fallback
+    }
+
+    if (this.inMemoryActiveSessionId) {
+      return this.inMemorySessions.get(this.inMemoryActiveSessionId) ?? null;
+    }
+    return null;
+  }
+
+  public async saveActiveSession(session: ClubNightSession): Promise<void> {
+    this.inMemorySessions.set(session.id, session);
+    this.inMemoryActiveSessionId = session.id;
+    try {
+      const database = await getDatabaseConnection();
+      if (database) {
+        const transaction = database.transaction(['sessions', 'meta'], 'readwrite');
+        await transaction.objectStore('sessions').put(session);
+        await transaction
+          .objectStore('meta')
+          .put({ key: ACTIVE_SESSION_META_KEY, value: session.id });
+        await transaction.done;
       }
     } catch {
       // In-memory fallback
     }
   }
+
+  public async listSavedSessions(): Promise<ClubNightSession[]> {
+    try {
+      const database = await getDatabaseConnection();
+      if (database) {
+        const allSessions = await database.getAll('sessions');
+        this.inMemorySessions.clear();
+        for (const s of allSessions) this.inMemorySessions.set(s.id, s);
+        return allSessions.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      }
+    } catch {
+      // In-memory fallback
+    }
+    return Array.from(this.inMemorySessions.values()).sort((a, b) =>
+      b.created_at.localeCompare(a.created_at)
+    );
+  }
+
+  public async clearAll(): Promise<void> {
+    this.clearMemoryCache();
+    try {
+      const database = await getDatabaseConnection();
+      if (!database) {
+        return;
+      }
+      const transaction = database.transaction(
+        ['matches', 'roster', 'sessions', 'meta'],
+        'readwrite'
+      );
+      await Promise.all([
+        transaction.objectStore('matches').clear(),
+        transaction.objectStore('roster').clear(),
+        transaction.objectStore('sessions').clear(),
+        transaction.objectStore('meta').clear(),
+        transaction.done,
+      ]);
+    } catch {
+      // Ignore clear failure if fallback active
+    }
+  }
 }
 
 export async function isPersistenceSupported(): Promise<boolean> {
-  try {
-    if (
-      typeof navigator === 'undefined' ||
-      !navigator.storage ||
-      typeof navigator.storage.persisted !== 'function'
-    ) {
-      return false;
-    }
-    return await navigator.storage.persisted();
-  } catch {
+  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) {
     return false;
   }
+  return navigator.storage.persisted();
 }
 
 export async function requestPersistentStorage(): Promise<boolean> {
-  try {
-    if (
-      typeof navigator === 'undefined' ||
-      !navigator.storage ||
-      typeof navigator.storage.persist !== 'function'
-    ) {
-      return false;
-    }
-    return await navigator.storage.persist();
-  } catch {
+  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) {
     return false;
   }
+  return navigator.storage.persist();
 }
 
 export const storageService = new IndexedDBStorageService();

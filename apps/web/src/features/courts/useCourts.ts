@@ -25,6 +25,7 @@ import type { CourtStationData } from './types';
 
 export interface UseCourtsOptions {
   roster: RosterPlayer[];
+  clubNightId?: string;
   initialPolicy?: RotationPolicy;
   onRosterChange?: () => Promise<void> | void;
 }
@@ -117,7 +118,9 @@ function mergeRosterPool(
 }
 
 export function useCourts(options: UseCourtsOptions): UseCourtsResult {
-  const { roster, onRosterChange, initialPolicy } = options;
+  const { roster, clubNightId, onRosterChange, initialPolicy } = options;
+  const clubNightIdRef = useRef<string>(clubNightId ?? 'default-club-night');
+  clubNightIdRef.current = clubNightId ?? 'default-club-night';
   const [courts, setCourts] = useState<CourtStationData[]>(DEFAULT_INITIAL_COURTS);
   const [activeScoreCourtId, setActiveScoreCourtId] = useState<number | null>(null);
   const [activeCustomMatchCourtId, setActiveCustomMatchCourtId] = useState<number | null>(null);
@@ -786,7 +789,7 @@ export function useCourts(options: UseCourtsOptions): UseCourtsResult {
       const pending = await storageService.getPendingMatches();
       const matchRecord: MatchRecord = {
         id: crypto.randomUUID(),
-        club_night_id: 'default-club-night',
+        club_night_id: clubNightIdRef.current,
         recorded_at: new Date().toISOString(),
         sequence_num: pending.length + 1,
         court_id: courtId,

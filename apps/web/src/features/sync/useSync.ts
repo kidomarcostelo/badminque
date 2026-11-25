@@ -8,6 +8,7 @@ export interface UseSyncParams {
   clubNightId: string;
   clubId?: string;
   options?: SyncOptions;
+  onBeforeSync?: () => Promise<void>;
 }
 
 export interface UseSyncReturn {
@@ -20,7 +21,12 @@ export interface UseSyncReturn {
   refreshPendingCount: () => Promise<void>;
 }
 
-export function useSync({ clubNightId, clubId, options }: UseSyncParams): UseSyncReturn {
+export function useSync({
+  clubNightId,
+  clubId,
+  options,
+  onBeforeSync,
+}: UseSyncParams): UseSyncReturn {
   const [isOnline, setIsOnline] = useState<boolean>(() => {
     if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
       return navigator.onLine;
@@ -56,6 +62,9 @@ export function useSync({ clubNightId, clubId, options }: UseSyncParams): UseSyn
     setSyncError(null);
 
     try {
+      if (onBeforeSync) {
+        await onBeforeSync();
+      }
       const result = await syncService.syncPendingMatches(clubNightId, {
         clubId,
         ...options,
@@ -71,7 +80,7 @@ export function useSync({ clubNightId, clubId, options }: UseSyncParams): UseSyn
     } finally {
       setIsSyncing(false);
     }
-  }, [clubNightId, clubId, options, refreshPendingCount]);
+  }, [clubNightId, clubId, options, onBeforeSync, refreshPendingCount]);
 
   // Initial read of pending count
   useEffect(() => {

@@ -65,6 +65,22 @@ export interface MatchRecord {
   status: SyncStatus;
 }
 
+export interface Club {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface ClubNightSession {
+  id: string;
+  club_id: string;
+  club_name: string;
+  date: string;
+  status: 'ACTIVE' | 'CLOSED';
+  created_at: string;
+  sync_status?: SyncStatus;
+}
+
 export interface CourtStation {
   court_id: number;
   name: string;

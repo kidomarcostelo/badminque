@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from badminque_api.config import settings
 from badminque_api.database import check_database_health
 from badminque_api.exceptions import BadminqueError
-from badminque_api.routers import claims, matches, players, sync
+from badminque_api.routers import claims, clubs, matches, players, sync
 from badminque_api.schemas.health import HealthResponse
 
 app = FastAPI(
@@ -22,6 +22,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.include_router(clubs.router, prefix=settings.api_prefix)
 app.include_router(players.router, prefix=settings.api_prefix)
 app.include_router(matches.router, prefix=settings.api_prefix)
 app.include_router(sync.router, prefix=settings.api_prefix)
