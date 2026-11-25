@@ -6,32 +6,42 @@ This document provides a single-source dashboard of all tasks, active decision t
 
 ## 🚀 Active Epics & In-Progress Work
 
-### Active Specification: Badminque MVP Implementation
-| Issue | Type | Status | Assignee / Branch | Deliverable / Notes |
+*All MVP Specification (#12) and DUBR System Specification (#23) implementation tickets are complete, verified, and closed. Ready for Phase 2 planning (PWA installability, zero-cost cloud deployment, or Future Backlog items below).*
+
+---
+
+## ✅ Completed Milestones & Deliverables
+
+### Spec: [Badminque MVP Implementation — Courtside Queueing, Offline Synchronization, and Universal Rating System](https://github.com/kidomarcostelo/badminque/issues/12) (#12 - CLOSED)
+*Objective: Complete club-first badminton rating and courtside match-tracking PWA + FastAPI engine operating offline within $0/month infrastructure tiers.*
+
+| Issue | Title | Status | Blocked By | Deliverable / Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **[#12 Spec: Badminque MVP Implementation](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec | 🟡 **Ready for Agent** | Unassigned | Parent MVP specification sliced into 8 tracer-bullet vertical tickets below. |
-| **[#23 Spec: DUBR Algorithm & System](https://github.com/kidomarcostelo/badminque/issues/23)** | Spec | 🟡 **Ready for Agent** | Unassigned | Canonical specification for DUBR: 2.000–7.000 decimal scale, 1-tap tier anchors, provisional dynamics, and cross-discipline prior seeding. |
+| **[#12](https://github.com/kidomarcostelo/badminque/issues/12)** | Spec: Badminque MVP Implementation | ✅ **Closed** | None | All 9 vertical tracer-bullet slices implemented and verified on `main`. |
+| **[#13](https://github.com/kidomarcostelo/badminque/issues/13)** | Foundational Workspace Scaffolding & CI Pipeline | ✅ **Done** | None | Turborepo / pnpm monorepo (Next.js PWA + FastAPI), Neon schema migrations, zero-cost CI pipeline on `feat/spec-12-mvp`. |
+| **[#14](https://github.com/kidomarcostelo/badminque/issues/14)** | Mathematical Rating Engine & Invariant Suite | ✅ **Done** | None | Pure Python domain rating calculation engine with Hypothesis property invariants ($R_S/R_D$, weak-link, MOV, decay) in `badminque_api/domain/rating/`. |
+| **[#15](https://github.com/kidomarcostelo/badminque/issues/15)** | Tricount-Style Roster Player Management & Offline Check-In | ✅ **Done** | None | Fast courtside player check-in, search/filter, guest creation with permanent UUIDs, IndexedDB persistence. |
+| **[#16](https://github.com/kidomarcostelo/badminque/issues/16)** | 3-Court Courtside Station Board with 30-Point Quick Scoring | ✅ **Done** | None | 3-court live grid, rolling independent match dispatch, 30-pt quick scoring presets, 4-player stamina step-off. |
+| **[#17](https://github.com/kidomarcostelo/badminque/issues/17)** | Automated Queue Dispatch & Multi-Policy Matchmaking Engine | ✅ **Done** | None | Priority score $Q(i)$, Fair Play, Split & Mix, Ladder, Flighted Tiers, On-Deck staging pool, Co-Pilot dispatch. |
+| **[#18](https://github.com/kidomarcostelo/badminque/issues/18)** | Touch-First Organizer Overrides, Pair Pinning & Edge Cases | ✅ **Done** | None | On-Deck Slot 3 custom staging, Custom Match Builder modal, player touch action sheet, locked pair $\max(t_a, t_b)$ anchoring, 1-match skip, and bypassed player wait preservation. |
+| **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | ✅ **Done** | None | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold on `feat/issue-19-offline-sync`. |
+| **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | ✅ **Done** | None | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
+| **[#28](https://github.com/kidomarcostelo/badminque/issues/28)** | Google Stitch Courtside Station UI & Offline Contract Mocking | ✅ **Done** | None | Google Stitch Silk Light Soft Depth UI transformation, 46px telemetry app bar, offline fixture factory seam, and demo data seeding on `feat/issue-28-stitch-ui`. |
 
-### Implementation Tickets (Tracer-Bullet Slices)
-| Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **[#13](https://github.com/kidomarcostelo/badminque/issues/13)** | Foundational Workspace Scaffolding & CI Pipeline | ✅ **Done** | None | Completed | Turborepo / pnpm monorepo (Next.js PWA + FastAPI), Neon schema migrations, zero-cost CI pipeline on `feat/spec-12-mvp`. |
-| **[#14](https://github.com/kidomarcostelo/badminque/issues/14)** | Mathematical Rating Engine & Invariant Suite | ✅ **Done** | None | Completed | Pure Python domain rating calculation engine with Hypothesis property invariants ($R_S/R_D$, weak-link, MOV, decay) in `badminque_api/domain/rating/`. |
-| **[#15](https://github.com/kidomarcostelo/badminque/issues/15)** | Tricount-Style Roster Player Management & Offline Check-In | ✅ **Done** | None | Completed | Fast courtside player check-in, search/filter, guest creation with permanent UUIDs, IndexedDB persistence. |
-| **[#16](https://github.com/kidomarcostelo/badminque/issues/16)** | 3-Court Courtside Station Board with 30-Point Quick Scoring | ✅ **Done** | None | Completed | 3-court live grid, rolling independent match dispatch, 30-pt quick scoring presets, 4-player stamina step-off. |
-| **[#17](https://github.com/kidomarcostelo/badminque/issues/17)** | Automated Queue Dispatch & Multi-Policy Matchmaking Engine | ✅ **Done** | None | Completed | Priority score $Q(i)$, Fair Play, Split & Mix, Ladder, Flighted Tiers, On-Deck staging pool, Co-Pilot dispatch. |
-| **[#18](https://github.com/kidomarcostelo/badminque/issues/18)** | Touch-First Organizer Overrides, Pair Pinning & Edge Cases | ✅ **Done** | None | Completed | On-Deck Slot 3 custom staging, Custom Match Builder modal, player touch action sheet, locked pair $\max(t_a, t_b)$ anchoring, 1-match skip, and bypassed player wait preservation. |
-| **[#19](https://github.com/kidomarcostelo/badminque/issues/19)** | Offline-First Synchronization & Idempotent Batch Upload | ✅ **Done** | None | Completed | IndexedDB sync queue, `POST /api/v1/sync/batch` with `ON CONFLICT (id) DO NOTHING`, chronological batch fold on `feat/issue-19-offline-sync`. |
-| **[#20](https://github.com/kidomarcostelo/badminque/issues/20)** | Tricount Account Claiming & Player Passport | ✅ **Done** | None | Completed | Single-use Claim Token QR codes (48h expiry), `auth_user_id` binding, Player Passport with $R_S/R_D$, windowed leaderboard. |
-| **[#28](https://github.com/kidomarcostelo/badminque/issues/28)** | Google Stitch Courtside Station UI & Offline Contract Mocking | ✅ **Done** | None | Completed | Google Stitch Silk Light Soft Depth UI transformation, 46px telemetry app bar, offline fixture factory seam, and demo data seeding on `feat/issue-28-stitch-ui`. |
+---
 
-### Implementation Tickets: DUBR Algorithm & System (Spec #23)
-| Issue | Title | Status | Blocked By | Frontier? | Deliverable / Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **[#24](https://github.com/kidomarcostelo/badminque/issues/24)** | Courtside Roster Check-In with 1-Tap Tier Anchor & DUBR Display | ✅ **Done** | None | Completed | 2.000–7.000 decimal DUBR mapping, 1-tap tier anchor pills (Beginner: 2.500, Intermediate: 3.500 [Default], Advanced: 4.500) in check-in modal & inline bar, 3-decimal DUBR display, and provisional badges. |
-| **[#25](https://github.com/kidomarcostelo/badminque/issues/25)** | Match Score Recording with DUBR Rating Delta Calculation | ✅ **Done** | None | Completed | Match score recording, logarithmic MOV multiplier, non-inversion enforcement, DUBR delta calculation, post-match outcome view, and offline batch sync fold. |
-| **[#26](https://github.com/kidomarcostelo/badminque/issues/26)** | Cross-Discipline Prior Seeding (Singles ↔ Doubles) | ✅ **Done** | None | Completed | Initial discipline baseline seeded from established counterpart (>= 8 matches), strict mathematical isolation on subsequent match updates, distinct provisional badges and seeded indicators on Player Passport. |
-| **[#27](https://github.com/kidomarcostelo/badminque/issues/27)** | Provisional-to-Established Milestone & Club Leaderboard | ✅ **Done** | None | Completed | Club leaderboard window ranking (`RANK() OVER`), provisional exclusion, collapsible Calibrating roster section, and 8th match graduation milestone. |
+### Spec: [DUBR (Dynamic Universal Badminton Rating) Algorithm & System](https://github.com/kidomarcostelo/badminque/issues/23) (#23 - CLOSED)
+*Objective: Canonical mathematical specification and vertical implementation for DUBR (2.000–7.000 decimal scale, 1-tap tier anchors, provisional calibration, cross-discipline prior seeding, and leaderboard gating).*
+
+| Issue | Title | Status | Blocked By | Deliverable / Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **[#23](https://github.com/kidomarcostelo/badminque/issues/23)** | Spec: DUBR Algorithm & System | ✅ **Closed** | None | All 4 DUBR system slices implemented and verified per [`docs/adr/0002-dubr-rating-algorithm.md`](docs/adr/0002-dubr-rating-algorithm.md). |
+| **[#24](https://github.com/kidomarcostelo/badminque/issues/24)** | Courtside Roster Check-In with 1-Tap Tier Anchor & DUBR Display | ✅ **Done** | None | 2.000–7.000 decimal DUBR mapping, 1-tap tier anchor pills (Beginner: 2.500, Intermediate: 3.500 [Default], Advanced: 4.500) in check-in modal & inline bar, 3-decimal DUBR display, and provisional badges. |
+| **[#25](https://github.com/kidomarcostelo/badminque/issues/25)** | Match Score Recording with DUBR Rating Delta Calculation | ✅ **Done** | None | Match score recording, logarithmic MOV multiplier, non-inversion enforcement, DUBR delta calculation, post-match outcome view, and offline batch sync fold. |
+| **[#26](https://github.com/kidomarcostelo/badminque/issues/26)** | Cross-Discipline Prior Seeding (Singles ↔ Doubles) | ✅ **Done** | None | Initial discipline baseline seeded from established counterpart (>= 8 matches), strict mathematical isolation on subsequent match updates, distinct provisional badges and seeded indicators on Player Passport. |
+| **[#27](https://github.com/kidomarcostelo/badminque/issues/27)** | Provisional-to-Established Milestone & Club Leaderboard | ✅ **Done** | None | Club leaderboard window ranking (`RANK() OVER`), provisional exclusion, collapsible Calibrating roster section, and 8th match graduation milestone. |
+
+---
 
 ### Standalone Architectural & Design Tasks
 | Issue | Type | Status | Deliverable / Notes |
@@ -41,8 +51,6 @@ This document provides a single-source dashboard of all tasks, active decision t
 | **[ADR 0003: Google Stitch Courtside Design System](docs/adr/0003-google-stitch-design-system.md)** | Architecture / Design | ✅ **Done** | Canonical design system adoption: Silk Light Soft Depth, MD3 surface containers, Plus Jakarta Sans + JetBrains Mono, dense 46px telemetry app bar, and tactile indigo action palette. Deliverables: [`prototypes/courtside-station-stitch.html`](prototypes/courtside-station-stitch.html) & [`docs/research/stitch-design-system-spec.md`](docs/research/stitch-design-system-spec.md). |
 
 ---
-
-## ✅ Completed Milestones & Deliverables
 
 ### Map: [Courtside Queueing, Rotation, and Matchmaking Engine](https://github.com/kidomarcostelo/badminque/issues/7) (#7 - CLOSED)
 *Objective: Complete architectural specification and interactive prototype for courtside doubles queueing, 3-court rotation policies (Fair Play, Split & Mix, Court Ladder, Flighted Tiers), player availability states, and organizer manual overrides.*
